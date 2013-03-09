@@ -1,0 +1,7 @@
+*.o
+sc
+psc
+scqref
+y.tab.h
+gram.c
+*res.h
