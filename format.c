@@ -89,15 +89,9 @@
 
 /*****************************************************************************/
 
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <time.h>
 #include "sc.h"
+#include <time.h>
 
-#define bool	int
-#define true	1
-#define false	0
 #define EOS	'\0'
 #define MAXBUF	256
 
@@ -111,8 +105,7 @@ char *colformat[COLFORMATS];
 
 /*****************************************************************************/
 
-bool
-format(char *fmt, int lprecision, double val, char *buf, int buflen)
+bool format (const char* cfmt, int lprecision, double val, char *buf, unsigned buflen)
 {
     register char *cp;
     char *tmp, *tp;
@@ -128,17 +121,17 @@ format(char *fmt, int lprecision, double val, char *buf, int buflen)
     char *fraction = NULL;
     int zero_pad = 0;
 
-    if (fmt == NULL)
+    if (cfmt == NULL)
 	return(true);
 
-    if (strlen(fmt) + 1 > fmtlen) {
-	fmtlen = strlen(fmt) + 40;
+    if (strlen(cfmt) + 1 > fmtlen) {
+	fmtlen = strlen(cfmt) + 40;
 	tmpfmt1 = scxrealloc(tmpfmt1, fmtlen);
 	tmpfmt2 = scxrealloc(tmpfmt2, fmtlen);
 	exptmp = scxrealloc(exptmp, fmtlen);
     }
-    fmt = strcpy(tmpfmt1, fmt);
-    if (buflen + 1 > mantlen) {
+    char* fmt = strcpy(tmpfmt1, cfmt);
+    if (buflen + 1u > mantlen) {
     	mantlen = buflen + 40;
 	mantissa = scxrealloc(mantissa, mantlen);
     }
@@ -256,8 +249,8 @@ format(char *fmt, int lprecision, double val, char *buf, int buflen)
 	}
 	zero_pad = strlen(decimal) - zero_pad;
     }
-    (void) sprintf(prtfmt, "%%.%dlf", width);
-    (void) sprintf(mantissa, prtfmt, val);
+    sprintf(prtfmt, "%%.%dlf", width);
+    sprintf(mantissa, prtfmt, val);
     for (cp = integer = mantissa; *cp != dpoint && *cp != EOS; cp++) {
 	if (*integer == '0')
 	    integer++;
@@ -282,7 +275,7 @@ format(char *fmt, int lprecision, double val, char *buf, int buflen)
     static	char *citmp = NULL, *cftmp = NULL;
     static	unsigned cilen = 0, cflen = 0;
     char *ci, *cf, *ce;
-    int len_ci, len_cf, len_ce;
+    unsigned len_ci, len_cf, len_ce;
     bool ret = false;
     
     ci = fmt_int(integer, fmt, comma, negative);
@@ -308,7 +301,7 @@ format(char *fmt, int lprecision, double val, char *buf, int buflen)
  *   ce = strcpy(scxmalloc((unsigned)((len_ce = strlen(ce)) + 1)), ce);
  */
     if (len_ci + len_cf + len_ce < buflen) {
-	(void) sprintf(buf, "%s%s%s", ci, cf, ce);
+	sprintf(buf, "%s%s%s", ci, cf, ce);
 	ret = true;
     }
 
@@ -345,7 +338,7 @@ fmt_int(char *val,	/* integer part of the value to be formatted */
  * format the value
  */
     f = strlen(fmt) - 1;
-    v = (digit >= 0) ? strlen(val) - 1 : -1;
+    v = (digit >= 0) ? (int)strlen(val)-1 : -1;
     while (f >= 0 || v >= 0) {
 	if (f > 0 && fmt[f-1] == '\\') {
 	    *bufptr++ = fmt[f--];
@@ -431,9 +424,9 @@ fmt_exp(int val,	/* value of the exponent */
 	val = -val;
 	negative = false;
     }
-    (void) sprintf(valbuf, "%d", val);
+    sprintf(valbuf, "%d", val);
   
-    (void) strcat(buf, fmt_int(valbuf, fmt, false, negative));
+    strcat(buf, fmt_int(valbuf, fmt, false, negative));
     return (buf);
 }
 
@@ -491,11 +484,10 @@ reverse(register char *buf)
 #define REFMTLDATE	4
 #endif
 
-bool
-engformat(int fmt, int width, int lprecision, double val, char *buf, int buflen)
+bool engformat (int fmt, int width, int lprecision, double val, char *buf, int buflen)
 {
 
-    static char *engmult[] = {
+    static const char* engmult[] = {
 	"-18", "-15", "-12", "-09", "-06", "-03",
 	"+00",
 	"+03", "+06", "+09", "+12", "+15", "+18"
@@ -507,12 +499,12 @@ engformat(int fmt, int width, int lprecision, double val, char *buf, int buflen)
     if (fmt >= 0 && fmt < COLFORMATS && colformat[fmt])
 	return (format(colformat[fmt], lprecision, val, buf, buflen));
     if (fmt == REFMTFIX)
-	(void) sprintf(buf,"%*.*f", width, lprecision, val);
+	sprintf(buf,"%*.*f", width, lprecision, val);
     if (fmt == REFMTFLT)
-	(void) sprintf(buf,"%*.*E", width, lprecision, val);
+	sprintf(buf,"%*.*E", width, lprecision, val);
     if (fmt == REFMTENG) {
 	if (val == 0e0) {	/* Hack to get zeroes to line up in engr fmt */
-	    (void) sprintf((buf-1),"%*.*f ", width, lprecision, val);
+	    sprintf((buf-1),"%*.*f ", width, lprecision, val);
 	} else {
 	    engabs = (val);
 	    if ( engabs <  0e0)       engabs = -engabs;
@@ -531,11 +523,11 @@ engformat(int fmt, int width, int lprecision, double val, char *buf, int buflen)
 	    if ((engabs >= 1e18)  && (engabs <  1e21 )) engind=12;
 	    if ((engabs < 1e-18)  || (engabs >= 1e21 )) {
 		/* Revert to floating point */
-		(void) sprintf(buf,"%*.*E", width, lprecision, val);
+		sprintf(buf,"%*.*E", width, lprecision, val);
 	    } else {
 		engexp = (double) (engind-6)*3;
 		engmant = val/pow(10.0e0,engexp);
-		(void) sprintf(buf,"%*.*fe%s", width-4,
+		sprintf(buf,"%*.*fe%s", width-4,
 			lprecision, engmant, engmult[engind]);
 	    }
 	}

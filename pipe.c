@@ -7,26 +7,10 @@
  *		$Revision: 7.16 $
  */
 
-#include <curses.h>
-#include <unistd.h>
 #include "sc.h"
-
-#ifdef BSD42
-#include <strings.h>
-#include <sys/time.h>
-#ifndef strchr
-#define strchr index
-#endif
-#else
 #include <time.h>
-#ifndef SYSIII
-#include <string.h>
-#endif
-#endif
 
-
-void
-getnum(int r0, int c0, int rn, int cn, int fd)
+void getnum(int r0, int c0, int rn, int cn, int fd)
 {
     struct ent	**pp;
     struct ent	*p;
@@ -36,12 +20,13 @@ getnum(int r0, int c0, int rn, int cn, int fd)
 	for (c = c0, pp = ATBL(tbl, r, c); c <= cn; pp++, c++) {
 	    *line = '\0';
 	    p = *pp;
-	    if (p)
+	    if (p) {
 		if (p->cellerror)
 		    sprintf(line, "%s", (*pp)->cellerror == CELLERROR ?
 			    "ERROR" : "INVALID");
 		else if (p->flags & is_valid)
 		    sprintf(line, "%.15g", p->v);
+	    }
 	    if (c < cn)
 		strcat(line, "\t");
 	    else
@@ -56,8 +41,7 @@ getnum(int r0, int c0, int rn, int cn, int fd)
     linelim = -1;
 }
 
-void
-fgetnum(int r0, int c0, int rn, int cn, int fd)
+void fgetnum(int r0, int c0, int rn, int cn, int fd)
 {
     struct ent	**pp;
     struct ent	*p;
@@ -189,8 +173,7 @@ getfmt(int r0, int c0, int rn, int cn, int fd)
     linelim = -1;
 }
 
-void
-getframe(int fd)
+void getframe (int fd)
 {
     struct frange *fr;
 
@@ -207,8 +190,7 @@ getframe(int fd)
     linelim = -1;
 }
 
-void
-getrange(char *name, int fd)
+void getrange (char *name, int fd)
 {
     struct range *r;
     char *p;
@@ -250,8 +232,7 @@ getrange(char *name, int fd)
     linelim = -1;
 }
 
-void
-doeval(struct enode *e, char *fmt, int row, int col, int fd)
+void doeval (struct enode *e, char *fmt, int row, int col, int fd)
 {
     double v;
 
@@ -275,8 +256,7 @@ doeval(struct enode *e, char *fmt, int row, int col, int fd)
     if (fmt) scxfree(fmt);
 }
 
-void
-doseval(struct enode *e, int row, int col, int fd)
+void doseval (struct enode *e, int row, int col, int fd)
 {
     char *s;
 
@@ -295,8 +275,7 @@ doseval(struct enode *e, int row, int col, int fd)
 }
 
 
-void
-doquery(char *s, char *data, int fd)
+void doquery (char *s, char *data, int fd)
 {
     goraw();
     query(s, data);
@@ -308,14 +287,13 @@ doquery(char *s, char *data, int fd)
 
     line[0] = '\0';
     linelim = -1;
-    error("");
+    error(" ");
     update(0);
 
     if (s) scxfree(s);
 }
 
-void
-dogetkey()
+void dogetkey (void)
 {
     int c, len;
 

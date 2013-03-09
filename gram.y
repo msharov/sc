@@ -15,18 +15,10 @@
 
 
 %{
-#include <curses.h>
-#include <stdlib.h>
 #include "sc.h"
-
 #ifdef USELOCALE
 #include <locale.h>
 #endif
-
-#ifndef MSDOS
-#include <unistd.h>
-#endif
-
 #define ENULL (struct enode *)0
 %}
 
@@ -962,13 +954,10 @@ command:	S_LET var_or_range '=' e
 	|	S_GETRANGE STRING	{ getrange($2, macrofd); }
 	|	S_GETRANGE STRING '|' NUMBER
 					{ getrange($2, $4); }
-	|	S_EVAL e		{ doeval($2, NULL, currow, curcol,
-						macrofd); }
-	|	S_EVAL e STRING		{ doeval($2, $3, currow, curcol,
-						macrofd); }
+	|	S_EVAL e		{ doeval($2, NULL, currow, curcol, macrofd); }
+	|	S_EVAL e STRING		{ doeval($2, $3, currow, curcol, macrofd); }
 	|	S_EVAL e STRING '|' NUMBER
-					{ doeval($2, $3, currow, curcol,
-						$3); }
+					{ doeval($2, $3, currow, curcol, macrofd); }
 	|	S_SEVAL e		{ doseval($2, currow, curcol, macrofd); }
 	|	S_QUERY STRING STRING	{ doquery($2, $3, macrofd); }
 	|	S_QUERY STRING STRING '|' NUMBER

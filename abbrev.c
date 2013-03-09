@@ -7,24 +7,16 @@
  *		$Revision: 7.16 $
  */
 
-#include <sys/types.h>
-#ifdef BSD42
-#include <strings.h>
-#else
-#ifndef SYSIII
-#include <string.h>
-#endif
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <ctype.h>
 #include "sc.h"
 
 static	struct abbrev *abbr_base;
 
-void
-add_abbr(char *string)
+static bool are_abbrevs (void)
+{
+    return (abbr_base != 0);
+}
+
+void add_abbr (char *string)
 {
     struct abbrev *a;
     register char *p;
@@ -43,23 +35,23 @@ add_abbr(char *string)
 	    struct abbrev *a;
 	    struct abbrev *nexta;
 
-	    (void) strcpy(px, "| ");
+	    strcpy(px, "| ");
 	    if (!(pager = getenv("PAGER")))
 		pager = DFLT_PAGER;
-	    (void) strcat(px, pager);
+	    strcat(px, pager);
 	    f = openfile(px, &pid, NULL);
 	    if (!f) {
 		error("Can't open pipe to %s", pager);
 		return;
 	    }
-	    (void) fprintf(f, "\n%-15s %s\n","Abbreviation","Expanded");
-	    if (!brokenpipe) (void) fprintf(f, "%-15s %s\n", "------------",
+	    fprintf(f, "\n%-15s %s\n","Abbreviation","Expanded");
+	    if (!brokenpipe) fprintf(f, "%-15s %s\n", "------------",
 		    "--------");
 
 	    for (a = nexta = abbr_base; nexta; a = nexta, nexta = a->a_next)
 		;
 	    while (a) {
-		(void) fprintf(f, "%-15s %s\n", a->abbr, a->exp);
+		fprintf(f, "%-15s %s\n", a->abbr, a->exp);
 		if (brokenpipe) return;
 		a = a->a_prev;
 	    }
@@ -87,7 +79,7 @@ add_abbr(char *string)
 	    }
     }
     
-    if (expansion == NULL)
+    if (!expansion) {
 	if ((a = find_abbr(string, strlen(string), &prev))) {
 	    error("abbrev \"%s %s\"", a->abbr, a->exp);
 	    return;
@@ -95,6 +87,7 @@ add_abbr(char *string)
 	    error("abreviation \"%s\" doesn't exist", string);
 	    return;
 	}
+    }
  
     if (find_abbr(string, strlen(string), &prev))
 	del_abbr(string);
@@ -122,7 +115,7 @@ void
 del_abbr(char *abbrev)
 {
     struct abbrev *a;
-    struct abbrev **prev;
+    struct abbrev **prev = NULL;
 
     if (!(a = find_abbr(abbrev, strlen(abbrev), prev))) 
 	return;
@@ -154,7 +147,7 @@ find_abbr(char *abbrev, int len, struct abbrev **prev)
 	    return (NULL);
 	*prev = a;
 	if (cmp == 0)
-	    if (!exact || strlen(a->abbr) == len)
+	    if (!exact || strlen(a->abbr) == (unsigned)len)
 		return (a);
     }
     return NULL;
@@ -168,13 +161,7 @@ write_abbrevs(FILE *f)
 
     for (a = nexta = abbr_base; nexta; a = nexta, nexta = a->a_next) /* */ ;
     while (a) {
-	(void) fprintf(f, "abbrev \"%s\" \"%s\"\n", a->abbr, a->exp);
+	fprintf(f, "abbrev \"%s\" \"%s\"\n", a->abbr, a->exp);
 	a = a->a_prev;
     }
-}
-
-int
-are_abbrevs()
-{
-    return (abbr_base != 0);
 }

@@ -4,32 +4,10 @@
  *	$Revision: 7.16 $
  */
 
-#include <sys/types.h>
-#ifdef BSD42
-#include <strings.h>
-#else
-#ifndef SYSIII
-#include <string.h>
-#endif
-#endif
-
-#include <signal.h>
-#include <curses.h>
-#include <ctype.h>
-#include <stdlib.h>
 #include "sc.h"
-
-#if defined(REGCOMP)
+#include <signal.h>
 #include <regex.h>
-#endif
-#if defined(RE_COMP)
-extern char *re_comp(char *s);
-extern char *re_exec(char *s);
-#endif
-#if defined(REGCMP)
-char *regcmp();
-char *regex();
-#endif
+#include <sys/wait.h>
 
 void doshell();
 void gohome();
@@ -39,10 +17,6 @@ void gototop();
 void gotobottom();
 
 #define istext(a) (isalnum(a) || ((a) == '_'))
-
-#define bool	int
-#define true	1
-#define false	0
 
 static void append_line();
 static void back_hist();
@@ -111,15 +85,9 @@ static int	endhist = -1;
 static int	histsessionstart = 0;
 static int	histsessionnew = 0;
 
-#ifdef REGCOMP
 static regex_t	preg;
 static regex_t	*last_search = NULL;
 static int	errcode;
-#else
-#ifndef RE_COMP
-static char	*last_search = NULL;
-#endif
-#endif
 static char	*undo_line = NULL;
 static int	undo_lim;
 static char	dotb[DOTLEN];
@@ -138,7 +106,7 @@ write_line(int c)
     struct frange *fr;
     struct crange *cr;
 
-    error("");
+    error(" ");
     if (c != ctl('i')) completethis = NULL;
     if (mode == EDIT_MODE) {
 	nosavedot = 0;
@@ -255,9 +223,7 @@ write_line(int c)
 	case (ctl('v')):	toggle_navigate_mode();			break;
 	case KEY_LEFT:
 	case (ctl('b')):	if (numeric_field) {
-				    if (linelim == strlen(line) &&
-					    (line[linelim - 1] == '+' ||
-					     line[linelim - 1] == '-')) {
+				    if ((unsigned) linelim == strlen(line) && (line[linelim - 1] == '+' || line[linelim - 1] == '-')) {
 					toggle_navigate_mode();
 					backcol(1);
 				    } else {
@@ -273,9 +239,7 @@ write_line(int c)
 				}   break;
 	case KEY_RIGHT:
 	case (ctl('f')):	if (numeric_field) {
-				    if (linelim == strlen(line) &&
-					    (line[linelim - 1] == '+' ||
-					     line[linelim - 1] == '-')) {
+				    if ((unsigned) linelim == strlen(line) && (line[linelim - 1] == '+' || line[linelim - 1] == '-')) {
 					toggle_navigate_mode();
 					forwcol(1);
 				    } else {
@@ -291,9 +255,7 @@ write_line(int c)
 				}   break;
 	case KEY_DOWN:
 	case (ctl('n')):	if (numeric_field) {
-				    if (linelim == strlen(line) &&
-					    (line[linelim - 1] == '+' ||
-					     line[linelim - 1] == '-')) {
+				    if ((unsigned) linelim == strlen(line) && (line[linelim - 1] == '+' || line[linelim - 1] == '-')) {
 					toggle_navigate_mode();
 					forwrow(1);
 				    } else {
@@ -309,9 +271,7 @@ write_line(int c)
 				}   break;
 	case KEY_UP:
 	case (ctl('p')):	if (numeric_field) {
-				    if (linelim == strlen(line) &&
-					    (line[linelim - 1] == '+' ||
-					     line[linelim - 1] == '-')) {
+				    if ((unsigned) linelim == strlen(line) && (line[linelim - 1] == '+' || line[linelim - 1] == '-')) {
 					toggle_navigate_mode();
 					backrow(1);
 				    } else {
@@ -354,7 +314,7 @@ write_line(int c)
 	savedot(c);
 	switch (c) {
 	case KEY_BACKSPACE:
-	case (ctl('h')):	if (linelim > strlen(undo_line))
+	case (ctl('h')):	if ((unsigned) linelim > strlen(undo_line))
 				    back_space();
 				else {
 				    linelim = back_line(1);
@@ -371,7 +331,7 @@ write_line(int c)
 	case (ctl('i')):	if (!showrange) {
 				    toggle_navigate_mode();
 				    startshow();
-				} else if (linelim == strlen(line) &&
+				} else if ((unsigned) linelim == strlen(line) &&
 					(line[linelim - 1] == '+' ||
 					line[linelim - 1] == '-' ||
 					(line[linelim - 1] == ' ' &&
@@ -394,7 +354,7 @@ write_line(int c)
 	case '-':		if (!showrange) {
 				    ins_string(v_name(currow, curcol));
 				    ins_in_line(c);
-				} else if (linelim == strlen(line) &&
+				} else if ((unsigned) linelim == strlen(line) &&
 					(line[linelim - 1] == '+' ||
 					line[linelim - 1] == '-' ||
 					(line[linelim - 1] == ' ' &&
@@ -421,8 +381,7 @@ write_line(int c)
 				    char temp[100];
 
 				    if (p && p->flags & is_valid) {
-					(void) sprintf(temp, "%.*f",
-						precision[curcol], p->v);
+					sprintf(temp, "%.*f", precision[curcol], p->v);
 					ins_string(temp);
 					toggle_navigate_mode();
 				    }
@@ -667,8 +626,7 @@ dotab()
     static struct range *nextmatch;
     int len;
 
-    if (linelim > 0 && isalnum(line[linelim-1]) || line[linelim-1] == '_' ||
-	    (completethis && line[linelim-1] == ' ')) {
+    if (linelim > 0 && (isalnum(line[linelim-1]) || line[linelim-1] == '_' || (completethis && line[linelim-1] == ' '))) {
 	if (!completethis) {
 	    for (completethis = line + linelim - 1; isalnum(*completethis) ||
 		    *completethis == '_'; completethis--) /* */;
@@ -715,7 +673,6 @@ void
 showdr()
 {
     int			minsr, minsc, maxsr, maxsc;
-    char		*p;
     char		r[12];
     struct frange	*fr = find_frange(currow, curcol);
 
@@ -830,8 +787,7 @@ u_save(int c)
 
 	undo_line = scxrealloc(undo_line, undolen);
     }
-    (void) strcpy(undo_line, line);
-
+    strcpy(undo_line, line);
     undo_lim = linelim;
 
     /* reset dot command if not processing it. */
@@ -860,7 +816,7 @@ restore_it()
 
     strcpy(tempc, line);
     tempi = linelim;
-    (void) strcpy(line, undo_line);
+    strcpy(line, undo_line);
     linelim = undo_lim;
     strcpy(undo_line, tempc);
     undo_lim = tempi;
@@ -872,14 +828,14 @@ stop_edit()
 {
     if (search_ind != ' ') {
 	search_ind = ' ';
-	(void) strcpy(line, history[0].histline);
+	strcpy(line, history[0].histline);
 	write_line('G');
     } else {
 	showrange = 0;
 	numeric_field = 0;
 	linelim = -1;
-	(void) move(1, 0);
-	(void) clrtoeol();
+	move(1, 0);
+	clrtoeol();
     }
 }
 
@@ -896,12 +852,12 @@ for_line(int arg, int stop_null)
 
     if (linelim < 0)
 	return (linelim);
-    else if (linelim + arg <= strlen(line))
+    else if (linelim + arg <= (int) strlen(line))
 	cpos += arg;
     else
 	cpos = strlen(line);
 
-    if (cpos == strlen(line) && cpos > 0 && !stop_null)
+    if (cpos == (int) strlen(line) && cpos > 0 && !stop_null)
 	return (cpos - 1);
     else
 	return (cpos);
@@ -919,7 +875,7 @@ for_word(int arg, int end_word, int big_word, int stop_null)
 
     cpos = linelim;
 
-    while (cpos < strlen(line) && arg--) {
+    while (cpos < (int) strlen(line) && arg--) {
 	if (end_word)
 	    cpos++;
 
@@ -1110,19 +1066,15 @@ doabbrev()
     }
 }
 
-static void
-append_line()
+static void append_line (void)
 {
-    register int i;
-
-    i = linelim;
+    int i = linelim;
     if (i >= 0 && line[i])
 	linelim++;
     insert_mode();
 }
 
-static void
-change_case(arg)
+static void change_case (int arg)
 {
     if (linelim < 0) {
     	linelim = 0;
@@ -1137,16 +1089,13 @@ change_case(arg)
     }
 }
 
-static void
-rep_char()
+static void rep_char (void)
 {
-    int c;
-
     if (linelim < 0) {
     	linelim = 0;
 	*line = '\0';
     }
-    c = vigetch();
+    int c = vigetch();
     savedot(c);
     if (c < 256 && c!= ESC && c != ctl('g')) {
 	if (line[linelim] == '\0')
@@ -1155,11 +1104,9 @@ rep_char()
     }
 }
 
-static void
-replace_in_line(int c)
+static void replace_in_line (int c)
 {
-    register int len;
-
+    int len;
     if (c < 256) {
 	if (linelim < 0) {
 	    linelim = 0;
@@ -1172,8 +1119,7 @@ replace_in_line(int c)
     }
 }
 
-static void
-back_space()
+static void back_space (void)
 {
     if (linelim == 0)
 	return;
@@ -1194,8 +1140,7 @@ back_space()
  * `ce', just as in vi.  Setting change to 0 causes `w' to act as usual.
  */
 
-int
-get_motion(int change)
+int get_motion (int change)
 {
     int c;
     int arg2 = 0;
@@ -1296,7 +1241,7 @@ cr_line()
     save_hist();
     nosavedot = 1;
     linelim = 0;
-    (void) yyparse();
+    yyparse();
     showrange = 0;
     linelim = -1;
     if (cellassign) {
@@ -1370,17 +1315,13 @@ cr_line()
     }
 }
 
-void
-doshell()
+void doshell (void)
 {
     /*
     *  "! command"  executes command
     *  "!"	forks a shell
     *  "!!" repeats last command
     */
-#if VMS || MSDOS
-    error("Not implemented on VMS or MS-DOS");
-#else /* VMS */
     char *shl;
     int pid, temp;
     char cmd[MAXCMD];
@@ -1390,38 +1331,37 @@ doshell()
 	shl = "/bin/sh";
 
     deraw(1);
-    (void) fputs("! ", stdout);
-    (void) fflush(stdout);
-    (void) fgets(cmd, MAXCMD, stdin);
+    fputs("! ", stdout);
+    fflush(stdout);
+    fgets(cmd, MAXCMD, stdin);
     cmd[strlen(cmd) - 1] = '\0';	/* clobber \n */
     if (strcmp(cmd,"!") == 0)		/* repeat? */
-	(void) strcpy(cmd, lastcmd);
+	strcpy(cmd, lastcmd);
     else
-	(void) strcpy(lastcmd, cmd);
+	strcpy(lastcmd, cmd);
 
     if (modflg) {
-	(void) puts("[No write since last change]");
-	(void) fflush(stdout);
+	puts("[No write since last change]");
+	fflush(stdout);
     }
 
     if (!(pid = fork())) {
-	(void) signal(SIGINT, SIG_DFL);  /* reset */
+	signal(SIGINT, SIG_DFL);  /* reset */
 	if (strlen(cmd))
-	    (void) execl(shl, shl, "-c", cmd, NULL);
+	    execl(shl, shl, "-c", cmd, NULL);
 	else
-	    (void) execl(shl, shl, NULL);
+	    execl(shl, shl, NULL);
 	exit (-127);
     }
 
     while (pid != wait(&temp));
 
-    (void) printf("Press any key to continue ");
+    printf("Press any key to continue ");
     fflush(stdout);
     cbreak();
-    (void)getch();
+    getch();
     goraw();
     clear();
-#endif /* VMS */
 }
 
 /* History functions */
@@ -1443,7 +1383,7 @@ save_hist()
 	    history[lasthist].histline = scxrealloc(history[lasthist].histline,
 		    history[lasthist].len);
 	}
-	(void) strcpy(history[lasthist].histline, line);
+	strcpy(history[lasthist].histline, line);
 	histsessionnew++;
     }
     if (history[0].histline) {
@@ -1468,13 +1408,13 @@ for_hist()
 	histp = histp % endhist + 1;
 
     if (lasthist >= 0) {
-	(void) strcpy(line, history[histp].histline);
+	strcpy(line, history[histp].histline);
 	last_col();
     }
     if (histp)
 	error("History line %d", endhist - lasthist + histp);
     else
-	error("");
+	error(" ");
 }
 
 static void
@@ -1486,7 +1426,7 @@ back_hist()
 	    history[0].histline = scxrealloc(history[0].histline,
 		    history[0].len);
 	}
-	(void) strcpy(history[0].histline, line);
+	strcpy(history[0].histline, line);
 
 	if (lasthist >= 0)
 	    histp = lasthist;
@@ -1497,32 +1437,23 @@ back_hist()
 	histp--;
 
     if (lasthist >= 0) {
-    	(void) strcpy(line, history[histp].histline);
+    	strcpy(line, history[histp].histline);
 	last_col();
     }
     if (histp)
 	error("History line %d", endhist - lasthist + histp);
     else
-	error("");
+	error(" ");
 }
 
-static void
-search_hist()
+static void search_hist (void)
 {
-#ifdef RECOMP
-    char	*tmp;
-#endif
-#if !defined(REGCOMP) && !defined(RE_COMP) && !defined(REGCMP)
-    static	unsigned lastsrchlen = 0;
-#endif
-
     if (linelim < 1) {
 	linelim = 0;
 	edit_mode();
 	return;
     }
 
-#ifdef REGCOMP
     if (last_search)
 	regfree(last_search);
     else
@@ -1534,29 +1465,7 @@ search_hist()
 	scxfree(tmp);
 	return;
     }
-#else
-#ifdef RE_COMP
-    if ((tmp = re_comp(line)) != NULL) {
-	error(tmp);
-	return;
-    }
-#else
-#ifdef REGCMP
-    free(last_search);
-    if ((last_search = regcmp(line, NULL)) == NULL) {
-	error("Invalid search string");
-	return;
-    }
-#else
-    if (strlen(line) + 1 > lastsrchlen) {
-    	lastsrchlen = strlen(line) + 40;
-	last_search = scxrealloc(last_search, lastsrchlen);
-    }
-    (void) strcpy(last_search, line);
-#endif
-#endif
-#endif
-    (void) strcpy(line, history[0].histline);
+    strcpy(line, history[0].histline);
     search_again(false);
     if (mode != EDIT_MODE) edit_mode();
     search_ind = ' ';
@@ -1567,36 +1476,24 @@ search_again(bool reverse)
 {
     int prev_match;
     int found_it;
-#if !defined(REGCOMP) && !defined(RE_COMP) && !defined(REGCMP)
-    char *look_here;
-    int do_next;
-#endif
-
-#ifdef REGCOMP
     if ((last_search == NULL))
 	return;
-#else
-#ifndef RE_COMP
-    if ((last_search == NULL) || (*last_search == '\0'))
-	return;
-#endif
-#endif
     prev_match = histp > 0 ? histp : 0;
-    error("");
+    error(" ");
 
     do {
 	if (lasthist > 0) {
 	    if (!(search_dir ^ reverse) && histp != lasthist)
 		if (histp <= 0) {
 		    histp = ((lasthist + 1) % endhist);
-		    (void) strcpy(line, history[histp].histline);
+		    strcpy(line, history[histp].histline);
 		} else
 		    for_hist();
 	    else if ((search_dir ^ reverse) && histp != ((lasthist + 1) % endhist))
 		back_hist();
 	    else {
 		histp = 0;
-		(void) strcpy(line, history[0].histline);
+		strcpy(line, history[0].histline);
 		last_col();
 	    }
 	} else
@@ -1612,36 +1509,11 @@ search_again(bool reverse)
 		back_hist();
 	    else
 		histp = ((lasthist + 1) % endhist);
-		(void) strcpy(line, history[histp].histline);
+		strcpy(line, history[histp].histline);
 	}
 	found_it = 0;
-#ifdef REGCOMP
 	if (regexec(last_search, line, 0, NULL, 0) == 0)
 	    found_it++;
-#else
-#ifdef RE_COMP
-	if (re_exec(line) != 0)
-	    found_it++;
-#else
-#ifdef REGCMP
-	if (regex(last_search, line) != NULL)
-	    found_it++;
-#else
-	look_here = line;
-	do_next = 0;
-	while ((look_here = (char *)strchr(look_here, *last_search)) != NULL &&
-		!found_it && !do_next) {
-
-	    if (strncmp(look_here, last_search, strlen(last_search)) == 0)
-		found_it++;
-	    else if (look_here < line + strlen(line) - 1)
-	        look_here++;
-	    else
-		do_next++;
-	}
-#endif
-#endif
-#endif
 	if (histp == prev_match)
 	    break;
     } while (!found_it);
@@ -1763,7 +1635,7 @@ to_char(int arg, int n)
     register int i;
     int tmp = linelim;
 
-    if (linelim + n >= 0 && linelim + n < strlen(line))
+    if (linelim + n >= 0 && linelim + n < (int) strlen(line))
 	linelim += n;
     i = find_char(arg, n);
     if (i != linelim)
@@ -1777,7 +1649,6 @@ to_char(int arg, int n)
 static void
 match_paren()
 {
-    register int i;
     int nest = 1;
     int tmp = linelim;
 
@@ -2040,12 +1911,12 @@ query(char *s, char *data)
 	update(0);
 	switch (c = nmgetch()) {
 	    case ctl('m'):
-		error("");
+		error(" ");
 		return;
 	    case ctl('g'):
 		line[0] = '\0';
 		linelim = -1;
-		error("");
+		error(" ");
 		update(0);
 		return;
 	    case ctl('l'):

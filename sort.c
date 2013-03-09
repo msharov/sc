@@ -7,18 +7,6 @@
  *		$Revision: 7.16 $
  */
 
-#include <sys/types.h>
-#ifdef BSD42
-#include <strings.h>
-#else
-#ifndef SYSIII
-#include <string.h>
-#endif
-#endif
-
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
 #include "sc.h"
 
 int compare(const void *row1, const void *row2);

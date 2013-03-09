@@ -10,9 +10,17 @@
  *
  */
 
-#ifdef MSDOS
+#define _GNU_SOURCE
 #include <stdio.h>
-#endif
+#include <fcntl.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <curses.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <ctype.h>
+#include <string.h>
+#include <time.h>
 
 #define	ATBL(tbl, row, col)	(*(tbl + row) + (col))
 
@@ -43,7 +51,7 @@
 #ifdef PSC
 # define error(msg)	fprintf(stderr, msg);
 #else
-# define error isatty(fileno(stdout)) && !move(1,0) && !clrtoeol() && printw
+# define error(...)	do { if (isatty(STDOUT_FILENO)) { move(1,0); clrtoeol(); printw(__VA_ARGS__); } else fprintf (stderr, __VA_ARGS__); } while (0)
 #endif
 #define	FBUFLEN	1024	/* buffer size for a single field */
 #define	PATHLEN	1024	/* maximum path length */
@@ -65,8 +73,8 @@
 
 #if !defined(attr_get) || defined(NCURSES_VERSION) && NCURSES_VERSION_MAJOR < 5
 #undef attr_get
-#define attr_get(a, p, o)	((void)((a) != 0 && (*(a) = stdscr->_attrs)), \
-				(void)((p) != 0 && \
+#define attr_get(a, p, o)	(((a) != 0 && (*(a) = stdscr->_attrs)), \
+				((p) != 0 && \
 				(*(p) = PAIR_NUMBER(stdscr->_attrs))), OK)
 #endif
 
@@ -304,7 +312,7 @@ struct go_save {
 #define is_deleted   0020
 #define is_locked    0040
 #define is_label     0100
-#define is_cleared   0200
+#define is_cell_cleared   0200
 #define may_sync     0400
 
 /* cell error (1st generation (ERROR) or 2nd+ (INVALID)) */
@@ -379,6 +387,7 @@ extern	int brokenpipe;		/* Set to true if SIGPIPE is received */
 extern  char dpoint;	/* country-dependent decimal point from locale */
 extern  char thsep;	/* country-dependent thousands separator from locale */
 
+extern	void add_abbr (char *string);
 extern	FILE *openfile(char *fname, int *rpid, int *rfd);
 extern	char *coltoa(int col);
 extern	char *findplugin(char *ext, char type);
@@ -394,17 +403,14 @@ extern	int are_colors();
 extern	int are_frames();
 extern	int are_ranges();
 extern	int atocol(char *string, int len);
-extern	int creadfile(char *save, int  eraseflg);
-extern	int cwritefile(char *fname, int r0, int c0, int rn, int cn);
-extern	int engformat(int fmt, int width, int lprecision, double val,
-	char *buf, int buflen);
+extern	bool engformat (int fmt, int width, int lprecision, double val, char *buf, int buflen);
 extern	int etype(register struct enode *e);
 extern	int find_range(char *name, int len, struct ent *lmatch,
 	struct ent *rmatch, struct range **rng);
-extern	int format(char *fmt, int lprecision, double val, char *buf,
-	int buflen);
+extern	bool format(const char *fmt, int lprecision, double val, char *buf, unsigned buflen);
 extern	int get_rcqual(int ch);
 extern	int growtbl(int rowcol, int toprow, int topcol);
+extern	void list_frames (FILE *f);
 extern	int locked_cell(int r, int c);
 extern	int modcheck(char *endstr);
 extern	int nmgetch();
@@ -461,6 +467,9 @@ extern	void duprow();
 extern	void doquery(char *s, char *data, int fd);
 extern	void dostat(int fd);
 extern	void dotick(int tick);
+extern	void doeval (struct enode *e, char *fmt, int row, int col, int fd);
+extern	void doseval (struct enode *e, int row, int col, int fd);
+extern	void dogetkey (void);
 extern	void editexp(int row, int col);
 extern	void editfmt(int row, int col);
 extern	void edit_mode();
@@ -487,10 +496,13 @@ extern	void free_ent(register struct ent *p, int unlock);
 extern	void getexp(int r0, int c0, int rn, int cn, int fd);
 extern	void getfmt(int r0, int c0, int rn, int cn, int fd);
 extern	void getformat(int col, int fd);
+extern	void getframe (int fd);
+extern	void getrange (char *name, int fd);
 extern	void getnum(int r0, int c0, int rn, int cn, int fd);
 extern	void getstring(int r0, int c0, int rn, int cn, int fd);
 extern	void go_last();
 extern	void goraw();
+extern	void gotonote (void);
 extern	void help();
 extern	void hide_col(int arg);
 extern	void hide_row(int arg);
@@ -508,6 +520,9 @@ extern	void label(register struct ent *v, register char *s, int flushdir);
 extern	void let(struct ent *v, struct enode *e);
 extern	void list_colors(FILE *f);
 extern	void list_ranges(FILE *f);
+extern	void ljustify (int sr, int sc, int er, int ec);
+extern	void rjustify (int sr, int sc, int er, int ec);
+extern	void center (int sr, int sc, int er, int ec);
 extern	void lock_cells(struct ent *v1, struct ent *v2);
 extern	void markcell();
 extern	void move_area(int dr, int dc, int sr, int sc, int er, int ec);
@@ -534,7 +549,7 @@ extern	void showrow(int r1, int r2);
 extern	void showstring(char *string, int dirflush, int hasvalue, int row,
 	int col, int *nextcolp, int mxcol, int *fieldlenp, int r, int c,
 	struct frange *fr, int frightcols, int flcols, int frcols);
-extern	void signals();
+extern	void signals (void);
 extern	void slet(struct ent *v, struct enode *se, int flushdir);
 extern	void sortrange(struct ent *left, struct ent *right, char *criteria);
 extern	void startshow();
@@ -560,6 +575,9 @@ extern	void write_hist();
 extern	void write_line(int c);
 extern	void write_ranges(FILE *f);
 extern	void yank_area(int sr, int sc, int er, int ec);
+extern	void yankr(struct ent *v1, struct ent *v2);
+extern	void yankcol (int arg);
+extern	void yankrow (int arg);
 extern	void yyerror(char *err);
 extern	int yylex();
 extern	int yyparse();
@@ -568,9 +586,6 @@ extern	int backup_file(char *path);
 #endif
 
 extern	int modflg;
-#if !defined(VMS) && !defined(MSDOS) && defined(CRYPT_PATH)
-extern	int Crypt;
-#endif
 extern	char *mdir;
 extern	char *autorun;
 extern	int skipautorun;

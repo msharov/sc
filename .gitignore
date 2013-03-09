@@ -5,3 +5,6 @@ scqref
 y.tab.h
 gram.c
 *res.h
+qhelp.c
+pxmalloc.c
+pvmtbl.c

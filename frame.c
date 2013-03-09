@@ -7,17 +7,6 @@
  *		$Revision: 7.16 $
  */
 
-#include <sys/types.h>
-#ifdef BSD42
-#include <strings.h>
-#else
-#ifndef SYSIII
-#include <string.h>
-#endif
-#endif
-
-#include <stdio.h>
-#include <ctype.h>
 #include "sc.h"
 
 static struct frange *frame_base;
@@ -204,8 +193,7 @@ write_franges(FILE *f)
     }
 }
 
-void
-list_frames(FILE *f)
+void list_frames (FILE *f)
 {
     register struct frange *r;
     register struct frange *nextr;
@@ -215,9 +203,9 @@ list_frames(FILE *f)
 	return;
     }
 
-    (void) fprintf(f, "  %-30s %s\n","Outer Range","Inner Range");
+    fprintf(f, "  %-30s %s\n","Outer Range","Inner Range");
     if (!brokenpipe)
-	(void) fprintf(f, "  %-30s %s\n","-----------","-----------");
+	fprintf(f, "  %-30s %s\n","-----------","-----------");
 
     for (r = nextr = frame_base; nextr; r = nextr, nextr = r->r_next) /* */ ;
     while (r) {

@@ -82,17 +82,6 @@ FLOAT_STORE=-ffloat-store
 #RINT=-DRINT
 RINT=
 
-# If your system supports POSIX.2 regular expressions, REGEX should be
-# set to -DREGCOMP.  Otherwise, set REGEX to -DREGCMP if you have the
-# regcmp/regex regular expression routines (most System V based systems
-# do) or to -DRE_COMP if you have the re_comp/re_exec regular expression
-# routines (most BSD based systems do).  If your system has no support for
-# regular expressions, leave REGEX unset.
-#REGEX=
-#REGEX=-DREGCMP
-#REGEX=-DRE_COMP
-REGEX=-DREGCOMP
-
 # This is the name of a pager like "more".
 # "pg" may be appropriate for SYSV.
 #DFLT_PAGER=-DDFLT_PAGER=\"more\"	# generic && reno
@@ -336,21 +325,21 @@ CC=gcc
 # real effect on the reliability of the program, but may concern some
 # people who don't understand them.
 #CFLAGS=-DSYSV3 -O2 -Wall -pipe
-CFLAGS=-DSYSV3 -O2 -pipe
+CFLAGS=-DSYSV3 -Wall -Wextra -Os -std=c11
 LIB=-lm -lncurses
 
 # All of the source files
-SRC=Makefile abbrev.c cmds.c color.c crypt.c eres.sed frame.c format.c gram.y \
+SRC=Makefile abbrev.c cmds.c color.c eres.sed frame.c format.c gram.y \
 	help.c interp.c lex.c pipe.c psc.c range.c sc.c sc.h screen.c sort.c \
 	sres.sed version.c vi.c vmtbl.c xmalloc.c
 
 # The objects
-OBJS=abbrev.o cmds.o color.o crypt.o format.o frame.o gram.o help.o interp.o \
+OBJS=abbrev.o cmds.o color.o format.o frame.o gram.o help.o interp.o \
 	lex.o pipe.o range.o sc.o screen.o sort.o version.o vi.o vmtbl.o \
 	xmalloc.o
 
 # The documents in the Archive
-DOCS=CHANGES README sc.doc psc.doc tutorial.sc VMS_NOTES torev build.com
+DOCS=doc/sc.doc doc/psc.doc doc/tutorial.sc doc/torev
 
 all:	$(name) p$(name) $(name)qref
 
@@ -406,9 +395,6 @@ cmds.o: cmds.c sc.h
 	$(CC) ${CFLAGS} ${DOBACKUPS} ${CRYPT} -c cmds.c
 
 color.o: color.c sc.h
-
-crypt.o: crypt.c sc.h
-	$(CC) ${CFLAGS} ${CRYPT} ${DOBACKUPS} -c crypt.c
 
 format.o: format.c
 
@@ -469,10 +455,10 @@ shar: ${SRC} ${DOCS}
 sshar: ${SRC}
 	shar -c -m 1000000 -f shar ${SRC}
 
-lint: sc.h sc.c lex.c gram.c interp.c cmds.c color.c crypt.c frame.c pipe.c \
+lint: sc.h sc.c lex.c gram.c interp.c cmds.c color.c frame.c pipe.c \
 	range.c help.c vi.c version.c xmalloc.c format.c vmtbl.c
 	lint ${LINTFLAGS} ${CFLAGS} ${SIMPLE} sc.c lex.c gram.c interp.c \
-	cmds.c color.c crypt.c frame.c pipe.c range.c help.c vi.c version.c \
+	cmds.c color.c frame.c pipe.c range.c help.c vi.c version.c \
 	xmalloc.c format.c vmtbl.c -lcurses -lm 
 	make lintqref
 
@@ -482,14 +468,14 @@ lintqref: help.c
 lintpsc: psc.c vmtbl.c
 	lint ${LINTFLAGS} ${CFLAGS} ${SIMPLE} -DPSC psc.c vmtbl.c
 
-$(name).1:	sc.doc torev
-	name=$(name) NAME=$(NAME) LIBDIR=$(LIBDIR) sh torev sc.doc > $(name).1
+$(name).1:	doc/sc.doc doc/torev
+	name=$(name) NAME=$(NAME) LIBDIR=$(LIBDIR) sh doc/torev doc/sc.doc > $(name).1
 
 $(name).man:	$(name).1
 	nroff -man $(name).1 > $(name).man
 
-p$(name).1:	psc.doc torev
-	name=$(name) NAME=$(NAME) LIBDIR=$(LIBDIR) sh torev psc.doc > p$(name).1
+p$(name).1:	doc/psc.doc doc/torev
+	name=$(name) NAME=$(NAME) LIBDIR=$(LIBDIR) sh doc/torev doc/psc.doc > p$(name).1
 
 p$(name).man:	p$(name).1
 	nroff -man p$(name).1 > p$(name).man
@@ -510,9 +496,9 @@ $(EXDIR)/p$(name): p$(name)
 	cp p$(name) $(EXDIR)
 	strip $(EXDIR)/p$(name)
 
-$(LIBDIR)/tutorial: tutorial.sc $(LIBDIR)
+$(LIBDIR)/tutorial: doc/tutorial.sc $(LIBDIR)
 	-mkdir -p $(LIBDIR)/plugins
-	cp tutorial.sc $(LIBDIR)/tutorial.$(name)
+	cp doc/tutorial.sc $(LIBDIR)/tutorial.$(name)
 	chmod $(MANMODE) $(LIBDIR)/tutorial.$(name)
 
 $(LIBDIR):

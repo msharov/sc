@@ -12,26 +12,14 @@
  */
 
 
-#include <curses.h>
-#include <time.h>
 #include "sc.h"
-
-#ifndef MSDOS
-#include <unistd.h>
-#endif
 
 #ifdef VMS
 extern int VMS_read_raw;   /*sigh*/
     VMS_read_raw = 1;
 #endif
 
-#ifdef BROKENCURSES
-		/* nl/nonl bug fix */
-#undef nl
-#undef nonl
-#define nl()	 (_tty.sg_flags |= CRMOD,_pfast = _rawmode,stty(_tty_ch, &_tty))
-#define nonl()	 (_tty.sg_flags &= ~CRMOD, _pfast = TRUE, stty(_tty_ch, &_tty))
-#endif
+#pragma GCC diagnostic ignored "-Waddress"	// curses addr_get has a superfluous NULL comparison
 
 void	repaint(int x, int y, int len, int attron, int attroff);
 
@@ -234,11 +222,12 @@ update(int anychanged)		/* did any cell really change in value? */
 	    i = stcol;
 	    lcols = 0;
 	    col = rescol + frcols;
-	    if (fr && stcol >= fr->or_left->col)
+	    if (fr && stcol >= fr->or_left->col) {
 		if (stcol < fr->ir_left->col)
 		    i = fr->or_left->col;
 		else
 		    col += flcols;
+	    }
 	    for (; (col + fwidth[i] < cols-1 || col_hidden[i] || i < curcol) &&
 		    i < maxcols; i++) {
 		lcols++;
@@ -328,13 +317,13 @@ update(int anychanged)		/* did any cell really change in value? */
 	    i = stcol;
 	    lcols = 0;
 	    col = rescol + frcols;
-	    if (fr && stcol >= fr->or_left->col)
+	    if (fr && stcol >= fr->or_left->col) {
 		if (stcol < fr->ir_left->col)
 		    i = fr->or_left->col;
 		else
 		    col += flcols;
-	    for (; (col + fwidth[i] < cols-1 || col_hidden[i] || i < curcol) &&
-		    i < maxcols; i++) {
+	    }
+	    for (; (col + fwidth[i] < cols-1 || col_hidden[i] || i < curcol) && i < maxcols; i++) {
 		lcols++;
 		if (fr && i == fr->ir_right->col + 1) {
 		    col -= frcols;
@@ -377,13 +366,13 @@ update(int anychanged)		/* did any cell really change in value? */
 	    i = strow;
 	    rows = 0;
 	    row = RESROW + fbrows;
-	    if (fr && strow >= fr->or_left->row)
+	    if (fr && strow >= fr->or_left->row) {
 		if (strow < fr->ir_left->row)
 		    i = fr->or_left->row;
 		else
 		    row += ftrows;
-	    for (; (row < lines || row_hidden[i] || i < currow) && i < maxrows;
-		    i++) {
+	    }
+	    for (; (row < lines || row_hidden[i] || i < currow) && i < maxrows; i++) {
 		rows++;
 		if (fr && i == fr->ir_right->row + 1) {
 		    row -= fbrows;
@@ -460,13 +449,13 @@ update(int anychanged)		/* did any cell really change in value? */
 	    i = strow;
 	    rows = 0;
 	    row = RESROW + fbrows;
-	    if (fr && strow >= fr->or_left->row)
+	    if (fr && strow >= fr->or_left->row) {
 		if (strow < fr->ir_left->row)
 		    i = fr->or_left->row;
 		else
 		    row += ftrows;
-	    for (; (row < lines || row_hidden[i] || i < currow) && i < maxrows;
-		    i++) {
+	    }
+	    for (; (row < lines || row_hidden[i] || i < currow) && i < maxrows; i++) {
 		rows++;
 		if (fr && i == fr->ir_right->row + 1) {
 		    row -= fbrows;
@@ -519,10 +508,10 @@ update(int anychanged)		/* did any cell really change in value? */
 	    repaint(lastmx, lastmy, fwidth[lastcol], 0, A_STANDOUT);
 	}
 
-	(void) move(lastmy, lastmx+fwidth[lastcol]);
+	move(lastmy, lastmx+fwidth[lastcol]);
 
 	if ((inch() & A_CHARTEXT) == '<')
-	    (void) addch(under_cursor | (inch() & A_ATTRIBUTES));
+	    addch(under_cursor | (inch() & A_ATTRIBUTES));
 
 	repaint(lastmx, RESROW - 1, fwidth[lastcol], A_STANDOUT, 0);
 	repaint(0, lastmy, rescol - 1, A_STANDOUT, 0);
@@ -566,9 +555,9 @@ update(int anychanged)		/* did any cell really change in value? */
 	color_set(1, NULL);
 
     if (FullUpdate || standlast) {
-	(void) move(2, 0);
-	(void) clrtobot();
-	(void) standout();
+	move(2, 0);
+	clrtobot();
+	standout();
 
 	for (row = RESROW, i = (ftoprows && strow >= fr->or_left->row ?
 		fr->or_left->row : strow);
@@ -580,8 +569,8 @@ update(int anychanged)		/* did any cell really change in value? */
 		i = fr->or_right->row - fbottomrows + 1;
 	    if (row_hidden[i]) 
 		continue;
-	    (void) move(row, 0);
-	    (void) printw("%*d", rescol - 1, i);
+	    move(row, 0);
+	    printw("%*d", rescol - 1, i);
 	    row++;
 	}
 #ifdef RIGHT_CBUG
@@ -590,8 +579,8 @@ update(int anychanged)		/* did any cell really change in value? */
 	    wasforw = 0;
 	}
 #endif
-	(void) move(2, 0);
-	(void) printw("%*s", rescol, " ");
+	move(2, 0);
+	printw("%*s", rescol, " ");
 
 	for (col = rescol, i = (fleftcols && stcol >= fr->or_left->col ?
 		fr->or_left->col : stcol);
@@ -605,20 +594,20 @@ update(int anychanged)		/* did any cell really change in value? */
 		i = fr->or_right->col - frightcols + 1;
 	    if (col_hidden[i])
 		continue;
-	    (void) move(2, col);
+	    move(2, col);
 	    k = (fwidth[i] - strlen(coltoa(i)))/2;
 	    if (fwidth[i] == 1)
-		(void) printw("%1s", coltoa(i%26));
+		printw("%1s", coltoa(i%26));
 	    else if (braille)
-	        (void) printw("%-*s", fwidth[i], coltoa(i));
+	        printw("%-*s", fwidth[i], coltoa(i));
 	    else
-	        (void) printw("%*s%-*s", k, "", fwidth[i]-k, coltoa(i));
+	        printw("%*s%-*s", k, "", fwidth[i]-k, coltoa(i));
 	    col += fwidth[i];
 	}
-	(void) standend();
+	standend();
     }
 
-    (void) move(1, 0);
+    move(1, 0);
     message = (inch() & A_CHARTEXT) != ' ';
     if (showrange) {
 	if (showrange == SHOWROWS) {
@@ -628,8 +617,8 @@ update(int anychanged)		/* did any cell really change in value? */
 	    maxsc = fr ? fr->or_right->col : maxcols;
 
 	    if (showtop && !message) {
-		(void) clrtoeol();
-		(void) printw("Default range:  %d:%d", minsr, maxsr);
+		clrtoeol();
+		printw("Default range:  %d:%d", minsr, maxsr);
 	    }
 	} else if (showrange == SHOWCOLS) {
 	    minsr = 0;
@@ -643,8 +632,8 @@ update(int anychanged)		/* did any cell really change in value? */
 		strcpy(r, coltoa(minsc));
 		strcat(r, ":");
 		strcat(r, coltoa(maxsc));
-		(void) clrtoeol();
-		(void) printw("Default range:  %s", r);
+		clrtoeol();
+		printw("Default range:  %s", r);
 	    }
 	} else {
 	    minsr = showsr < currow ? showsr : currow;
@@ -653,14 +642,14 @@ update(int anychanged)		/* did any cell really change in value? */
 	    maxsc = showsc > curcol ? showsc : curcol;
 
 	    if (showtop && !message) {
-		(void) clrtoeol();
-		(void) printw("Default range:  %s",
+		clrtoeol();
+		printw("Default range:  %s",
 			    r_name(minsr, minsc, maxsr, maxsc));
 	    }
 	}
     } else if (braille && braillealt && !message && mode_ind == 'v') {
-	(void) clrtoeol();
-	(void) printw("Current cell:   %s%d ", coltoa(curcol), currow);
+	clrtoeol();
+	printw("Current cell:   %s%d ", coltoa(curcol), currow);
     }
 
     /* Repaint the visible screen */
@@ -728,14 +717,14 @@ update(int anychanged)		/* did any cell really change in value? */
 		    || (showexpr && (*pp) && ((*pp)->expr))
 		    || (shownote && (*pp) && ((*pp)->nrow >= 0))) {
 
-		(void) move(r, c);
-		(void) standout();
+		move(r, c);
+		standout();
 		if (color && has_colors() && (cr = find_crange(row, col)))
 		    color_set(cr->r_color, NULL);
 		standlast++;
 		if (!*pp) {	/* no cell, but standing out */
-		    (void) printw("%*s", fwidth[col], " ");
-		    (void) standend();
+		    printw("%*s", fwidth[col], " ");
+		    standend();
 		    if (color && has_colors())
 			color_set(1, NULL);
 		    continue;
@@ -752,7 +741,7 @@ update(int anychanged)		/* did any cell really change in value? */
 		if (do_stand) {
 		    (*pp)->flags |= is_changed; 
 		} else {
-		    (void) move(r, c);
+		    move(r, c);
 		    (*pp)->flags &= ~is_changed;
 		}
 
@@ -763,7 +752,7 @@ update(int anychanged)		/* did any cell really change in value? */
 		if ((*pp)->cellerror) {
 		    if (color && colorerr && has_colors())
 			color_set(3, NULL);
-		    (void) printw("%*.*s", fwidth[col], fwidth[col],
+		    printw("%*.*s", fwidth[col], fwidth[col],
 			(*pp)->cellerror == CELLERROR ? "ERROR" : "INVALID");
 		} else
 		if (showexpr && ((*pp)->expr)) {
@@ -801,52 +790,48 @@ update(int anychanged)		/* did any cell really change in value? */
 				strftime(field, sizeof(field),
 					cfmt + 1, localtime(&v));
 			    } else
-				(void) format(cfmt, precision[col], (*pp)->v,
+				format(cfmt, precision[col], (*pp)->v,
 					field, sizeof(field));
 			} else {
-			    (void) engformat(realfmt[col], fwidth[col] - note,
+			    engformat(realfmt[col], fwidth[col] - note,
 				    precision[col], (*pp)->v, 
 				    field, sizeof(field));
 			}
-			if (strlen(field) > fwidth[col]) {
+			if (strlen(field) > (unsigned) fwidth[col]) {
 			    for (i = 0; i < fwidth[col]; i++) {
 				if (note) {
 				    attr_t attr;
-				    short curcolor;
+				    short curcolor = 0;
 				    if (!i && color && has_colors()) {
 					attr_get(&attr, &curcolor, NULL);
 					color_set(4, NULL);
 				    }
-				    (void)addch('*');
-				    i++;
+				    addch('*');
 				    if (!i && color && has_colors())
 					color_set(curcolor, NULL);
+				    i++;
 				}
-				(void)addch('*');
+				addch('*');
 			    }
 			} else {
 			    if (cfmt && *cfmt != ctl('d'))
-				for (i = 0;
-					i < fwidth[col] - strlen(field) - note;
-					i++)
-				    (void)addch(' ');
+				for (i = 0; i < (int)(fwidth[col] - strlen(field) - note); i++)
+				    addch(' ');
 			    if (note) {
 				attr_t attr;
-				short curcolor;
+				short curcolor = 0;
 				if (color && has_colors()) {
 				    attr_get(&attr, &curcolor, NULL);
 				    color_set(4, NULL);
 				}
-				(void)addch('*');
+				addch('*');
 				if (color && has_colors())
 				    color_set(curcolor, NULL);
 			    }
-			    (void)addstr(field);
+			    addstr(field);
 			    if (cfmt && *cfmt == ctl('d'))
-				for (i = 0;
-					i < fwidth[col] - strlen(field) - note;
-					i++)
-				    (void)addch(' ');
+				for (i = 0; i < (int)(fwidth[col] - strlen(field) - note); i++)
+				    addch(' ');
 			}
 		    }
 
@@ -866,11 +851,11 @@ update(int anychanged)		/* did any cell really change in value? */
 			    (color && has_colors() &&
 			    cr && cr->r_color != 1)) &&
 			    !((*pp)->flags & is_valid) && !(*pp)->label) {
-			(void) printw("%*s", fwidth[col], " ");
+			printw("%*s", fwidth[col], " ");
 		    }
 		} /* else */
 	    } else
-	    if (!*pp && color && has_colors && cr && cr->r_color != 1) {
+	    if (!*pp && color && has_colors() && cr && cr->r_color != 1) {
 		move(r, c);
 		color_set(cr->r_color, NULL);
 		printw("%*s", fwidth[col], " ");
@@ -878,7 +863,7 @@ update(int anychanged)		/* did any cell really change in value? */
 	    if (color && has_colors())
 		color_set(1, NULL);
 	    if (do_stand) {
-		(void) standend();
+		standend();
 		do_stand = 0;
 	    }
 	}
@@ -888,7 +873,7 @@ update(int anychanged)		/* did any cell really change in value? */
 
     /* place 'cursor marker' */
     if (showcell && (!showneed) && (!showexpr) && (!shownote)) {
-	(void) move(lastmy, lastmx);
+	move(lastmy, lastmx);
 	pp = ATBL(tbl, currow, curcol);
 	if (color && has_colors()) {
 	    if ((cr = find_crange(currow, curcol)))
@@ -913,13 +898,13 @@ update(int anychanged)		/* did any cell really change in value? */
     repaint(lastmx, RESROW - 1, fwidth[lastcol], 0, A_STANDOUT);
     repaint(0, lastmy, rescol - 1, 0, A_STANDOUT);
 
-    (void) move(lastmy, lastmx+fwidth[lastcol]);
+    move(lastmy, lastmx+fwidth[lastcol]);
     under_cursor = (inch() & A_CHARTEXT);
     if (!showcell)
-	(void) addch('<' | (inch() & A_ATTRIBUTES));
+	addch('<' | (inch() & A_ATTRIBUTES));
 
-    (void) move(0, 0);
-    (void) clrtoeol();
+    move(0, 0);
+    clrtoeol();
 
     if (linelim >= 0) {
 	int ctlchars;
@@ -927,12 +912,12 @@ update(int anychanged)		/* did any cell really change in value? */
 	for (i = ctlchars = 0; i < linelim; i++)
 	    if ((unsigned char) line[i] < ' ')
 		ctlchars++;
-	(void) addch(mode_ind);
-	(void) addch('>');
-	(void) addch(search_ind);
-	(void) addstr(line);
+	addch(mode_ind);
+	addch('>');
+	addch(search_ind);
+	addstr(line);
 	if (!braille || (!message && mode_ind != 'v'))
-	    (void) move((linelim+3+ctlchars)/cols, (linelim+3+ctlchars)%cols);
+	    move((linelim+3+ctlchars)/cols, (linelim+3+ctlchars)%cols);
 	else if (message)
 	    move(1, 0);
 	else if (braillealt)
@@ -944,7 +929,7 @@ update(int anychanged)		/* did any cell really change in value? */
 	    register struct ent *p1;
 	    int printed = 0;		/* printed something? */
 
-	    (void) printw("%s%d ", coltoa(curcol), currow);
+	    printw("%s%d ", coltoa(curcol), currow);
 
 	    if ((p1 = *ATBL(tbl, currow, curcol)) && p1->nrow > -1)
 		printw("{*%s} ", r_name(p1->nrow, p1->ncol,
@@ -971,21 +956,21 @@ update(int anychanged)		/* did any cell really change in value? */
 
 		if ((p1->expr) && (p1->flags & is_strexpr)) {
  		    if (p1->flags & is_label)
-			(void) addstr("|{");
+			addstr("|{");
 		    else
-			(void) addstr((p1->flags & is_leftflush) ? "<{" : ">{");
-		    (void) addstr(line);
-		    (void) addstr("} ");	/* and this '}' is for vi % */
+			addstr((p1->flags & is_leftflush) ? "<{" : ">{");
+		    addstr(line);
+		    addstr("} ");	/* and this '}' is for vi % */
 		    printed = 1;
 
 		} else if (p1->label) {
 		    /* has constant label only */
 		    if (p1->flags & is_label)
-			(void) addstr("|\"");
+			addstr("|\"");
 		    else
-			(void) addstr((p1->flags & is_leftflush) ? "<\"" : ">\"");
-		    (void) addstr(p1->label);
-		    (void) addstr("\" ");
+			addstr((p1->flags & is_leftflush) ? "<\"" : ">\"");
+		    addstr(p1->label);
+		    addstr("\" ");
 		    printed = 1;
 		}
 
@@ -996,20 +981,20 @@ update(int anychanged)		/* did any cell really change in value? */
 		if (p1->flags & is_valid) {
 		    /* has value or num expr */
 		    if ((!(p1->expr)) || (p1->flags & is_strexpr))
-			(void) sprintf(line, "%.15g", p1->v);
+			sprintf(line, "%.15g", p1->v);
 
-		    (void) addch('[');
-		    (void) addstr(line);
-		    (void) addch(']');
+		    addch('[');
+		    addstr(line);
+		    addch(']');
 		    *line = '\0'; /* this is the input buffer ! */
 		    printed = 1;
 		}
 	    }
 	    if (!printed)
-		(void) addstr("[]");
+		addstr("[]");
 	    /* Display if cell is locked */
 	    if (p1 && p1->flags&is_locked)
-		(void) addstr(" locked");
+		addstr(" locked");
 	}
 	if (braille)
 	    if (message)
@@ -1021,16 +1006,16 @@ update(int anychanged)		/* did any cell really change in value? */
 	else if (showcell)
 	    move(lines - 1, cols - 1);
 	else
-	    (void) move(lastmy, lastmx+fwidth[lastcol]);
+	    move(lastmy, lastmx+fwidth[lastcol]);
     }
 
     if (color && has_colors())
 	color_set(1, NULL);
 
     if (revmsg[0]) {
-	(void) move(0, 0);
-	(void) clrtoeol();	/* get rid of topline display */
-	(void) printw(revmsg);
+	move(0, 0);
+	clrtoeol();	/* get rid of topline display */
+	printw(revmsg);
 	*revmsg = '\0';		/* don't show it again */
 	if (braille)
 	    if (message)
@@ -1042,16 +1027,16 @@ update(int anychanged)		/* did any cell really change in value? */
 	else if (showcell)
 	    move(lines - 1, cols - 1);
 	else
-	    (void) move(lastmy, lastmx+fwidth[lastcol]);
+	    move(lastmy, lastmx+fwidth[lastcol]);
     }
 
     if (color && has_colors())
 	color_set(1, NULL);
 
     if (revmsg[0]) {
-	(void) move(0, 0);
-	(void) clrtoeol();	/* get rid of topline display */
-	(void) printw(revmsg);
+	move(0, 0);
+	clrtoeol();	/* get rid of topline display */
+	printw(revmsg);
 	*revmsg = '\0';		/* don't show it again */
 	if (braille)
 	    if (message)
@@ -1061,7 +1046,7 @@ update(int anychanged)		/* did any cell really change in value? */
 	else if (showcell)
 	    move(lines - 1, cols - 1);
 	else
-	    (void) move(lastmy, lastmx + fwidth[lastcol]);
+	    move(lastmy, lastmx + fwidth[lastcol]);
     }
 
     FullUpdate = FALSE;
@@ -1072,7 +1057,7 @@ void
 repaint(int x, int y, int len, int attron, int attroff)
 {
     while (len-- > 0) {
-	(void) move(y, x);
+	move(y, x);
 	addch((inch() | attron) & ~attroff);
 	x++;
     }
@@ -1087,11 +1072,11 @@ yyerror(char *err)
     if (usecurses) {
 	if (seenerr) return;
 	seenerr++;
-	(void) move(1, 0);
-	(void) clrtoeol();
-	(void) printw("%s: %.*s<=%s", err, linelim, line, line + linelim);
+	move(1, 0);
+	clrtoeol();
+	printw("%s: %.*s<=%s", err, linelim, line, line + linelim);
     } else
-	(void) fprintf(stderr, "%s: %.*s<=%s\n", err, linelim, line,
+	fprintf(stderr, "%s: %.*s<=%s\n", err, linelim, line,
 		       line + linelim);
 }
 
@@ -1120,9 +1105,9 @@ startdisp()
 #endif
 
 #ifdef XENIX2_3
-	(void) ioctl(fileno(stdin), TCGETA, & tmio);
+	ioctl(fileno(stdin), TCGETA, & tmio);
 #endif
-	(void) initscr();
+	initscr();
 	start_color();
 	for (i = 0; i < 8; i++)
 	    if (cpairs[i])
@@ -1134,7 +1119,7 @@ startdisp()
 	dup(fd);
 	close(fd);
 #endif
-	(void) clear();
+	clear();
 #ifdef VMS
 	VMS_read_raw = 1;
 #else
@@ -1186,7 +1171,7 @@ stopdisp()
 	resetkbd();
 	endwin();
 #ifdef XENIX2_3
-	(void) ioctl(fileno(stdin), TCSETAW, & tmio);
+	ioctl(fileno(stdin), TCSETAW, & tmio);
 #endif
 #ifndef MSDOS
     }
@@ -1214,9 +1199,9 @@ deraw(int ClearLastLine)
 	if (ClearLastLine) {
 	    if (color && has_colors())
 		bkgdset(COLOR_PAIR(0) | ' ');
-	    (void) move(lines - 1, 0);
-	    (void) clrtoeol();
-	    (void) refresh();
+	    move(lines - 1, 0);
+	    clrtoeol();
+	    refresh();
 	}
 	VMS_read_raw = 0;
     }
@@ -1249,9 +1234,9 @@ deraw(int ClearLastLine)
 	if (ClearLastLine) {
 	    if (color && has_colors())
 		bkgdset(COLOR_PAIR(0) | ' ');
-	    (void) move(lines - 1, 0);
-	    (void) clrtoeol();
-	    (void) refresh();
+	    move(lines - 1, 0);
+	    clrtoeol();
+	    refresh();
 	}
 #if SYSV2 || SYSV3
 	resetterm();

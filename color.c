@@ -8,17 +8,6 @@
  *		$Revision: 7.16 $
  */
 
-#include <sys/types.h>
-#ifdef BSD42
-#include <strings.h>
-#else
-#ifndef SYSIII
-#include <string.h>
-#endif
-#endif
-
-#include <curses.h>
-#include <ctype.h>
 #include "sc.h"
 
 /* a linked list of free [struct ent]'s, uses .next as the pointer */
@@ -27,12 +16,10 @@ extern	struct ent *freeents;
 struct colorpair	*cpairs[8];
 static struct crange	*color_base;
 
-void
-initcolor(int colornum)
+void initcolor(int colornum)
 {
     if (!colornum) {
 	int i;
-
 	for (i = 0; i < 8; i++)	cpairs[i] =
 	    (struct colorpair *)scxmalloc((unsigned)sizeof(struct colorpair));
     }

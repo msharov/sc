@@ -5,13 +5,10 @@
  * $Revision: 7.16 $
  */
 
+#include "sc.h"
 #ifdef QREF
-#include <stdio.h>
 char	*header = " Quick Reference";
 char	*revision = "$Revision: 7.16 $";
-#else
-#include <curses.h>
-#include "sc.h"
 #endif /* QREF */
 
 char *intro[] = {
@@ -63,11 +60,6 @@ char *toggleoptions[] = {
 "          l    Autolabeling defined cells enable/disable.",
 "          n    If enabled, a digit starts a numeric value.",
 "          t    Top line display enable/disable.",
-#if !defined(VMS) && !defined(MSDOS) && defined(CRYPT_PATH)
-"          x    Encrypt/decrypt database and listing files.",
-#else
-"          x    Encrypt/decrypt database and listing files (Not available).",
-#endif
 "          $    Dollar prescale.  If enabled, all numeric constants",
 "               (not expressions) entered are multipled by 0.01.",
 "          r    Newline action.  Toggle between no action, move down",
@@ -227,12 +219,7 @@ char *file[] = {
 "          Optionally brackets output with control lines for ``tbl'',",
 "          ``LaTeX'', ``SLaTex'', or ``TeX''.",
 " ",
-#if !defined(VMS) && !defined(MSDOS) && defined(CRYPT_PATH)
-"     If encryption mode is set, file I/O will be encrypted/decrypted.",
-"     ``\"| program\"'' for a file name will pipe (unencrypted) output to",
-#else
 "     ``\"| program\"'' for a file name will pipe output to",
-#endif
 "     a program for Put, Write and Table.  If a cell name is used",
 "     as the file name, the cell's string part will be used as the",
 "     file name.",
@@ -564,8 +551,8 @@ help()
 	}
     }
     FullUpdate++;
-    (void) move(1,0);
-    (void) clrtobot();
+    move(1,0);
+    clrtobot();
 }
 
 static int
@@ -574,18 +561,18 @@ pscreen(char *screen[])
     int lineno;
     int dbline;
 
-    (void) move(1,0);
-    (void) clrtobot();
+    move(1,0);
+    clrtobot();
     dbline = 1;
     for (lineno = 0; screen[lineno]; lineno++) {
-	(void) move(dbline++, 4);
-	(void) addstr (screen[lineno]);
-	(void) clrtoeol();
+	move(dbline++, 4);
+	addstr (screen[lineno]);
+	clrtoeol();
     }
-    (void) move(0,0);
-    (void) printw("Which Screen? [a-p, q]");
-    (void) clrtoeol();
-    (void) refresh();
+    move(0,0);
+    printw("Which Screen? [a-p, q]");
+    clrtoeol();
+    refresh();
     return(nmgetch());
 }
 #else
@@ -624,17 +611,17 @@ puts(".LP");
     while (*pagep)
     {
 #ifndef TROFF
-	(void) fputs(SCNAME, stdout);
-	(void) fputs(header, stdout);
-	(void) printf("\n");
-	(void) puts(revision);
+	fputs(SCNAME, stdout);
+	fputs(header, stdout);
+	printf("\n");
+	puts(revision);
 #endif
 
 	for (lineno = 0; (*pagep)[lineno]; lineno++) {
-		(void) puts((*pagep)[lineno]);
+		puts((*pagep)[lineno]);
 	}
 #if !defined(TROFF)
-	(void) putchar('\f');
+	putchar('\f');
 #endif
 	pagep++;
 #ifdef TROFF
@@ -642,6 +629,6 @@ puts(".LP");
 	if (!(pageno%2)) puts(".bp");
 #endif
     }
-    (void) exit(0);
+    exit(0);
 }
 #endif /* QREF */

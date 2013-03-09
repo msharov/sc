@@ -7,17 +7,6 @@
  *		$Revision: 7.16 $
  */
 
-#include <sys/types.h>
-#ifdef BSD42
-#include <strings.h>
-#else
-#ifndef SYSIII
-#include <string.h>
-#endif
-#endif
-
-#include <stdio.h>
-#include <ctype.h>
 #include "sc.h"
 
 static	struct range *rng_base;
@@ -164,9 +153,7 @@ clean_range()
 
 /* Match on name or lmatch, rmatch */
 
-int
-find_range(char *name, int len, struct ent *lmatch, struct ent *rmatch,
-	struct range **rng)
+int find_range (char *name, int len, struct ent *lmatch, struct ent *rmatch, struct range **rng)
 {
     struct range *r;
     int cmp;
@@ -183,7 +170,7 @@ find_range(char *name, int len, struct ent *lmatch, struct ent *rmatch,
 		return (cmp);
 	    *rng = r;
 	    if (cmp == 0)
-		if (!exact || strlen(r->r_name) == len)
+		if (!exact || strlen(r->r_name) == (unsigned) len)
 		    return (cmp);
 	}
 	return (-1);
@@ -239,20 +226,20 @@ write_ranges(FILE *f)
 
     for (r = nextr = rng_base; nextr; r = nextr, nextr = r->r_next) /* */ ;
     while (r) {
-	(void) fprintf(f, "define \"%s\" %s%s%s%d",
+	fprintf(f, "define \"%s\" %s%s%s%d",
 			r->r_name,
 			r->r_left.vf & FIX_COL ? "$":"",
 			coltoa(r->r_left.vp->col), 
 			r->r_left.vf & FIX_ROW ? "$":"",
 			r->r_left.vp->row);
 	if (r->r_is_range)
-	    (void) fprintf(f, ":%s%s%s%d\n",
+	    fprintf(f, ":%s%s%s%d\n",
 			    r->r_right.vf & FIX_COL ? "$":"",
 			    coltoa(r->r_right.vp->col), 
 			    r->r_right.vf & FIX_ROW ? "$":"",
 			    r->r_right.vp->row);
 	else
-	    (void) fprintf(f, "\n");
+	    fprintf(f, "\n");
 	r = r->r_prev;
     }
 }
@@ -268,12 +255,12 @@ list_ranges(FILE *f)
 	return;
     }
 
-    (void) fprintf(f, "  %-30s %s\n","Name","Definition");
-    if (!brokenpipe) (void) fprintf(f, "  %-30s %s\n","----","----------");
+    fprintf(f, "  %-30s %s\n","Name","Definition");
+    if (!brokenpipe) fprintf(f, "  %-30s %s\n","----","----------");
 
     for (r = nextr = rng_base; nextr; r = nextr, nextr = r->r_next) /* */ ;
     while (r) {
-	(void) fprintf(f, "  %-30s %s%s%s%d",
+	fprintf(f, "  %-30s %s%s%s%d",
 			    r->r_name,
 			    r->r_left.vf & FIX_COL ? "$":"",
 			    coltoa(r->r_left.vp->col), 
@@ -281,13 +268,13 @@ list_ranges(FILE *f)
 			    r->r_left.vp->row);
 	if (brokenpipe) return;
 	if (r->r_is_range)
-	    (void) fprintf(f, ":%s%s%s%d\n",
+	    fprintf(f, ":%s%s%s%d\n",
 			    r->r_right.vf & FIX_COL ? "$":"",
 			    coltoa(r->r_right.vp->col), 
 			    r->r_right.vf & FIX_ROW ? "$":"",
 			    r->r_right.vp->row);
 	else
-	    (void) fprintf(f, "\n");
+	    fprintf(f, "\n");
 	if (brokenpipe) return;
 	r = r->r_prev;
     }
@@ -304,7 +291,7 @@ v_name(int row, int col)
     if (!find_range((char *)0, 0, v, v, &r)) {
 	return (r->r_name);
     } else {
-        (void) sprintf(buf, "%s%d", coltoa(col), row);
+        sprintf(buf, "%s%d", coltoa(col), row);
 	return (buf);
     }
 }
@@ -321,8 +308,8 @@ r_name(int r1, int c1, int r2, int c2)
     if (!find_range((char *)0, 0, v1, v2, &r)) {
 	return (r->r_name);
     } else {
-        (void) sprintf(buf, "%s", v_name(r1, c1));
-	(void) sprintf(buf+strlen(buf), ":%s", v_name(r2, c2));
+        sprintf(buf, "%s", v_name(r1, c1));
+	sprintf(buf+strlen(buf), ":%s", v_name(r2, c2));
 	return (buf);
     }
 }

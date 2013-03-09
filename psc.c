@@ -19,10 +19,6 @@
  */
 char *rev = "$Revision: 7.16 $";
 
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include "sc.h"
 
 #define END	0
@@ -111,15 +107,15 @@ main(int argc, char **argv)
 	    plainnums = TRUE;
 	    break;
 	case 'v':
-	    (void) fprintf(stderr,"%s: %s\n", progname, rev);
+	    fprintf(stderr,"%s: %s\n", progname, rev);
 	default:
-	    (void) fprintf(stderr,"Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
+	    fprintf(stderr,"Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
 	    exit(1);
         }
     }
 
     if (optind < argc) {
-	    (void) fprintf(stderr,"Usage: %s [-rL] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
+	    fprintf(stderr,"Usage: %s [-rL] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
 	    exit(1);
     }
 
@@ -142,17 +138,17 @@ main(int argc, char **argv)
 	    if (drop_format) exit(0);
 	    for (i = 0; i<maxcols; i++) {
 		if (fwidth[i])
-		    (void) printf("format %s %d %d %d\n", coltoa(i), 
+		    printf("format %s %d %d %d\n", coltoa(i), 
 			fwidth[i]+1, precision[i], REFMTFIX);
 	    }
 	    exit(0);
 	case NUM:
 	    first = FALSE;
-	    (void) printf("let %s%d = %s\n", coltoa(effc), effr, token);
-	    if (effc >= maxcols - 1)
-	    {	if (!growtbl(GROWCOL, 0, effc))
-		{	(void) fprintf(stderr, "Invalid column used: %s\n", coltoa(effc));
-			continue;
+	    printf("let %s%d = %s\n", coltoa(effc), effr, token);
+	    if (effc >= maxcols - 1) {
+		if (!growtbl(GROWCOL, 0, effc)) {
+		    fprintf(stderr, "Invalid column used: %s\n", coltoa(effc));
+		    continue;
 		}
 	    }
 	    i = 0;
@@ -189,13 +185,13 @@ main(int argc, char **argv)
 	case ALPHA:
 	    first = FALSE;
 	    if (leftadj)
-		(void) printf("leftstring %s%d = \"%s\"\n", coltoa(effc),effr,token); 
+		printf("leftstring %s%d = \"%s\"\n", coltoa(effc),effr,token); 
 	    else
-		(void) printf("rightstring %s%d = \"%s\"\n",coltoa(effc),effr,token); 
-	    if (effc >= maxcols - 1)
-	    {	if (!growtbl(GROWCOL, 0, effc))
-		{	(void) fprintf(stderr, "Invalid column used: %s\n", coltoa(effc));
-			continue;
+		printf("rightstring %s%d = \"%s\"\n",coltoa(effc),effr,token); 
+	    if (effc >= maxcols - 1) {
+		if (!growtbl(GROWCOL, 0, effc)) {
+		    fprintf(stderr, "Invalid column used: %s\n", coltoa(effc));
+		    continue;
 		}
 	    }
 	    i = strlen(token);
@@ -255,9 +251,8 @@ scan()
 
     if (c == delim1 || c == delim2) {
         if (strip_delim) {
-	    while ((c = getchar()) && (c == delim1 || c == delim2))
-	        ;
-	    (void)ungetc(c, stdin);
+	    while ((c = getchar()) && (c == delim1 || c == delim2)) {}
+	    ungetc(c, stdin);
 	} 
 	return (SPACE);
     }
@@ -266,7 +261,7 @@ scan()
 	while ((c = getchar()) && c != '\"' && c != '\n' && c != EOF)
 	    *p++ = c;
 	if (c != '\"')
-	    (void)ungetc(c, stdin);
+	    ungetc(c, stdin);
 	*p = '\0';
 	return (ALPHA);
     }
@@ -276,7 +271,7 @@ scan()
 	c = getchar();
     }
     *p = '\0';
-    (void)ungetc(c, stdin);
+    ungetc(c, stdin);
 
     p = token;
     c = *p;
@@ -354,7 +349,7 @@ coltoa(int col)
     register char *p = rname;
 
     if (col < 0 || col > 27*26)	/* A-Z, AA-ZZ */
-	(void) fprintf(stderr,"coltoa: invalid col: %d", col);
+	fprintf(stderr,"coltoa: invalid col: %d", col);
 
     if (col > 25) {
 	*p++ = col/26 + 'A' - 1;

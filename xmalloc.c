@@ -3,7 +3,6 @@
  * $Revision: 7.16 $
  */
 
-#include <curses.h>
 #include "sc.h"
 
 void		fatal();
@@ -53,7 +52,7 @@ scxfree(char *p)
 void
 fatal(char *str)
 {
-    (void) fprintf(stderr,"%s\n", str);
+    fprintf(stderr,"%s\n", str);
     exit(1);
 }
 #else
@@ -61,7 +60,7 @@ void
 fatal(char *str)
 {
     deraw(1);
-    (void) fprintf(stderr,"%s\n", str);
+    fprintf(stderr,"%s\n", str);
     diesave();
     exit(1);
 }

@@ -10,33 +10,14 @@
  *		$Revision: 7.16 $
  */
 
-#include <sys/types.h>
+#include "sc.h"
 #include <sys/wait.h>
-#if defined(BSD42) || defined(BSD43)
-#include <strings.h>
-#else
-#ifndef SYSIII
-#include <string.h>
-#endif
-#endif
-
-#include <curses.h>
 #include <time.h>
 #include <utime.h>
-#if defined(BSD42) || defined(BSD43) || defined(VMS)
-#include <sys/file.h>
-#else
-#include <fcntl.h>
-#endif
-#include "sc.h"
 #include <signal.h>
 #include <errno.h>
-#include <stdlib.h>
-#ifndef MSDOS
-#include <unistd.h>
-#endif
 
-void	syncref(register struct enode *e);
+void	syncref(struct enode *e);
 void	unspecial(FILE *f, char *str, int delim);
 
 /* a linked list of free [struct ent]'s, uses .next as the pointer */
@@ -79,11 +60,11 @@ duprow()
     modflg++;
     insertrow(1, 1);
     for (curcol = c1; curcol <= c2; curcol++) {
-	register struct ent *p = *ATBL(tbl, currow - 1, curcol);
+	struct ent *p = *ATBL(tbl, currow - 1, curcol);
 	if (p) {
-	    register struct ent *n;
+	    struct ent *n;
 	    n = lookat(currow, curcol);
-	    (void) copyent(n, p, 1, 0, 0, 0, maxrow, maxcol, 0);
+	    copyent(n, p, 1, 0, 0, 0, maxrow, maxcol, 0);
 	}
     }
     curcol = coltmp;
@@ -102,9 +83,9 @@ dupcol()
     modflg++;
     insertcol(1, 1);
     for (currow = 0; currow <= maxrow; currow++) {
-	register struct ent *p = *ATBL(tbl, currow, curcol - 1);
+	struct ent *p = *ATBL(tbl, currow, curcol - 1);
 	if (p) {
-	    register struct ent *n;
+	    struct ent *n;
 	    n = lookat(currow, curcol);
 	    copyent(n, p, 0, 1, 0, 0, maxrow, maxcol, 0);
 	}
@@ -233,7 +214,7 @@ void
 insertcol(int arg, int delta)
 {
     int r, c;
-    register struct ent **pp;
+    struct ent **pp;
     int lim = maxcol - curcol - delta + 1;
     struct frange *fr;
 
@@ -309,7 +290,7 @@ insertcol(int arg, int delta)
 
 /* delete 'arg' rows starting at currow (deletes from currow downward) */
 void
-deleterow(register int arg)
+deleterow(int arg)
 {
     int i;
     int rs = maxrow - currow + 1;
@@ -322,8 +303,7 @@ deleterow(register int arg)
 	rs = fr->or_right->row - currow + 1;
     if (rs - arg < 0) {
 	rs = rs > 0 ? rs : 0;
-	(void) sprintf(buf, "Can't delete %d row%s %d row%s left", arg,
-		(arg != 1 ? "s," : ","), rs, (rs != 1 ? "s" : ""));
+	sprintf(buf, "Can't delete %d row%s %d row%s left", arg, (arg != 1 ? "s," : ","), rs, (rs != 1 ? "s" : ""));
 	error(buf);
 	return;
     }
@@ -471,21 +451,19 @@ deleterow(register int arg)
     }
 }
 
-void
-yankrow(int arg)
+void yankrow (int arg)
 {
     int rs = maxrow - currow + 1;
     int i, qtmp;
     char buf[50];
     struct frange *fr;
-    struct ent *obuf;
+    struct ent *obuf = NULL;
 
     if ((fr = find_frange(currow, curcol)))
 	rs = fr->or_right->row - currow + 1;
     if (rs - arg < 0) {
 	rs = rs > 0 ? rs : 0;
-	(void) sprintf(buf, "Can't yank %d row%s %d row%s left", arg,
-		(arg != 1 ? "s," : ","), rs, (rs != 1 ? "s" : ""));
+	sprintf(buf, "Can't yank %d row%s %d row%s left", arg, (arg != 1 ? "s," : ","), rs, (rs != 1 ? "s" : ""));
 	error(buf);
 	return;
     }
@@ -519,28 +497,27 @@ yankrow(int arg)
 	yank_area(currow, 0, currow + arg - 1, maxcol);
     }
     qbuf = qtmp;
-    for (i = 0; i < DELBUFSIZE; i++)
+    for (i = 0; i < DELBUFSIZE; i++) {
 	if ((obuf && delbuf[i] == obuf) || (qbuf && i == qbuf)) {
 	    delbuf[i] = delbuf[dbidx];
 	    delbuffmt[i] = delbuffmt[dbidx];
 	}
+    }
     qbuf = 0;
     delbuf[DELBUFSIZE - 10] = delbuf[dbidx];
     delbuffmt[DELBUFSIZE - 10] = delbuffmt[dbidx];
 }
 
-void
-yankcol(int arg)
+void yankcol (int arg)
 {
     int cs = maxcol - curcol + 1;
     int i, qtmp;
     char buf[50];
-    struct ent *obuf;
+    struct ent *obuf = NULL;
 
     if (cs - arg < 0) {
     	cs = cs > 0 ? cs : 0;
-	(void) sprintf(buf, "Can't yank %d column%s %d column%s left", arg,
-		(arg != 1 ? "s," : ","), cs, (cs != 1 ? "s" : ""));
+	sprintf(buf, "Can't yank %d column%s %d column%s left", arg, (arg != 1 ? "s," : ","), cs, (cs != 1 ? "s" : ""));
 	error(buf);
 	return;
     }
@@ -569,11 +546,12 @@ yankcol(int arg)
     qbuf = 0;
     yank_area(0, curcol, maxrow, curcol + arg - 1);
     qbuf = qtmp;
-    for (i = 0; i < DELBUFSIZE; i++)
+    for (i = 0; i < DELBUFSIZE; i++) {
 	if ((obuf && delbuf[i] == obuf) || (qbuf && i == qbuf)) {
 	    delbuf[i] = delbuf[dbidx];
 	    delbuffmt[i] = delbuffmt[dbidx];
 	}
+    }
     qbuf = 0;
     delbuf[DELBUFSIZE - 10] = delbuf[dbidx];
     delbuffmt[DELBUFSIZE - 10] = delbuffmt[dbidx];
@@ -606,8 +584,8 @@ erase_area(int sr, int sc, int er, int ec, int ignorelock)
      * that pulling cells always works correctly even if the cells at one
      * or more edges of the range are all empty.
      */
-    (void) lookat(sr, sc);
-    (void) lookat(er, ec);
+    lookat(sr, sc);
+    lookat(er, ec);
 
     delbuffmt[++dbidx] = (char*)scxmalloc((4*(ec-sc+1)+(er-sr+1))*sizeof(char));
     for (c = sc; c <= ec; c++) {
@@ -810,7 +788,7 @@ pullcells(int to_insert)
 
     if (to_insert == 'r') {
 	insertrow(numrows, 0);
-	if (fr = find_frange(currow, curcol))
+	if ((fr = find_frange(currow, curcol)))
 	    deltac = fr->or_left->col - mincol;
 	else {
 	    for (i = 0; i < numrows; i++)
@@ -937,7 +915,7 @@ pullcells(int to_insert)
 void
 colshow_op()
 {
-    register int i,j;
+    int i,j;
     for (i = 0; i < maxcols; i++)
 	if (col_hidden[i]) 
 	    break;
@@ -948,8 +926,8 @@ colshow_op()
     if (i >= maxcols)
 	error("No hidden columns to show");
     else {
-	(void) sprintf(line,"show %s:", coltoa(i));
-	(void) sprintf(line + strlen(line),"%s",coltoa(j));
+	sprintf(line,"show %s:", coltoa(i));
+	sprintf(line + strlen(line),"%s",coltoa(j));
 	linelim = strlen(line);
     }
 }
@@ -957,7 +935,7 @@ colshow_op()
 void
 rowshow_op()
 {
-    register int i,j;
+    int i,j;
     for (i = 0; i < maxrows; i++)
 	if (row_hidden[i]) 
 	    break;
@@ -970,7 +948,7 @@ rowshow_op()
     if (i >= maxrows)
 	error("No hidden rows to show");
     else {
-	(void)sprintf(line,"show %d:%d", i, j);
+	sprintf(line,"show %d:%d", i, j);
         linelim = strlen(line);
     }
 }
@@ -1005,7 +983,7 @@ get_rcqual(int ch)
 	(ch == 'p')		? "  p: paste  m: merge  x: xchg  <MORE>" :
 	(ch == 'Z')		? "  Z: save/exit" : "");
 
-    (void) refresh();
+    refresh();
 
     switch (c = nmgetch())
     {
@@ -1064,11 +1042,11 @@ get_rcqual(int ch)
 	case ctl('b'):
 	case ctl('n'):
 	case ctl('p'):	if (ch == 'd')
-			    (void) sprintf(line,"deleterow [range] ");
+			    sprintf(line,"deleterow [range] ");
 			else if (ch == 'y')
-			    (void) sprintf(line,"yankrow [range] ");
+			    sprintf(line,"yankrow [range] ");
 			else if (ch == 'Z')
-			    (void) sprintf(line,"hide [range] ");
+			    sprintf(line,"hide [range] ");
 			else
 			    return (0);
 			edit_mode();
@@ -1087,11 +1065,11 @@ get_rcqual(int ch)
 	case 'l':
 	case 'H':
 	case 'L':	if (ch == 'd')
-			    (void) sprintf(line,"deletecol [range] ");
+			    sprintf(line,"deletecol [range] ");
 			else if (ch == 'y')
-			    (void) sprintf(line,"yankcol [range] ");
+			    sprintf(line,"yankcol [range] ");
 			else if (ch == 'Z')
-			    (void) sprintf(line,"hide [range] ");
+			    sprintf(line,"hide [range] ");
 			else
 			    return (0);
 			edit_mode();
@@ -1111,7 +1089,7 @@ get_rcqual(int ch)
 void
 closerow(int rs, int numrow)
 {
-    register struct ent **pp;
+    struct ent **pp;
     int			r, c, i;
     struct ent		**tmprow;
 
@@ -1210,8 +1188,7 @@ closecol(int arg)
 
     if (cs - arg < 0) {
     	cs = cs > 0 ? cs : 0;
-	(void) sprintf(buf, "Can't delete %d column%s %d column%s left", arg,
-		(arg != 1 ? "s," : ","), cs, (cs != 1 ? "s" : ""));
+	sprintf(buf, "Can't delete %d column%s %d column%s left", arg, (arg != 1 ? "s," : ","), cs, (cs != 1 ? "s" : ""));
 	error(buf);
 	return;
     }
@@ -1346,7 +1323,7 @@ closecol(int arg)
 void
 doend(int rowinc, int colinc)
 {
-    register struct ent *p;
+    struct ent *p;
     int r, c;
 
     if (!loading)
@@ -1391,7 +1368,7 @@ doend(int rowinc, int colinc)
 	if (!loading)
 	    remember(1);
 
-	error ("");	/* clear line */
+	error (" ");	/* clear line */
 	return;
     }
 
@@ -1429,7 +1406,7 @@ doend(int rowinc, int colinc)
 void
 doformat(int c1, int c2, int w, int p, int r)
 {
-    register int i;
+    int i;
     int crows = 0;
     int ccols = c2;
 
@@ -1467,8 +1444,7 @@ doformat(int c1, int c2, int w, int p, int r)
     modflg++;
 }
 
-void
-formatcol(arg)
+void formatcol (int arg)
 {
     int c, i;
     int mf = modflg;
@@ -1535,15 +1511,10 @@ formatcol(arg)
 		    break;
 		case ' ':
 		    if (arg == 1)
-			(void) sprintf(line,
-				"format [for column] %s ",
-				coltoa(curcol));
+			sprintf(line, "format [for column] %s ", coltoa(curcol));
 		    else {
-			(void) sprintf(line,
-				"format [for columns] %s:",
-				coltoa(curcol));
-			(void) sprintf(line+strlen(line), "%s ",
-				coltoa(curcol+arg-1));
+			sprintf(line, "format [for columns] %s:", coltoa(curcol));
+			sprintf(line+strlen(line), "%s ", coltoa(curcol+arg-1));
 		    }
 		    linelim = strlen(line);
 		    insert_mode();
@@ -1556,17 +1527,15 @@ formatcol(arg)
 		    refresh();
 		    if ((c = nmgetch()) >= '0' && c <= '9') {
 			if (colformat[c-'0']) {
-			    (void) sprintf(line,
-				    "format %c = \"%s\"", c, colformat[c-'0']);
+			    sprintf(line, "format %c = \"%s\"", c, colformat[c-'0']);
 			    edit_mode();
 			    linelim = strlen(line) - 1;
 			} else {
-			    (void) sprintf(line,
-				    "format %c = \"", c);
+			    sprintf(line, "format %c = \"", c);
 			    insert_mode();
 			    linelim = strlen(line);
 			}
-			error("");
+			error(" ");
 		    } else {
 			error("Invalid format type");
 			c = -1;
@@ -1579,13 +1548,11 @@ formatcol(arg)
 		default:
 		    break;
 	    }
-	error("Current format is %d %d %d",
-		fwidth[curcol], precision[curcol],
-		realfmt[curcol]);
+	error("Current format is %d %d %d", fwidth[curcol], precision[curcol], realfmt[curcol]);
 	FullUpdate++;
 	update(1);
 	refresh();
-	if (linelim < 0)
+	if (linelim < 0) {
 	    if ((c = nmgetch()) == ESC || c == ctl('g') || c == 'q') {
 		for (i = 0; i < arg; i++) {
 		    fwidth[i + curcol] = oldformat[i * 3 + 0];
@@ -1596,14 +1563,14 @@ formatcol(arg)
 		FullUpdate++;
 		update(1);
 	    }
+	}
     }
     scxfree((char *)oldformat);
     if (c >= 0)
-	error("");
+	error(" ");
 }
 
-void
-ljustify(sr, sc, er, ec)
+void ljustify (int sr, int sc, int er, int ec)
 {
     struct ent *p;
     int i, j;
@@ -1631,8 +1598,7 @@ ljustify(sr, sc, er, ec)
     }
 }
 
-void
-rjustify(sr, sc, er, ec)
+void rjustify (int sr, int sc, int er, int ec)
 {
     struct ent *p;
     int i, j;
@@ -1660,8 +1626,7 @@ rjustify(sr, sc, er, ec)
     }
 }
 
-void
-center(sr, sc, er, ec)
+void center (int sr, int sc, int er, int ec)
 {
     struct ent *p;
     int i, j;
@@ -1689,11 +1654,9 @@ center(sr, sc, er, ec)
     }
 }
 
-void
-print_options(FILE *f)
+void print_options (FILE *f)
 {
-    if (
-	autocalc &&
+    if (autocalc &&
 	!autoinsert &&
 	!autowrap &&
 	!cslop &&
@@ -1716,56 +1679,55 @@ print_options(FILE *f)
        )
 	return;		/* No reason to do this */
 
-    (void) fprintf(f, "set");
+    fprintf(f, "set");
     if (!autocalc) 
-	(void) fprintf(f," !autocalc");
+	fprintf(f," !autocalc");
     if (autoinsert) 
-	(void) fprintf(f," autoinsert");
+	fprintf(f," autoinsert");
     if (autowrap) 
-	(void) fprintf(f," autowrap");
+	fprintf(f," autowrap");
     if (cslop)
-	(void) fprintf(f," cslop");
+	fprintf(f," cslop");
     if (optimize) 
-	(void) fprintf(f," optimize");
+	fprintf(f," optimize");
     if (rndtoeven)
-	(void) fprintf(f, " rndtoeven");
+	fprintf(f, " rndtoeven");
     if (propagation != 10)
-	(void) fprintf(f, " iterations = %d", propagation);
+	fprintf(f, " iterations = %d", propagation);
     if (calc_order != BYROWS )
-	(void) fprintf(f, " bycols");
+	fprintf(f, " bycols");
     if (numeric)
-	(void) fprintf(f, " numeric");
+	fprintf(f, " numeric");
     if (prescale != 1.0)
-	(void) fprintf(f, " prescale");
+	fprintf(f, " prescale");
     if (extfunc)
-	(void) fprintf(f, " extfun");
+	fprintf(f, " extfun");
     if (!showtop)
-	(void) fprintf(f, " !toprow");
+	fprintf(f, " !toprow");
     if (tbl_style)
-	(void) fprintf(f, " tblstyle = %s", tbl_style == TBL ? "tbl" :
+	fprintf(f, " tblstyle = %s", tbl_style == TBL ? "tbl" :
 					tbl_style == LATEX ? "latex" :
 					tbl_style == SLATEX ? "slatex" :
 					tbl_style == TEX ? "tex" :
 					tbl_style == FRAME ? "frame" : "0" );
     if (craction)
-	(void) fprintf(f, " craction = %d", craction);
+	fprintf(f, " craction = %d", craction);
     if (pagesize)
-	(void) fprintf(f, " pagesize = %d", pagesize);
+	fprintf(f, " pagesize = %d", pagesize);
     if (rowlimit >= 0)
-	(void) fprintf(f, " rowlimit = %d", rowlimit);
+	fprintf(f, " rowlimit = %d", rowlimit);
     if (collimit >= 0)
-	(void) fprintf(f, " collimit = %d", collimit);
+	fprintf(f, " collimit = %d", collimit);
     if (color) 
-	(void) fprintf(f," color");
+	fprintf(f," color");
     if (colorneg) 
-	(void) fprintf(f," colorneg");
+	fprintf(f," colorneg");
     if (colorerr) 
-	(void) fprintf(f," colorerr");
-    (void) fprintf(f, "\n");
+	fprintf(f," colorerr");
+    fprintf(f, "\n");
 }
 
-void
-printfile(char *fname, int r0, int c0, int rn, int cn)
+void printfile(char *fname, int r0, int c0, int rn, int cn)
 {
     FILE *f;
     static char *pline = NULL;		/* only malloc once, malloc is slow */
@@ -1775,7 +1737,7 @@ printfile(char *fname, int r0, int c0, int rn, int cn)
     int fieldlen, nextcol;
     long namelen;
     int row, col;
-    register struct ent **pp;
+    struct ent **pp;
     char file[256];
     char path[1024];
     char *tpp;
@@ -1785,20 +1747,13 @@ printfile(char *fname, int r0, int c0, int rn, int cn)
 	if (*fname == '\0') {
 	    strcpy(path, curfile);
 
-#ifdef MSDOS
-	    namelen = 12;
-	    if ((tpp = strrchr(path, '\\')) == NULL) {
-#else
 	    if ((tpp = strrchr(path, '/')) == NULL) {
 		namelen = pathconf(".", _PC_NAME_MAX);
-#endif
 		tpp = path;
 	    } else {
-#ifndef MSDOS
 		*tpp = '\0';
 		namelen = pathconf(path, _PC_NAME_MAX);
 		*tpp = '/';
-#endif
 		tpp++;
 	    }
 	    strcpy(file, tpp);
@@ -1859,7 +1814,7 @@ printfile(char *fname, int r0, int c0, int rn, int cn)
 		 * dynamically allocate pline, making sure we are not 
 		 * attempting to write 'out of bounds'.
 		 */
-		while (c > (fbufs_allocated * FBUFLEN)) {
+		while (c > (int)(fbufs_allocated * FBUFLEN)) {
 		    if ((pline = scxrealloc ((char *)pline, 
 			    (unsigned)(FBUFLEN * ++fbufs_allocated))) == NULL) {
 			error ("Realloc failed in printfile()");
@@ -1869,57 +1824,51 @@ printfile(char *fname, int r0, int c0, int rn, int cn)
 		while (plinelim<c) pline[plinelim++] = ' ';
 		plinelim = c;
 		if ((*pp)->flags&is_valid) {
-		    while(plinelim + fwidth[col] > 
-			  (fbufs_allocated * FBUFLEN)) {
-		      if((pline = ((char *)scxrealloc
-				   ((char *)pline, 
-				    (unsigned)(FBUFLEN * ++fbufs_allocated))))
-			 == NULL) {
-			error("Realloc failed in printfile()");
-			return;
-		      }
+		    while (plinelim + fwidth[col] > (int)(fbufs_allocated * FBUFLEN)) {
+			if ((pline = ((char *)scxrealloc ((char *)pline, (unsigned)(FBUFLEN * ++fbufs_allocated)))) == NULL) {
+			    error("Realloc failed in printfile()");
+			    return;
+			}
 		    }
 		    if ((*pp)->cellerror)
-			(void) sprintf(pline+plinelim, "%*s",
+			sprintf(pline+plinelim, "%*s",
 				fwidth[col], ((*pp)->cellerror == CELLERROR ?
 				"ERROR " : "INVALID "));
 		    else {
-		      char *cfmt;
-
-		      cfmt = (*pp)->format ? (*pp)->format :
+			char *cfmt;
+			cfmt = (*pp)->format ? (*pp)->format :
 			    (realfmt[col] >= 0 && realfmt[col] < COLFORMATS &&
-			    colformat[realfmt[col]]) ?
+			     colformat[realfmt[col]]) ?
 			    colformat[realfmt[col]] : 0;
-		      if (cfmt) {
-	   	        char field[FBUFLEN];
-
-			if (*cfmt == ctl('d')) {
-			    time_t v = (time_t) ((*pp)->v);
-			    strftime(field, sizeof(field), cfmt + 1,
-				    localtime(&v));
-			    sprintf(pline+plinelim, "%-*s", fwidth[col],
-				    field);
+			if (cfmt) {
+			    char field[FBUFLEN];
+			    if (*cfmt == ctl('d')) {
+				time_t v = (time_t) ((*pp)->v);
+				strftime(field, sizeof(field), cfmt + 1,
+					localtime(&v));
+				sprintf(pline+plinelim, "%-*s", fwidth[col],
+					field);
+			    } else {
+				format(cfmt, precision[col], (*pp)->v, field,
+					sizeof(field));
+				sprintf(pline+plinelim, "%*s", fwidth[col],
+					field);
+			    }
 			} else {
-			    format(cfmt, precision[col], (*pp)->v, field,
-				    sizeof(field));
-			    (void) sprintf(pline+plinelim, "%*s", fwidth[col],
+			    char field[FBUFLEN];
+			    engformat(realfmt[col], fwidth[col],
+				    precision[col], (*pp) -> v,
+				    field, sizeof(field));
+			    sprintf(pline+plinelim, "%*s", fwidth[col],
 				    field);
 			}
-		      } else {
-	   	        char field[FBUFLEN];
-			(void) engformat(realfmt[col], fwidth[col],
-                                             precision[col], (*pp) -> v,
-                                             field, sizeof(field));
-			(void) sprintf(pline+plinelim, "%*s", fwidth[col],
-				       field);
-		      }
 		    }
 		    plinelim += strlen(pline+plinelim);
 		}
 		if ((s = (*pp)->label)) {
 		    int slen;
 		    char *start, *last;
-		    register char *fp;
+		    char *fp;
 		    struct ent *nc;
 
 		    /*
@@ -1941,37 +1890,33 @@ printfile(char *fname, int r0, int c0, int rn, int cn)
 		    }
 		    if (slen > fieldlen)
 			slen = fieldlen;
-		    
-		    while(c + fieldlen + 2 > (fbufs_allocated * FBUFLEN)) {
-		      if((pline = ((char *)scxrealloc
-				   ((char *)pline, 
-				    (unsigned)(FBUFLEN * ++fbufs_allocated))))
-			 == NULL) {
-			error ("scxrealloc failed in printfile()");
-			return;
-		      }
+
+		    while (c + fieldlen + 2 > (int)(fbufs_allocated * FBUFLEN)) {
+			if ((pline = ((char *)scxrealloc ((char *)pline, (unsigned)(FBUFLEN * ++fbufs_allocated)))) == NULL) {
+			    error ("scxrealloc failed in printfile()");
+			    return;
+			}
 		    }		  
 
 		    /* Now justify and print */
-		    start = (*pp)->flags & is_leftflush ? pline + c
-					: pline + c + fieldlen - slen;
-		    if( (*pp)->flags & is_label )
+		    start = (*pp)->flags & is_leftflush ? pline + c : pline + c + fieldlen - slen;
+		    if ((*pp)->flags & is_label)
 			start = pline + (c + ((fwidth[col]>slen)?(fwidth[col]-slen)/2:0));
 		    last = pline + c + fieldlen;
 		    fp = plinelim < c ? pline + plinelim : pline + c;
 		    while (fp < start)
 			*fp++ = ' ';
-		    if( *s == '\\' && *(s+1)!= '\0' ) {
+		    if (*s == '\\' && *(s+1)!= '\0') {
 			char *strt;
 			strt = ++s;
-
 			while(slen--) {
-				*fp++ = *s++; if( *s == '\0' ) s = strt;
+			    *fp++ = *s++;
+			    if (*s == '\0')
+				s = strt;
 			}
-		    }
-		    else
-		    while (slen--)
-			*fp++ = *s++;
+		    } else
+			while (slen--)
+			    *fp++ = *s++;
 
 		    if (!((*pp)->flags & is_valid) || fieldlen != fwidth[col])
 			while(fp < last)
@@ -1983,20 +1928,19 @@ printfile(char *fname, int r0, int c0, int rn, int cn)
 	}
 	pline[plinelim++] = '\n';
 	pline[plinelim] = '\0';
-	(void) fputs (pline, f);
+	fputs (pline, f);
     }
 
     if (fname) closefile(f, pid, 0);
 }
 
-void
-tblprintfile(char *fname, int r0, int c0, int rn, int cn)
+void tblprintfile(char *fname, int r0, int c0, int rn, int cn)
 {
     FILE *f;
     int pid;
     long namelen;
     int row, col;
-    register struct ent **pp;
+    struct ent **pp;
     char coldelim = DEFCOLDELIM;
     char file[256];
     char path[1024];
@@ -2006,20 +1950,13 @@ tblprintfile(char *fname, int r0, int c0, int rn, int cn)
     if (*fname == '\0') {
 	strcpy(path, curfile);
 
-#ifdef MSDOS
-	namelen = 12;
-	if ((tpp = strrchr(path, '\\')) == NULL) {
-#else
 	if ((tpp = strrchr(path, '/')) == NULL) {
 	    namelen = pathconf(".", _PC_NAME_MAX);
-#endif
 	    tpp = path;
 	} else {
-#ifndef MSDOS
 	    *tpp = '\0';
 	    namelen = pathconf(path, _PC_NAME_MAX);
 	    *tpp = '/';
-#endif
 	    tpp++;
 	}
 	strcpy(file, tpp);
@@ -2132,11 +2069,10 @@ tblprintfile(char *fname, int r0, int c0, int rn, int cn)
 
     for (row=r0; row<=rn; row++) {
 	if ( tbl_style == TEX )
-	    (void) fprintf (f, "\\+");
-	else if (tbl_style == FRAME) {
+	    fprintf (f, "\\+");
+	else if (tbl_style == FRAME)
 	    fprintf(f,"   <Row # The next body row\n");
-	}
-	
+
 	for (pp = ATBL(tbl, row, col=c0); col<=cn; col++, pp++) {
 	    if ( tbl_style == FRAME ) {
 		fprintf(f,"    <Cell <CellContent <Para\n");
@@ -2146,11 +2082,9 @@ tblprintfile(char *fname, int r0, int c0, int rn, int cn)
 	    if (*pp) {
 		char *s;
 		if ((*pp)->flags&is_valid) {
-		    if ((*pp)->cellerror) {
-			(void) fprintf (f, "%*s",
-					fwidth[col],
-			((*pp)->cellerror == CELLERROR ? "ERROR" : "INVALID"));
-		    } else if ((*pp)->format) {
+		    if ((*pp)->cellerror)
+			fprintf (f, "%*s", fwidth[col], ((*pp)->cellerror == CELLERROR ? "ERROR" : "INVALID"));
+		    else if ((*pp)->format) {
 		        char field[FBUFLEN];
 			if (*((*pp)->format) == ctl('d')) {
 			    time_t v = (time_t) ((*pp)->v);
@@ -2162,15 +2096,14 @@ tblprintfile(char *fname, int r0, int c0, int rn, int cn)
 			unspecial(f, field, coldelim);
 		    } else {
 		        char field[FBUFLEN];
-                        (void) engformat(realfmt[col], fwidth[col],
+                        engformat(realfmt[col], fwidth[col],
 				precision[col], (*pp) -> v,
 				field, sizeof(field));
 			unspecial(f, field, coldelim);
 		    }
 		}
-		if ((s = (*pp)->label)) {
+		if ((s = (*pp)->label))
 	            unspecial(f, s, coldelim);
-		}
 	    }
 	    if (tbl_style == FRAME) {
 		fprintf(f, "'>>\n");
@@ -2178,31 +2111,31 @@ tblprintfile(char *fname, int r0, int c0, int rn, int cn)
 	    }
 	    if (col < cn)
 		if (tbl_style != FRAME)
-		    (void) fprintf(f,"%c", coldelim);
+		    fprintf(f,"%c", coldelim);
 	}
 	if (tbl_style == LATEX) {
-		if (row < rn) (void) fprintf (f, "\\\\");
+		if (row < rn) fprintf (f, "\\\\");
 	}
 	else if (tbl_style == SLATEX) {
-		if (row < rn) (void) fprintf(f, "!!");
+		if (row < rn) fprintf(f, "!!");
 	}
 	else if (tbl_style == TEX) {
-		(void) fprintf (f, "\\cr");
+		fprintf (f, "\\cr");
 	}
 	else if (tbl_style == FRAME) {
 	    fprintf(f,"   > # end of Row\n");
 	}
-	(void) fprintf(f,"\n");
+	fprintf(f,"\n");
     }
 
     if (tbl_style == TBL)
-    (void) fprintf (f,".TE\n.\\\" ** end of %s spreadsheet output\n", progname);
+    fprintf (f,".TE\n.\\\" ** end of %s spreadsheet output\n", progname);
     else if (tbl_style == LATEX)
-	(void) fprintf(f,"\\end{tabular}\n%% ** end of %s spreadsheet output\n", progname);
+	fprintf(f,"\\end{tabular}\n%% ** end of %s spreadsheet output\n", progname);
     else if (tbl_style == SLATEX)
-	(void) fprintf (f,"!end<tabular>\n%% ** end of %s spreadsheet output\n", progname);
+	fprintf (f,"!end<tabular>\n%% ** end of %s spreadsheet output\n", progname);
     else if (tbl_style == TEX)
-	(void) fprintf (f,"}\n%% ** end of %s spreadsheet output\n", progname);
+	fprintf (f,"}\n%% ** end of %s spreadsheet output\n", progname);
     else if (tbl_style == FRAME) {
 	fprintf(f,"  > # end of TblBody\n");
 	fprintf(f," ># end of Tbl\n");
@@ -2217,8 +2150,7 @@ tblprintfile(char *fname, int r0, int c0, int rn, int cn)
 }
 
 /* unspecial (backquote) things that are special chars in a table */
-void
-unspecial(FILE *f, char *str, int delim)
+void unspecial(FILE *f, char *str, int delim)
 {
     if (*str == '\\') str++; /* delete wheeling string operator, OK? */
     while (*str) {
@@ -2233,11 +2165,9 @@ unspecial(FILE *f, char *str, int delim)
     }
 }
 
-struct enode *
-copye(register struct enode *e, int Rdelta, int Cdelta, int r1, int c1,
-	int r2, int c2, int transpose)
+struct enode * copye (struct enode *e, int Rdelta, int Cdelta, int r1, int c1, int r2, int c2, int transpose)
 {
-    register struct enode *ret;
+    struct enode *ret;
     static struct enode *range = NULL;
 
     if (e == (struct enode *)0)
@@ -2279,7 +2209,7 @@ copye(register struct enode *e, int Rdelta, int Cdelta, int r1, int c1,
 	ret->e.r.right.vp = lookat(newrow, newcol);
 	ret->e.r.right.vf = e->e.r.right.vf;
     } else {
-	struct enode *temprange;
+	struct enode *temprange = range;
 
 	if (freeenodes) {
 	    ret = freeenodes;
@@ -2295,7 +2225,6 @@ copye(register struct enode *e, int Rdelta, int Cdelta, int r1, int c1,
 	    case STDDEV:
 	    case MAX:
 	    case MIN:
-		temprange = range;
 		range = e->e.o.left;
 		r1 = 0;
 		c1 = 0;
@@ -2337,17 +2266,15 @@ copye(register struct enode *e, int Rdelta, int Cdelta, int r1, int c1,
 		break;
 	    case 'f':
 	    case 'F':
-		if (range && ret->op == 'F' ||
-			!range && ret->op == 'f')
+		if (range && (ret->op == 'F' || (!range && ret->op == 'f')))
 		    Rdelta = Cdelta = 0;
-		ret->e.o.left = copye(e->e.o.left, Rdelta, Cdelta,
-			r1, c1, r2, c2, transpose);
+		ret->e.o.left = copye(e->e.o.left, Rdelta, Cdelta, r1, c1, r2, c2, transpose);
 		ret->e.o.right = (struct enode *)0;
  		break;
 	    case '$':
 	    case EXT:
 		ret->e.s = scxmalloc((unsigned) strlen(e->e.s)+1);
-		(void) strcpy(ret->e.s, e->e.s);
+		strcpy(ret->e.s, e->e.s);
 		if (e->op == '$')	/* Drop through if ret->op is EXT */
 		    break;
 	    default:
@@ -2377,11 +2304,10 @@ copye(register struct enode *e, int Rdelta, int Cdelta, int r1, int c1,
  * be hanging around before the call, but not referenced by an entry
  * in tbl.  Thus the free_ent calls in sc.c
  */
-void
-sync_refs()
+void sync_refs (void)
 {
     int i, j;
-    register struct ent *p;
+    struct ent *p;
     sync_ranges();
     for (i=0; i<=maxrow; i++)
 	for (j=0; j<=maxcol; j++)
@@ -2396,8 +2322,7 @@ sync_refs()
     }
 }
 
-void
-syncref(register struct enode *e)
+void syncref (struct enode *e)
 {
     if (e == (struct enode *)0)
 	return;
@@ -2407,7 +2332,7 @@ syncref(register struct enode *e)
     } else {
 	switch (e->op) {
 	    case 'v':
-		if (e->e.v.vp->flags & is_cleared) {
+		if (e->e.v.vp->flags & is_cell_cleared) {
 		    e->op = ERR_;
 		    e->e.o.left = NULL;
 		    e->e.o.right = NULL;
@@ -2427,11 +2352,10 @@ syncref(register struct enode *e)
 }
 
 /* mark a row as hidden */
-void
-hiderow(int arg)
+void hiderow (int arg)
 {
-    register int r1;
-    register int r2;
+    int r1;
+    int r2;
 
     r1 = currow;
     r2 = r1 + arg - 1;
@@ -2452,8 +2376,7 @@ hiderow(int arg)
 }
 
 /* mark a column as hidden */
-void
-hidecol(int arg)
+void hidecol (int arg)
 {
     int c1;
     int c2;
@@ -2477,8 +2400,7 @@ hidecol(int arg)
 }
 
 /* mark a row as not-hidden */
-void
-showrow(int r1, int r2)
+void showrow (int r1, int r2)
 {
     if (r1 < 0 || r1 > r2) {
 	error ("Invalid range");
@@ -2494,8 +2416,7 @@ showrow(int r1, int r2)
 }
 
 /* mark a column as not-hidden */
-void
-showcol(int c1, int c2)
+void showcol (int c1, int c2)
 {
     if (c1 < 0 || c1 > c2) {
 	error ("Invalid range");
@@ -2511,8 +2432,7 @@ showcol(int c1, int c2)
 }
 
 /* Open the input or output file, setting up a pipe if needed */
-FILE *
-openfile(char *fname, int *rpid, int *rfd)
+FILE* openfile (char *fname, int *rpid, int *rfd)
 {
     int pipefd[4];
     int pid;
@@ -2536,10 +2456,6 @@ openfile(char *fname, int *rpid, int *rfd)
 	return (fopen(efname, rfd == NULL ? "w" : "r"));
     }
 
-#if defined(MSDOS)
-    error("Piping not available under MS-DOS\n");
-    return (0);
-#else
     fname++;				/* Skip | */
     efname = findhome(fname);
     if (pipe(pipefd) < 0 || (rfd != NULL && pipe(pipefd+2) < 0)) {
@@ -2549,82 +2465,64 @@ openfile(char *fname, int *rpid, int *rfd)
     }
 
     deraw(rfd==NULL);
-#ifdef VMS
-    fprintf(stderr, "No son tasks available yet under VMS--sorry\n");
-#else /* VMS */
 
     if ((pid=fork()) == 0) {		/* if child */
-	(void) close(0);		/* close stdin */
-	(void) close(pipefd[1]);
-	(void) dup(pipefd[0]);		/* connect to first pipe */
+	close(0);		/* close stdin */
+	close(pipefd[1]);
+	dup(pipefd[0]);		/* connect to first pipe */
 	if (rfd != NULL) {		/* if opening for read */
-	    (void) close(1);		/* close stdout */
-	    (void) close(pipefd[2]);
-	    (void) dup(pipefd[3]);	/* connect to second pipe */
+	    close(1);		/* close stdout */
+	    close(pipefd[2]);
+	    dup(pipefd[3]);	/* connect to second pipe */
 	}
-	(void) signal(SIGINT, SIG_DFL);	/* reset */
-	(void) execl("/bin/sh", "sh", "-c", efname, 0);
+	signal(SIGINT, SIG_DFL);	/* reset */
+	execl("/bin/sh", "sh", "-c", efname, 0);
 	exit (-127);
     } else {				/* else parent */
 	*rpid = pid;
 	if ((f = fdopen(pipefd[(rfd==NULL?1:2)], rfd==NULL?"w":"r")) == NULL) {
-	    (void) kill(pid, 9);
+	    kill(pid, 9);
 	    error("Can't fdopen %sput", rfd==NULL?"out":"in");
-	    (void) close(pipefd[1]);
+	    close(pipefd[1]);
 	    if (rfd != NULL)
-		(void) close(pipefd[3]);
+		close(pipefd[3]);
 	    *rpid = 0;
 	    return (0);
 	}
     }
-    (void) close(pipefd[0]);
+    close(pipefd[0]);
     if (rfd != NULL) {
-	(void) close(pipefd[3]);
+	close(pipefd[3]);
 	*rfd = pipefd[1];
     }
-#endif /* VMS */
     return (f);
-#endif /* MSDOS */
 }
 
 /* close a file opened by openfile(), if process wait for return */
-void
-closefile(FILE *f, int pid, int rfd)
+void closefile (FILE *f, int pid, int rfd)
 {
     int temp;
 
-    (void) fclose(f);
-#ifndef MSDOS
+    fclose(f);
     if (pid) {
 	while (pid != wait(&temp)) /**/;
 	if (rfd==0) {
-	    (void) printf("Press any key to continue ");
-	    (void) fflush(stdout);
+	    printf("Press any key to continue ");
+	    fflush(stdout);
 	    cbreak();
-	    (void) nmgetch();
+	    nmgetch();
 	    goraw();
 	    clear();
 	} else {
 	    close(rfd);
 	    if (usecurses) {
-#ifdef VMS
-		VMS_read_raw = 1;
-#else /* VMS */
-#if SYSV2 || SYSV3
 		fixterm();
-#else /* SYSV2 || SYSV3 */
-		cbreak();
-		nonl();
-		noecho ();
-#endif /* SYSV2 || SYSV3 */
 		kbd_again();
-#endif /* VMS */
 		if (color && has_colors())
 		    bkgdset(COLOR_PAIR(1) | ' ');
 	    }
 	}
     }
-#endif /* MSDOS */
     if (brokenpipe) {
 	error("Broken pipe");
 	brokenpipe = FALSE;
@@ -2637,9 +2535,7 @@ closefile(FILE *f, int pid, int rfd)
  * the "pt" command.  r1, c1, r2, and c2 define the range in which the dr
  * and dc values should be used.
  */
-void
-copyent(register struct ent *n, register struct ent *p, int dr, int dc,
-	int r1, int c1, int r2, int c2, int special)
+void copyent (struct ent *n, struct ent *p, int dr, int dc, int r1, int c1, int r2, int c2, int special)
 {
     if (!n || !p) {
 	error("internal error");
@@ -2661,7 +2557,7 @@ copyent(register struct ent *n, register struct ent *p, int dr, int dc,
 	    if (n->label)
 		scxfree(n->label);
 	    n->label = scxmalloc((unsigned) (strlen(p->label) + 1));
-	    (void) strcpy(n->label, p->label);
+	    strcpy(n->label, p->label);
 	    n->flags &= ~is_leftflush;
 	    n->flags |= ((p->flags & is_label) | (p->flags & is_leftflush));
 	} else if (special != 'm') {
@@ -2674,17 +2570,15 @@ copyent(register struct ent *n, register struct ent *p, int dr, int dc,
 	if (n->format)
 	    scxfree(n->format);
         n->format = scxmalloc((unsigned) (strlen(p->format) + 1));
-	(void) strcpy(n->format, p->format);
+	strcpy(n->format, p->format);
     } else if (special != 'm' && special != 'f')
 	n->format = NULL;
     n->flags |= is_changed;
 }
 
-#ifndef MSDOS
 /* add a plugin/mapping pair to the end of the filter list. type is
  * r(ead) or w(rite)
  */
-
 void
 addplugin(char *ext, char *plugin, char type)
 {
@@ -2711,8 +2605,7 @@ addplugin(char *ext, char *plugin, char type)
     fp->next = NULL;
 }
 
-char *
-findplugin(char *ext, char type)
+char* findplugin (char *ext, char type)
 {
     struct impexfilt *fp;
 
@@ -2726,35 +2619,32 @@ findplugin(char *ext, char type)
 	if ((!strcmp(fp->ext, ext)) && (fp->type == type))
 	    return (fp->plugin);
     }
-
     return (NULL);
 }
-#endif
 
-void
-write_fd(register FILE *f, int r0, int c0, int rn, int cn)
+void write_fd (FILE *f, int r0, int c0, int rn, int cn)
 {
-    register struct ent **pp;
+    struct ent **pp;
     int r, c;
 
-    (void) fprintf(f, "# This data file was generated by the Spreadsheet ");
-    (void) fprintf(f, "Calculator.\n");
-    (void) fprintf(f, "# You almost certainly shouldn't edit it.\n\n");
+    fprintf(f, "# This data file was generated by the Spreadsheet ");
+    fprintf(f, "Calculator.\n");
+    fprintf(f, "# You almost certainly shouldn't edit it.\n\n");
     print_options(f);
     for (c = 0; c < COLFORMATS; c++)
 	if (colformat[c])
-	    (void) fprintf (f, "format %d = \"%s\"\n", c, colformat[c]);
+	    fprintf (f, "format %d = \"%s\"\n", c, colformat[c]);
     for (c = c0; c <= cn; c++)
 	if (fwidth[c] != DEFWIDTH || precision[c] != DEFPREC ||
 		realfmt[c] != DEFREFMT)
-	    (void) fprintf (f, "format %s %d %d %d\n", coltoa(c), fwidth[c],
+	    fprintf (f, "format %s %d %d %d\n", coltoa(c), fwidth[c],
 		    precision[c], realfmt[c]);
     for (c = c0; c <= cn; c++)
         if (col_hidden[c])
-            (void) fprintf(f, "hide %s\n", coltoa(c));
+            fprintf(f, "hide %s\n", coltoa(c));
     for (r = r0; r <= rn; r++)
 	if (row_hidden[r])
-	    (void) fprintf(f, "hide %d\n", r);
+	    fprintf(f, "hide %d\n", r);
 
     write_ranges(f);
     write_franges(f);
@@ -2762,12 +2652,12 @@ write_fd(register FILE *f, int r0, int c0, int rn, int cn)
     write_cranges(f);
 
     if (mdir) 
-	(void) fprintf(f, "mdir \"%s\"\n", mdir);
+	fprintf(f, "mdir \"%s\"\n", mdir);
     if (autorun) 
-	(void) fprintf(f, "autorun \"%s\"\n", autorun);
+	fprintf(f, "autorun \"%s\"\n", autorun);
     for (c = 0; c < FKEYS; c++)
 	if (fkey[c])
-	    (void) fprintf(f, "fkey %d = \"%s\"\n", c + 1, fkey[c]);
+	    fprintf(f, "fkey %d = \"%s\"\n", c + 1, fkey[c]);
 
     write_cells(f, r0, c0, rn, cn, r0, c0);
     for (r = r0; r <= rn; r++) {
@@ -2775,12 +2665,12 @@ write_fd(register FILE *f, int r0, int c0, int rn, int cn)
 	for (c = c0; c <= cn; c++, pp++)
 	    if (*pp) {
 		if ((*pp)->flags&is_locked)
-		    (void) fprintf(f, "lock %s%d\n", coltoa((*pp)->col),
+		    fprintf(f, "lock %s%d\n", coltoa((*pp)->col),
 						     (*pp)->row);
 		if ((*pp)->nrow >= 0) {
-		    (void) fprintf(f, "addnote %s ",
+		    fprintf(f, "addnote %s ",
 			    v_name((*pp)->row, (*pp)->col));
-		    (void) fprintf(f, "%s\n", r_name((*pp)->nrow, (*pp)->ncol,
+		    fprintf(f, "%s\n", r_name((*pp)->nrow, (*pp)->ncol,
 			    (*pp)->nlastrow, (*pp)->nlastcol));
 		}
 	    }
@@ -2794,10 +2684,9 @@ write_fd(register FILE *f, int r0, int c0, int rn, int cn)
     fprintf(f, " %s\n", v_name(strow, stcol));
 }
 
-void
-write_cells(register FILE *f, int r0, int c0, int rn, int cn, int dr, int dc)
+void write_cells (FILE *f, int r0, int c0, int rn, int cn, int dr, int dc)
 {
-    register struct ent **pp;
+    struct ent **pp;
     int r, c, rs, cs, mf;
     char *dpointptr;
 
@@ -2819,18 +2708,18 @@ write_cells(register FILE *f, int r0, int c0, int rn, int cn, int dr, int dc)
 	    if (*pp) {
 		if ((*pp)->label || (*pp)->flags & is_strexpr) {
 		    edits(r, c);
-		    (void) fprintf(f, "%s\n", line);
+		    fprintf(f, "%s\n", line);
 		}
 		if ((*pp)->flags & is_valid) {
 		    editv(r, c);
 		    dpointptr = strchr(line, dpoint);
 		    if (dpointptr != NULL)
 			*dpointptr = '.';
-		    (void) fprintf(f, "%s\n", line);
+		    fprintf(f, "%s\n", line);
 		}
 		if ((*pp)->format) {
 		    editfmt(r, c);
-		    (void) fprintf(f, "%s\n",line);
+		    fprintf(f, "%s\n",line);
 		}
 	    }
     }
@@ -2843,10 +2732,9 @@ write_cells(register FILE *f, int r0, int c0, int rn, int cn, int dr, int dc)
     modflg = mf;
 }
 
-int
-writefile(char *fname, int r0, int c0, int rn, int cn)
+int writefile(char *fname, int r0, int c0, int rn, int cn)
 {
-    register FILE *f;
+    FILE *f;
     char save[PATHLEN];
     char tfname[PATHLEN];
     long namelen;
@@ -2855,18 +2743,17 @@ writefile(char *fname, int r0, int c0, int rn, int cn)
     char *plugin;
     int pid;
 
-#ifndef MSDOS
     /* find the extension and mapped plugin if exists */
     if ((p = strrchr(fname, '.'))) {
 	if ((plugin = findplugin(p+1, 'w')) != NULL) {
 	    if (!plugin_exists(plugin, strlen(plugin), save + 1)) {
 		error("plugin not found");
-		return;
+		return (-1);
 	    }
 	    *save = '|';
 	    if ((strlen(save) + strlen(fname) + 20) > PATHLEN) {
 		error("Path too long");
-		return;
+		return (-1);
 	    }
 	    sprintf(save + strlen(save), " %s%d:", coltoa(c0), r0);
 	    sprintf(save + strlen(save), "%s%d \"%s\"", coltoa(cn), rn, fname);
@@ -2875,25 +2762,16 @@ writefile(char *fname, int r0, int c0, int rn, int cn)
 	    return (0);
 	}
     }
-#endif
 
-#if !defined(VMS) && !defined(MSDOS) && defined(CRYPT_PATH)
-    if (Crypt) {
-	return (cwritefile(fname, r0, c0, rn, cn));
-    }
-#endif /* VMS */
-
-    if (*fname == '\0')
+    if (*fname == '\0') {
 	if (isatty(STDOUT_FILENO) || *curfile != '\0')
 	    fname = curfile;
 	else {
 	    write_fd(stdout, r0, c0, rn, cn);
 	    return (0);
 	}
+    }
 
-#ifdef MSDOS
-    namelen = 12;
-#else
     if ((tpp = strrchr(fname, '/')) == NULL)
 	namelen = pathconf(".", _PC_NAME_MAX);
     else {
@@ -2901,12 +2779,11 @@ writefile(char *fname, int r0, int c0, int rn, int cn)
 	namelen = pathconf(fname, _PC_NAME_MAX);
 	*tpp = '/';
     }
-#endif /* MSDOS */
 
-    (void) strcpy(tfname, fname);
+    strcpy(tfname, fname);
     for (tpp = tfname; *tpp != '\0'; tpp++)
 	if (*tpp == '\\' && *(tpp + 1) == '"')
-	    (void) memmove(tpp, tpp + 1, strlen(tpp));
+	    memmove(tpp, tpp + 1, strlen(tpp));
 
     if (scext != NULL) {
 	if (strlen(tfname) > 3 && !strcmp(tfname + strlen(tfname) - 3, ".sc"))
@@ -2920,10 +2797,10 @@ writefile(char *fname, int r0, int c0, int rn, int cn)
 	strcat(tfname, scext);
     }
 
-    (void) strcpy(save, tfname);
+    strcpy(save, tfname);
     for (tpp = save; *tpp != '\0'; tpp++)
 	if (*tpp == '"') {
-	    (void) memmove(tpp + 1, tpp, strlen(tpp) + 1);
+	    memmove(tpp + 1, tpp, strlen(tpp) + 1);
 	    *tpp++ = '\\';
 	}
 
@@ -2941,7 +2818,7 @@ writefile(char *fname, int r0, int c0, int rn, int cn)
     closefile(f, pid, 0);
 
     if (!pid) {
-        (void) strcpy(curfile, save);
+        strcpy(curfile, save);
         modflg = 0;
 	FullUpdate++;
 	if (usecurses)
@@ -2953,10 +2830,9 @@ writefile(char *fname, int r0, int c0, int rn, int cn)
     return (0);
 }
 
-int
-readfile(char *fname, int eraseflg)
+int readfile(char *fname, int eraseflg)
 {
-    register FILE *f;
+    FILE *f;
     char save[PATHLEN];
     int tempautolabel;
     char *p;
@@ -2968,25 +2844,24 @@ readfile(char *fname, int eraseflg)
     autolabel = 0;			/* reading a file */
 
     if (*fname == '*' && mdir) { 
-       (void) strcpy(save, mdir);
-       (void) strcat(save, fname);
+       strcpy(save, mdir);
+       strcat(save, fname);
     } else {
         if (*fname == '\0')
 	    fname = curfile;
-	(void) strcpy(save, fname);
+	strcpy(save, fname);
     }
 
-#ifndef MSDOS
     if ((p = strrchr(fname, '.')) && (fname[0] != '|')) {  /* exclude macros */
 	if ((plugin = findplugin(p+1, 'r')) != NULL) {
 	    if (!(plugin_exists(plugin, strlen(plugin), save + 1))) {
 		error("plugin not found");
-		return;
+		return (-1);
 	    }
 	    *save = '|';
 	    if ((strlen(save) + strlen(fname) + 2) > PATHLEN) {
 		error("Path too long");
-		return;
+		return (-1);
 	    }
 	    sprintf(save + strlen(save), " \"%s\"", fname);
 	    eraseflg = 0;
@@ -3000,34 +2875,16 @@ readfile(char *fname, int eraseflg)
 		}
 		p--;
 	    }
-	    (void) strcpy(curfile, p);
+	    strcpy(curfile, p);
 	}
     }
-#endif
-
-#if !defined(VMS) && !defined(MSDOS) && defined(CRYPT_PATH)
-    if (Crypt) {
-	int ret = 0;
-	if (*save == '-' && strlen(fname) == 1)
-	    error("Can't use encryption in a pipeline.");
-	else
-	    if (*save == '|')
-		error("Can't use encryption with advanced macros.");
-	else
-	    ret = creadfile(save, eraseflg);
-	autolabel = tempautolabel;
-	return (ret);
-    }
-#endif /* VMS */
 
     if (eraseflg && strcmp(fname, curfile) && modcheck(" first")) return 0;
 
-#ifndef MSDOS
     if (fname[0] == '-' && fname[1] == '\0') {
 	f = stdin;
 	*save = '\0';
     } else {
-#endif /* MSDOS */
 	if ((f = openfile(save, &pid, &rfd)) == NULL) {
 	    error("Can't read file \"%s\"", save);
 	    autolabel = tempautolabel;
@@ -3039,11 +2896,9 @@ readfile(char *fname, int eraseflg)
 	    } else
 		fprintf(stderr, "\nReading file \"%s\"", save);
 	}
-#ifndef MSDOS
     }
     if (*fname == '|')
 	*save = '\0';
-#endif /* MSDOS */
 
     if (eraseflg) erasedb();
 
@@ -3052,30 +2907,25 @@ readfile(char *fname, int eraseflg)
     savefd = macrofd;
     macrofd = rfd;
     while (!brokenpipe && fgets(line, sizeof(line), f)) {
-#ifndef MSDOS
-	if (line[0] == '|' && pid != 0) {
+	if (line[0] == '|' && pid != 0)
 	    line[0] = ' ';
-	}
-#endif /* MSDOS */
 	linelim = 0;
-	if (line[0] != '#') (void) yyparse();
+	if (line[0] != '#') yyparse();
     }
     macrofd = savefd;
     --loading;
     remember(1);
     closefile(f, pid, rfd);
-#ifndef MSDOS
     if (f == stdin) {
 	freopen("/dev/tty", "r", stdin);
 	goraw();
     }
-#endif /* MSDOS */
     linelim = -1;
     if (eraseflg) {
-	(void) strcpy(curfile, save);
+	strcpy(curfile, save);
 	modflg = 0;
 	cellassign = 0;
-	if (autorun && !skipautorun) (void) readfile(autorun, 0);
+	if (autorun && !skipautorun) readfile(autorun, 0);
 	skipautorun = 0;
 	EvalAll();
     }
@@ -3085,8 +2935,7 @@ readfile(char *fname, int eraseflg)
 }
 
 /* erase the database (tbl, etc.) */
-void
-erasedb()
+void erasedb (void)
 {
     int  r, c;
     char *home;
@@ -3098,7 +2947,7 @@ erasedb()
     }
 
     for (r = 0; r<=maxrow; r++) {
-	register struct ent **pp = ATBL(tbl, r, 0);
+	struct ent **pp = ATBL(tbl, r, 0);
 	for (c=0; c++<=maxcol; pp++)
 	    if (*pp) {
 		if ((*pp)->expr)  efree((*pp) -> expr);
@@ -3109,11 +2958,12 @@ erasedb()
 	    }
     }
 
-    for (c = 0; c < COLFORMATS; c++)
+    for (c = 0; c < COLFORMATS; c++) {
 	if (colformat[c]) {
 	    scxfree(colformat[c]);
 	    colformat[c] = NULL;
 	}
+    }
 
     maxrow = 0;
     maxcol = 0;
@@ -3146,13 +2996,13 @@ erasedb()
 	scxfree(autorun);
 	autorun = NULL;
     }
-    for (c = 0; c < FKEYS; c++)
+    for (c = 0; c < FKEYS; c++) {
 	if (fkey[c]) {
 	    scxfree(fkey[c]);
 	    fkey[c] = NULL;
 	}
+    }
 
-#ifndef MSDOS
     /*
      * Load $HOME/.scrc if present.
      */
@@ -3161,7 +3011,7 @@ erasedb()
 	strcat(curfile, "/.scrc");
 	if ((c = open(curfile, O_RDONLY)) > -1) {
 	    close(c);
-	    (void) readfile(curfile, 0);
+	    readfile(curfile, 0);
 	}
     }
 
@@ -3171,17 +3021,15 @@ erasedb()
     if (scrc && strcmp(home, getcwd(curfile, PATHLEN)) &&
 	    (c = open(".scrc", O_RDONLY)) > -1) {
 	close(c);
-	(void) readfile(".scrc", 0);
+	readfile(".scrc", 0);
     }
-#endif /* MSDOS */
 
     *curfile = '\0';
     FullUpdate++;
 }
 
 /* moves curcol back one displayed column */
-void
-backcol(int arg)
+void backcol (int arg)
 {
     while (--arg >= 0) {
 	if (curcol)
@@ -3196,17 +3044,17 @@ backcol(int arg)
 }
 
 /* moves curcol forward one displayed column */
-void
-forwcol(int arg)
+void forwcol(int arg)
 {
     while (--arg>=0) {
 	if (curcol < maxcols - 1)
 	    curcol++;
-	else
-	if (!growtbl(GROWCOL, 0, arg))	/* get as much as needed */
+	else {
+	    if (!growtbl(GROWCOL, 0, arg))	/* get as much as needed */
 		break;
-	else
+	    else
 		curcol++;
+	}
 	while (col_hidden[curcol] && (curcol < maxcols - 1))
 	    curcol++;
     }
@@ -3215,17 +3063,17 @@ forwcol(int arg)
 }
 
 /* moves currow forward one displayed row */
-void
-forwrow(int arg)
+void forwrow (int arg)
 {
     while (--arg>=0) {
 	if (currow < maxrows - 1)
 	    currow++;
-	else
-	if (!growtbl(GROWROW, arg, 0))	/* get as much as needed */
+	else {
+	    if (!growtbl(GROWROW, arg, 0))	/* get as much as needed */
 		break;
-	else
+	    else
 		currow++;
+	}
 	while (row_hidden[currow]&&(currow<maxrows-1))
 	    currow++;
     }
@@ -3234,14 +3082,15 @@ forwrow(int arg)
 }
 
 /* moves currow backward one displayed row */
-void
-backrow(int arg)
+void backrow (int arg)
 {
     while (--arg>=0) {
 	if (currow)
 	    currow--;
-	else
-	    {error("At row zero"); break;}
+	else {
+	    error("At row zero");
+	    break;
+	}
 	while (row_hidden[currow] && currow)
 	    currow--;
     }
@@ -3249,37 +3098,33 @@ backrow(int arg)
     colsinrange = fwidth[curcol];
 }
 
-void
-markcell()
+void markcell (void)
 {
     int c;
-
     error("Mark cell:");
     if ((c=nmgetch()) == ESC || c == ctl('g')) {
-	error("");
+	error(" ");
 	return;
     }
     if ((c -= ('a' - 1)) < 1 || c > 26) {
 	error("Invalid mark (must be a-z)");
 	return;
     }
-    error("");
+    error(" ");
     savedrow[c] = currow;
     savedcol[c] = curcol;
     savedstrow[c] = strow;
     savedstcol[c] = stcol;
 }
 
-void
-dotick(int tick)
+void dotick (int tick)
 {
     int c;
-
     remember(0);
 
     error("Go to marked cell:");
     if ((c = nmgetch()) == ESC || c == ctl('g')) {
-	error("");
+	error(" ");
 	return;
     }
     if (c == '`' || c == '\'')
@@ -3293,7 +3138,7 @@ dotick(int tick)
 	error("Mark not set");
 	return;
     }
-    error("");
+    error(" ");
     currow = savedrow[c];
     curcol = savedcol[c];
     rowsinrange = 1;
@@ -3309,10 +3154,9 @@ dotick(int tick)
     FullUpdate++;
 }
 
-void
-gotonote()
+void gotonote (void)
 {
-    register struct ent *p;
+    struct ent *p;
 
     p = lookat(currow, curcol);
     if (p->nrow == -1)
@@ -3327,8 +3171,7 @@ gotonote()
  * update(), copied with minimal changes.
  */
 
-void
-showstring(char *string,	/* to display */
+void showstring(char *string,	/* to display */
     int dirflush,		/* or rightflush or centered */
     int hasvalue,		/* is there a numeric value? */
     int row, int col,		/* spreadsheet location */
@@ -3424,15 +3267,14 @@ showstring(char *string,	/* to display */
 #ifdef VMS
     mvaddstr(r, c, field);	/* this is a macro */
 #else
-    (void) mvaddstr(r, c, field);
+    mvaddstr(r, c, field);
 #endif
 
     *nextcolp  = nextcol;
     *fieldlenp = fieldlen;
 }
 
-int
-etype(register struct enode *e)
+int etype(struct enode *e)
 {
     if (e == (struct enode *)0)
 	return NUM;
@@ -3450,7 +3292,7 @@ etype(register struct enode *e)
 	    return (etype(e->e.o.right));
 
 	case O_VAR: {
-	    register struct ent *p;
+	    struct ent *p;
 	    p = e->e.v.vp;
 	    if (p->expr) 
 		return (p->flags & is_strexpr ? STR : NUM);
@@ -3466,30 +3308,26 @@ etype(register struct enode *e)
 }
 
 /* return 1 if yes given, 0 otherwise */
-int
-yn_ask(char *msg)
-{	char ch;
-
-	(void) move(0, 0);
-	(void) clrtoeol();
-	(void) addstr(msg);
-	(void) refresh();
-	while ((ch = nmgetch()) != 'y' && ch != 'Y' && ch != 'n' && ch != 'N') {
-	    if (ch == ctl('g') || ch == ESC)
-		return (-1);
-	}
-	if (ch == 'y' || ch == 'Y')
-	    return (1);
-	else
-	    return (0);
+int yn_ask(char *msg)
+{
+    move(0, 0);
+    clrtoeol();
+    addstr(msg);
+    refresh();
+    char ch;
+    while ((ch = nmgetch()) != 'y' && ch != 'Y' && ch != 'n' && ch != 'N') {
+	if (ch == ctl('g') || ch == ESC)
+	    return (-1);
+    }
+    if (ch == 'y' || ch == 'Y')
+	return (1);
+    else
+	return (0);
 }
 
 /* expand a ~ in a path to your home directory */
-#if !defined(MSDOS) && !defined(VMS)
 #include <pwd.h>
-#endif
-char *
-findhome(char *path)
+char* findhome (char *path)
 {
     static	char	*HomeDir = NULL;
 
@@ -3505,7 +3343,6 @@ findhome(char *path)
 	pathptr = path + 1;
 	if ((*pathptr == '/') || (*pathptr == '\0'))
 	    strcpy(tmppath, HomeDir);
-#if !defined(MSDOS) && !defined(VMS)
 	else {
 	    struct	passwd *pwent;
 	    char	*namep;
@@ -3516,12 +3353,11 @@ findhome(char *path)
 		    *(namep++) = *(pathptr++);
 	    *namep = '\0';
 	    if ((pwent = getpwnam(name)) == NULL) {
-	    	(void) sprintf(path, "Can't find user %s", name);
+	    	sprintf(path, "Can't find user %s", name);
 		return (NULL);
 	    }
 	    strcpy(tmppath, pwent->pw_dir);
 	}
-#endif
 	strcat(tmppath, pathptr);
 	strcpy(path, tmppath);
     }
@@ -3536,8 +3372,7 @@ findhome(char *path)
  * [path/]file~
  * return 1 if we were successful, 0 otherwise
  */
-int
-backup_file(char *path)
+int backup_file (char *path)
 {
     struct	stat	statbuf;
     struct	utimbuf	timebuf;
@@ -3561,7 +3396,7 @@ backup_file(char *path)
     else
 	tpp++;
     strcpy(fname, tpp);
-    (void) sprintf(tpp, "%s~", fname);
+    sprintf(tpp, "%s~", fname);
 
     if (stat(path, &statbuf) == 0) {
 #ifdef sequent

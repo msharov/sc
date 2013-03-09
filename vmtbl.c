@@ -10,11 +10,6 @@
  *		$Revision: 7.16 $
  *
  */
-#ifdef PSC
-# include <stdio.h>
-#else /* PSC */
-# include <curses.h>
-#endif /* PSC */
 
 #include "sc.h"
 
@@ -71,8 +66,7 @@ static char	nowider[] = "The table can't be any wider";
  * toprow &&/|| topcol tell us a better guess of how big to become.
  * we return TRUE if we could grow, FALSE if not....
  */
-int
-growtbl(int rowcol, int toprow, int topcol)
+int growtbl (int rowcol, int toprow __attribute__((unused)), int topcol)
 {
     int		*fwidth2;
     int		*precision2;

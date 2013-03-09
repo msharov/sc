@@ -11,30 +11,13 @@
  *
  */
 
-
-#include <sys/types.h>
-#ifdef BSD42
-#include <strings.h>
-#else
-#ifndef SYSIII
-#include <string.h>
-#endif
-#endif
-
-#if defined(BSD42) || defined(BSD43)
-#include <sys/ioctl.h>
-#endif 
-
+#include "sc.h"
+#include <math.h>
 #ifdef IEEE_MATH
 #include <ieeefp.h>
 #endif /* IEEE_MATH */
-
-#include <stdlib.h>
-#include <curses.h>
 #include <signal.h>
 #include <setjmp.h>
-#include <ctype.h>
-#include "sc.h"
 
 #ifdef NONOTIMEOUT
 #define	notimeout(a1, a2)
@@ -69,17 +52,14 @@ jmp_buf fpe_buf;
 
 bool decimal = FALSE;
 
-#ifdef SIGVOID
-void
-#endif
-fpe_trap(int signo)
+void fpe_trap (int signo __attribute__((unused)))
 {
 #if defined(i386) && !defined(M_XENIX)
     asm("	fnclex");
     asm("	fwait");
 #else
 #ifdef IEEE_MATH
-    (void)fpsetsticky((fp_except)0);	/* Clear exception */
+    fpsetsticky((fp_except)0);	/* Clear exception */
 #endif /* IEEE_MATH */
 #ifdef PC
     _fpreset();
@@ -103,11 +83,10 @@ struct key statres[] = {
     { 0, 0 }
 };
 
-int
-yylex()
+int yylex (void)
 {
     char *p = line + linelim;
-    int ret;
+    int ret = 0;
     static int isfunc = 0;
     static bool isgoto = 0;
     static bool colstate = 0;
@@ -197,18 +176,14 @@ yylex()
 	    }
 	}
     } else if ((*p == '.') || isdigit(*p)) {
-#ifdef SIGVOID
-	void (*sig_save)();
-#else
-	int (*sig_save)();
-#endif
 	double v = 0.0;
 	int temp;
 	char *nstart = p;
+	void (*sig_save)(int);
 
 	sig_save = signal(SIGFPE, fpe_trap);
 	if (setjmp(fpe_buf)) {
-	    (void) signal(SIGFPE, sig_save);
+	    signal(SIGFPE, sig_save);
 	    yylval.fval = v;
 	    error("Floating point exception\n");
 	    isfunc = isgoto = 0;
@@ -278,7 +253,7 @@ yylex()
 		}
 	    }
 	}
-	(void) signal(SIGFPE, sig_save);
+	signal(SIGFPE, sig_save);
     } else if (*p=='"') {
 	char *ptr;
         ptr = p+1;	/* "string" or "string\"quoted\"" */
@@ -318,7 +293,6 @@ yylex()
 int
 plugin_exists(char *name, int len, char *path)
 {
-#ifndef MSDOS
     FILE *fp;
     static char *HomeDir;
 
@@ -326,7 +300,7 @@ plugin_exists(char *name, int len, char *path)
 	strcpy((char *)path, HomeDir);
 	strcat((char *)path, "/.sc/plugins/");
 	strncat((char *)path, name, len);
-	if (fp = fopen((char *)path, "r")) {
+	if ((fp = fopen((char *)path, "r"))) {
 	    fclose(fp);
 	    return 1;
 	}
@@ -334,11 +308,10 @@ plugin_exists(char *name, int len, char *path)
     strcpy((char *)path, LIBDIR);
     strcat((char *)path, "/plugins/");
     strncat((char *)path, name, len);
-    if (fp = fopen((char *)path, "r")) {
+    if ((fp = fopen((char *)path, "r"))) {
 	fclose(fp);
 	return 1;
     }
-#endif
     return 0;
 }
 
@@ -351,8 +324,7 @@ plugin_exists(char *name, int len, char *path)
  * Case-insensitivity is done crudely, by ignoring the 040 bit.
  */
 
-int
-atocol(char *string, int len)
+int atocol(char *string, int len)
 {
     register int col;
 
@@ -441,7 +413,7 @@ VMS_MSG (int status)
 	status = status & 0x8000 ? status & 0xFFFFFFF : status & 0xFFFF;
 	if (SYS$GETMSG(status, &length, &errdesc, 1, 0) == SS$_NORMAL) {
 	    errstr[length] = '\0';
-	    (void) sprintf(buf, "<0x%x> %s", status, errdesc.dsc$a_pointer);
+	    sprintf(buf, "<0x%x> %s", status, errdesc.dsc$a_pointer);
 	    err_out(buf);
 	} else
 	    err_out("System error");
@@ -483,14 +455,12 @@ char dont_use[] = {
     ctl('x'), ctl('z'), 0
 };
 
-void
-charout(int c)
+void charout (int c)
 {
-    (void)putchar(c);
+    putchar(c);
 }
 
-void
-initkbd()
+void initkbd (void)
 {
     register struct key_map *kp;
     register i,j;
@@ -499,7 +469,7 @@ initkbd()
     static char buf[1024]; /* Why do I have to do this again? */
 
     if (!(ktmp = getenv("TERM"))) {
-	(void) fprintf(stderr, "TERM environment variable not set\n");
+	fprintf(stderr, "TERM environment variable not set\n");
 	exit (1);
     }
     if (tgetent(buf, ktmp) <= 0)
@@ -512,13 +482,13 @@ initkbd()
 
     ktmp = tgetstr("ks",&p);
     if (ktmp)  {
-	(void) strcpy(ks_buf, ktmp);
+	strcpy(ks_buf, ktmp);
 	ks = ks_buf;
 	tputs(ks, 1, charout);
     }
     ktmp = tgetstr("ke",&p);
     if (ktmp)  {
-	(void) strcpy(ke_buf, ktmp);
+	strcpy(ke_buf, ktmp);
 	ke = ke_buf;
     }
 
@@ -537,13 +507,13 @@ initkbd()
 
 
 #ifdef TIOCSLTC
-    (void)ioctl(fileno(stdin), TIOCGLTC, (char *)&old_chars);
+    ioctl(fileno(stdin), TIOCGLTC, (char *)&old_chars);
     new_chars = old_chars;
     if (old_chars.t_lnextc == ctl('v'))
 	new_chars.t_lnextc = -1;
     if (old_chars.t_rprntc == ctl('r'))
 	new_chars.t_rprntc = -1;
-    (void)ioctl(fileno(stdin), TIOCSLTC, (char *)&new_chars);
+    ioctl(fileno(stdin), TIOCSLTC, (char *)&new_chars);
 #endif
 }
 
@@ -554,7 +524,7 @@ kbd_again()
 	tputs(ks, 1, charout);
 
 #ifdef TIOCSLTC
-    (void)ioctl(fileno(stdin), TIOCSLTC, (char *)&new_chars);
+    ioctl(fileno(stdin), TIOCSLTC, (char *)&new_chars);
 #endif
 }
 
@@ -565,7 +535,7 @@ resetkbd()
 	tputs(ke, 1, charout);
 
 #ifdef TIOCSLTC
-    (void)ioctl(fileno(stdin), TIOCSLTC, (char *)&old_chars);
+    ioctl(fileno(stdin), TIOCSLTC, (char *)&old_chars);
 #endif
 }
 
@@ -615,12 +585,12 @@ nmgetch()
     }
 
     if (almost) { 
-        (void) signal(SIGALRM, time_out);
-        (void) alarm(1);
+        signal(SIGALRM, time_out);
+        alarm(1);
 
 	if (setjmp(wakeup) == 0) { 
 	    maybe = nmgetch();
-	    (void) alarm(0);
+	    alarm(0);
 	    return (maybe);
 	}
     }
@@ -710,12 +680,7 @@ nmgetch()
 
 #endif /* SIMPLE */
 
-#ifdef SIGVOID
-void
-#else
-int
-#endif
-time_out(int signo)
+void time_out (int signo __attribute__((unused)))
 {
     longjmp(wakeup, 1);
 }

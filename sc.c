@@ -11,30 +11,9 @@
  *
  */
 
-#include <sys/types.h>
+#include "sc.h"
 #include <sys/wait.h>
 #include <signal.h>
-#include <curses.h>
-#include <ctype.h>
-
-#ifdef BSD42
-#include <strings.h>
-#else
-#ifndef SYSIII
-#include <string.h>
-#endif
-#endif
-#if defined(BSD42) || defined(BSD43) || defined(VMS)
-#include <sys/file.h>
-#else
-#include <fcntl.h>
-#endif
-#ifndef MSDOS
-#include <unistd.h>
-#endif
-
-#include <stdlib.h>
-#include "sc.h"
 
 #ifndef SAVENAME
 #define	SAVENAME "SC.SAVE" /* file name to use for emergency saves */
@@ -165,7 +144,7 @@ lookat(int row, int col)
     if (*pp == NULL) {
         if (freeents != NULL) {
 	    *pp = freeents;
-	    (*pp)->flags &= ~is_cleared;
+	    (*pp)->flags &= ~is_cell_cleared;
 	    (*pp)->flags |= may_sync;
 	    freeents = freeents->next;
 	} else
@@ -212,12 +191,12 @@ flush_saved()
 
     if (dbidx < 0)
 	return;
-    if (p = delbuf[dbidx]) {
+    if ((p = delbuf[dbidx])) {
 	scxfree(delbuffmt[dbidx]);
 	delbuffmt[dbidx] = NULL;
     }
     while (p) {
-	(void) clearent(p);
+	clearent(p);
 	q = p->next;
 	p->next = freeents;	/* put this ent on the front of freeents */
 	freeents = p;
@@ -279,14 +258,6 @@ main (int argc, char  **argv)
 	    case 'a':
 		    skipautorun = 1;
 		    break;
-	    case 'x':
-#if defined(VMS) || defined(MSDOS) || !defined(CRYPT_PATH)
-		    (void) fprintf(stderr, "Crypt not available\n");
-		    exit (1);
-#else 
-		    Crypt = 1;
-#endif
-		    break;
 	    case 'm':
 		    mopt = 1;
 		    break;
@@ -323,7 +294,7 @@ main (int argc, char  **argv)
 		    qopt = 1;
 		    break;
 	    default:
-		    (void) fprintf(stderr,
+		    fprintf(stderr,
 			    "Usage: %s [-acemnoqrxCR] [file...]\n", progname);
 		    exit (1);
 	}
@@ -347,11 +318,11 @@ main (int argc, char  **argv)
     if (popt)
 	*revmsg = '\0';
     else {
-	(void) strcpy(revmsg, progname);
+	strcpy(revmsg, progname);
 	for (revi = rev; (*revi++) != ':'; );	/* copy after colon */
-	(void) strcat(revmsg, revi);
+	strcat(revmsg, revi);
 	revmsg[strlen(revmsg) - 2] = 0;		/* erase last character */
-	(void) strcat(revmsg, ":  Type '?' for help.");
+	strcat(revmsg, ":  Type '?' for help.");
     }
 
 #ifdef MSDOS
@@ -362,7 +333,7 @@ main (int argc, char  **argv)
     if (optind < argc && argv[optind][0] != '|' &&
 	    strcmp(argv[optind], "-"))
 #endif /* MSDOS */
-	(void) strcpy(curfile, argv[optind]);
+	strcpy(curfile, argv[optind]);
     for (dbidx = DELBUFSIZE - 1; dbidx >= 0; ) {
 	delbuf[dbidx] = NULL;
 	delbuffmt[dbidx--] = NULL;
@@ -379,7 +350,7 @@ main (int argc, char  **argv)
 	erasedb();
 
     while (optind < argc) {
-	(void) readfile(argv[optind], 0);
+	readfile(argv[optind], 0);
 	optind++;
     }
 
@@ -390,7 +361,7 @@ main (int argc, char  **argv)
     EvalAll();
 
     if (!(popt || isatty(STDIN_FILENO)))
-	(void) readfile("-", 0);
+	readfile("-", 0);
 
     if (qopt) {
 	stopdisp();
@@ -490,7 +461,7 @@ main (int argc, char  **argv)
 			     */
 			    if (mode_ind == 'i')
 				write_line(ctl('v'));
-			    error("");
+			    error(" ");
 			    update(1);
 			}
 			stopdisp();
@@ -554,13 +525,13 @@ main (int argc, char  **argv)
 	update(anychanged);
 	anychanged = FALSE;
 #ifndef SYSV3	/* HP/Ux 3.1 this may not be wanted */
-	(void) refresh(); /* 5.3 does a refresh in getch */ 
+	refresh(); /* 5.3 does a refresh in getch */ 
 #endif
 	c = nmgetch();
 	getyx(stdscr, tempy, tempx);
-	(void) move(1, 0);
-	(void) clrtoeol();
-	(void) move(tempy, tempx);
+	move(1, 0);
+	clrtoeol();
+	move(tempy, tempx);
 	seenerr = 0;
 	showneed = 0;	/* reset after each update */
 	showexpr = 0;
@@ -580,24 +551,24 @@ main (int argc, char  **argv)
 	    switch(c) {
 #ifdef SIGTSTP
 		case ctl('z'):
-		    (void) deraw(1);
-		    (void) kill(0, SIGTSTP); /* Nail process group */
+		    deraw(1);
+		    kill(0, SIGTSTP); /* Nail process group */
 
 		    /* the pc stops here */
 
-		    (void) goraw();
+		    goraw();
 		    break;
 #endif
 		case ctl('r'):
 		    showneed = 1;
 		case ctl('l'):
 		    FullUpdate++;
-		    (void) clearok(stdscr,1);
+		    clearok(stdscr,1);
 		    break;
 		case ctl('x'):
 		    FullUpdate++;
 		    showexpr = 1;
-		    (void) clearok(stdscr,1);
+		    clearok(stdscr,1);
 		    break;
 		default:
 		    error ("No such command (^%c)", c + 0100);
@@ -722,8 +693,8 @@ main (int argc, char  **argv)
 		case ctl('g'):
 		    showrange = 0;
 		    linelim = -1;
-		    (void) move(1, 0);
-		    (void) clrtoeol();
+		    move(1, 0);
+		    clrtoeol();
 		    break;
 
 		case ESC:	/* ctl('[') */
@@ -794,15 +765,9 @@ main (int argc, char  **argv)
 		    break;	/* ignore flow control */
 
 		case ctl('t'):
-#if !defined(VMS) && !defined(MSDOS) && defined(CRYPT_PATH)
-		    error(
-"Toggle: a:auto,c:cell,e:ext funcs,n:numeric,t:top,x:encrypt,$:pre-scale,<MORE>");
-#else 				/* no encryption available */
-		    error(
-"Toggle: a:auto,c:cell,e:ext funcs,n:numeric,t:top,$:pre-scale,<MORE>");
-#endif
+		    error("Toggle: a:auto,c:cell,e:ext funcs,n:numeric,t:top,$:pre-scale,<MORE>");
 		    if (braille) move(1, 0);
-		    (void) refresh();
+		    refresh();
 
 		    switch (nmgetch()) {
 			case 'a': case 'A':
@@ -845,7 +810,7 @@ main (int argc, char  **argv)
 			    break;
 			case 'C':
 			    color = !color;
-			    if (has_colors())
+			    if (has_colors()) {
 				if (color) {
 				    attron(COLOR_PAIR(1));
 				    bkgd(COLOR_PAIR(1) | ' ');
@@ -853,6 +818,7 @@ main (int argc, char  **argv)
 				    attron(COLOR_PAIR(0));
 				    bkgd(COLOR_PAIR(0) | ' ');
 				}
+			    }
 			    error("Color %sabled.", color ? "en" : "dis");
 			    break;
 			case 'N':
@@ -864,14 +830,6 @@ main (int argc, char  **argv)
 			    colorerr = !colorerr;
 			    error("Color changing of cells with errors %sabled.",
 				    colorerr ? "en" : "dis");
-			    break;
-			case 'x': case 'X':
-#if defined(VMS) || defined(MSDOS) || !defined(CRYPT_PATH)
-			    error("Encryption not available.");
-#else 
-			    Crypt = (! Crypt);
-			    error("Encryption %sabled.", Crypt? "en" : "dis");
-#endif
 			    break;
 			case 'l': case 'L':
 			    autolabel = (!autolabel);
@@ -894,7 +852,7 @@ main (int argc, char  **argv)
 			    break;
 			case ESC:
 			case ctl('g'):
-			    error("");
+			    error(" ");
 			    --modflg;	/* negate the modflg++ */
 			    break;
 			case 'r': case 'R':
@@ -918,7 +876,7 @@ main (int argc, char  **argv)
 				    break;
 				case ESC:
 				case ctl('g'):
-				    error("");
+				    error(" ");
 				    break;
 				default:
 				    error("Not a valid direction");
@@ -1110,7 +1068,7 @@ main (int argc, char  **argv)
 		    savedstcol[27] = stcol;
 
 		    numeric_field = 1;
-		    (void) sprintf(line,"let %s = %c",
+		    sprintf(line,"let %s = %c",
 			    v_name(currow, curcol), c);
 		    linelim = strlen(line);
 		    insert_mode();
@@ -1146,7 +1104,7 @@ main (int argc, char  **argv)
 		    savedstrow[27] = strow;
 		    savedstcol[27] = stcol;
 
-		    (void) sprintf(line,"let %s = ", v_name(currow, curcol));
+		    sprintf(line,"let %s = ", v_name(currow, curcol));
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
@@ -1163,67 +1121,67 @@ main (int argc, char  **argv)
 		    error(
 "Range: x:erase v:value c:copy f:fill d:def l:lock U:unlock S:show u:undef F:fmt");
 		    if (braille) move(1, 0);
-		    (void) refresh();
+		    refresh();
 
 		    c = nmgetch();
-		    error("");
+		    error(" ");
 		    switch (c) {
 		    case 'l':
-			(void) sprintf(line, "lock [range] ");
+			sprintf(line, "lock [range] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case 'U':
-			(void) sprintf(line, "unlock [range] ");
+			sprintf(line, "unlock [range] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case 'c':
-			(void) sprintf(line, "copy [dest_range src_range] ");
+			sprintf(line, "copy [dest_range src_range] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case 'm':
-			(void) sprintf(line, "move [destination src_range] %s ",
+			sprintf(line, "move [destination src_range] %s ",
 				v_name(currow, curcol));
 			linelim = strlen(line);
 			insert_mode();
 		        write_line(ctl('v'));
 			break;
 		    case 'x':
-			(void) sprintf(line, "erase [range] ");
+			sprintf(line, "erase [range] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case 'y':
-			(void) sprintf(line, "yank [range] ");
+			sprintf(line, "yank [range] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case 'v':
-			(void) sprintf(line, "value [range] ");
+			sprintf(line, "value [range] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case 'f':
-			(void) sprintf(line, "fill [range start inc] ");
+			sprintf(line, "fill [range start inc] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case 'd':
-			(void) sprintf(line, "define [string range] \"");
+			sprintf(line, "define [string range] \"");
 			linelim = strlen(line);
 			insert_mode();
 			break;
 		    case 'u':
-			(void) sprintf(line, "undefine [range] ");
+			sprintf(line, "undefine [range] ");
 			linelim = strlen(line);
 			insert_mode();
 			break;
@@ -1233,7 +1191,7 @@ main (int argc, char  **argv)
 			refresh();
 			linelim = 0;
 			c = nmgetch();
-			error("");
+			error(" ");
 			switch (c) {
 			    case 't':
 				sprintf(line, "frametop [<outrange> rows] ");
@@ -1270,13 +1228,13 @@ main (int argc, char  **argv)
 			    startshow();
 			break;
 		    case 's':
-			(void) sprintf(line, "sort [range \"criteria\"] ");
+			sprintf(line, "sort [range \"criteria\"] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case 'C':
-			(void) sprintf(line, "color [range color#] ");
+			sprintf(line, "color [range color#] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
@@ -1293,10 +1251,10 @@ main (int argc, char  **argv)
 			    char px[MAXCMD];
 			    char *pager;
 
-			    (void) strcpy(px, "| ");
+			    strcpy(px, "| ");
 			    if (!(pager = getenv("PAGER")))
 				pager = DFLT_PAGER;
-			    (void) strcat(px, pager);
+			    strcat(px, pager);
 			    f = openfile(px, &pid, NULL);
 			    if (!f) {
 				error("Can't open pipe to %s", pager);
@@ -1314,25 +1272,25 @@ main (int argc, char  **argv)
 			}
 			break;
 		    case 'F':
-			(void) sprintf(line, "fmt [range \"format\"] ");
+			sprintf(line, "fmt [range \"format\"] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case '{':
-			(void) sprintf(line, "leftjustify [range] ");
+			sprintf(line, "leftjustify [range] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case '}':
-			(void) sprintf(line, "rightjustify [range] ");
+			sprintf(line, "rightjustify [range] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
 			break;
 		    case '|':
-			(void) sprintf(line, "center [range] ");
+			sprintf(line, "center [range] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
@@ -1347,7 +1305,7 @@ main (int argc, char  **argv)
 		    break;
 
 		case '~':
-		    (void) sprintf(line, "abbrev \"");
+		    sprintf(line, "abbrev \"");
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
@@ -1355,16 +1313,16 @@ main (int argc, char  **argv)
 		case '"':
 		    error("Select buffer (a-z or 0-9):");
 		    if ((c=nmgetch()) == ESC || c == ctl('g')) {
-			error("");
+			error(" ");
 		    } else if (c >= '0' && c <= '9') {
 			qbuf = c - '0' + (DELBUFSIZE - 10);
-			error("");
+			error(" ");
 		    } else if (c >= 'a' && c <= 'z') {
 			qbuf = c - 'a' + (DELBUFSIZE - 36);
-			error("");
+			error(" ");
 		    } else if (c == '"') {
 			qbuf = 0;
-			error("");
+			error(" ");
 		    } else
 			error("Invalid buffer");
 		    break;
@@ -1391,7 +1349,7 @@ main (int argc, char  **argv)
 			    break;
 			}
 
-			error("");	/* clear line */
+			error(" ");	/* clear line */
 
 			if (rcqual == ESC || rcqual == ctl('g'))
 			    break;
@@ -1425,7 +1383,7 @@ main (int argc, char  **argv)
 
 			    case 'p':
 				if (rcqual == '.') {
-				    (void) sprintf(line, "pullcopy ");
+				    sprintf(line, "pullcopy ");
 				    linelim = strlen(line);
 				    insert_mode();
 				    startshow();
@@ -1555,7 +1513,7 @@ main (int argc, char  **argv)
 			savedstrow[27] = strow;
 			savedstcol[27] = stcol;
 
-			(void) sprintf(line, "label %s = \"",
+			sprintf(line, "label %s = \"",
 				v_name(currow, curcol));
 			linelim = strlen(line);
 			insert_mode();
@@ -1570,7 +1528,7 @@ main (int argc, char  **argv)
 			savedstrow[27] = strow;
 			savedstcol[27] = stcol;
 
-			(void) sprintf(line, "leftstring %s = \"",
+			sprintf(line, "leftstring %s = \"",
 				v_name(currow, curcol));
 			linelim = strlen(line);
 			insert_mode();
@@ -1585,7 +1543,7 @@ main (int argc, char  **argv)
 			savedstrow[27] = strow;
 			savedstcol[27] = stcol;
 
-		       (void) sprintf(line, "rightstring %s = \"",
+		       sprintf(line, "rightstring %s = \"",
 			      v_name(currow, curcol));
 		       linelim = strlen(line);
 		       insert_mode();
@@ -1657,12 +1615,12 @@ main (int argc, char  **argv)
 		case 'F': {
 		    register struct ent *p = *ATBL(tbl, currow, curcol);
 		    if (p && p->format) {
-			(void) sprintf(line, "fmt [format] %s \"%s",
+			sprintf(line, "fmt [format] %s \"%s",
 				v_name(currow, curcol), p->format);
 			edit_mode();
 			linelim = strlen(line) - 1;
 		    } else {
-			(void) sprintf(line, "fmt [format] %s \"",
+			sprintf(line, "fmt [format] %s \"",
 				   v_name(currow, curcol));
 			insert_mode();
 			linelim = strlen(line);
@@ -1676,14 +1634,14 @@ main (int argc, char  **argv)
 		    }
 		    error("Color number to set (1-8)?");
 		    if ((c=nmgetch()) == ESC || c == ctl('g')) {
-			error("");
+			error(" ");
 			break;
 		    }
 		    if ((c -= ('1' - 1)) < 1 || c > 8) {
 			error("Invalid color number.");
 			break;
 		    }
-		    error("");
+		    error(" ");
 		    sprintf(line, "color %d = ", c);
 		    linelim = strlen(line);
 		    if (cpairs[c-1] && cpairs[c-1]->expr) {
@@ -1699,7 +1657,7 @@ main (int argc, char  **argv)
 		case KEY_FIND:
 #endif
 		case 'g':
-		    (void) sprintf(line, "goto [v] ");
+		    sprintf(line, "goto [v] ");
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
@@ -1707,7 +1665,7 @@ main (int argc, char  **argv)
 		    go_last();
 		    break;
 		case 'P':
-		    (void) sprintf(line, "put [\"dest\" range] \"");
+		    sprintf(line, "put [\"dest\" range] \"");
 
 /* See the comments under "case 'W':" below for an explanation of the
  * logic here.
@@ -1736,40 +1694,40 @@ main (int argc, char  **argv)
 		    insert_mode();
 		    break;
 		case 'M':
-		    (void) sprintf(line, "merge [\"source\"] \"");
+		    sprintf(line, "merge [\"source\"] \"");
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
 		case 'R':
 		    if (mdir)
-			(void) sprintf(line,"merge [\"macro_file\"] \"%s", mdir);
+			sprintf(line,"merge [\"macro_file\"] \"%s", mdir);
 		    else
-			(void) sprintf(line,"merge [\"macro_file\"] \"");
+			sprintf(line,"merge [\"macro_file\"] \"");
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
 		case 'D':
-		    (void) sprintf(line, "mdir [\"macro_directory\"] \"");
+		    sprintf(line, "mdir [\"macro_directory\"] \"");
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
 		case 'A':
 		    if (autorun)
-			(void) sprintf(line,"autorun [\"macro_file\"] \"%s", autorun);
+			sprintf(line,"autorun [\"macro_file\"] \"%s", autorun);
 		    else
-			(void) sprintf(line, "autorun [\"macro_file\"] \"");
+			sprintf(line, "autorun [\"macro_file\"] \"");
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
 		case 'G':
-		    (void) sprintf(line, "get [\"source\"] \"");
+		    sprintf(line, "get [\"source\"] \"");
 		    if (*curfile)
 			error("Default file is \"%s\"", curfile);
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
 		case 'W':
-		    (void) sprintf(line, "write [\"dest\" range] \"");
+		    sprintf(line, "write [\"dest\" range] \"");
 
 /* First, append an extra null byte to curfile.  Then, if curfile ends in
  * ".sc" (or '.' followed by the string in scext), move the '.' to the
@@ -1812,13 +1770,13 @@ main (int argc, char  **argv)
 		    insert_mode();
 		    break;
 		case 'S':	/* set options */
-		    (void) sprintf(line, "set ");
+		    sprintf(line, "set ");
 		    error("Options:byrows,bycols,iterations=n,tblstyle=(0|tbl|latex|slatex|tex|frame),<MORE>");
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
 		case 'T':	/* tbl output */
-		    (void) sprintf(line, "tbl [\"dest\" range] \"");
+		    sprintf(line, "tbl [\"dest\" range] \"");
 
 /* See the comments under "case 'W':" above for an explanation of the
  * logic here.
@@ -1934,12 +1892,12 @@ main (int argc, char  **argv)
 		case 'c':
 		    error("Copy marked cell:");
 		    if ((c = nmgetch()) == ESC || c == ctl('g')) {
-			error("");
+			error(" ");
 			break;
 		    }
 		    if (c == '.') {
 			copy(NULL, NULL, lookat(currow, curcol), NULL);
-			(void) sprintf(line, "copy [dest_range src_range] ");
+			sprintf(line, "copy [dest_range src_range] ");
 			linelim = strlen(line);
 			insert_mode();
 			startshow();
@@ -1956,7 +1914,7 @@ main (int argc, char  **argv)
 			error("Mark not set");
 			break;
 		    }
-		    error("");
+		    error(" ");
 		    {
 			struct ent *p = *ATBL(tbl, savedrow[c], savedcol[c]);
 			int c1;
@@ -1967,7 +1925,7 @@ main (int argc, char  **argv)
 				if (n->flags & is_locked)
 				    continue;
 				if (!p) {
-				    (void) clearent(n);
+				    clearent(n);
 				    continue;
 				}
 			    } else {
@@ -1993,7 +1951,7 @@ main (int argc, char  **argv)
 
 			error("Note: Add/Delete/Show/*(go to note)?");
 			if ((c = nmgetch()) == ESC || c == ctl('g')) {
-			    error("");
+			    error(" ");
 			    break;
 			}
 			if (c == 'a' || c == 'A') {
@@ -2002,7 +1960,7 @@ main (int argc, char  **argv)
 			    linelim = strlen(line);
 			    insert_mode();
 			    write_line(ctl('v'));
-			    error("");
+			    error(" ");
 			    FullUpdate++;
 			    break;
 			}
@@ -2010,7 +1968,7 @@ main (int argc, char  **argv)
 			    p = lookat(currow, curcol);
 			    p->nrow = p->ncol = -1;
 			    p->flags |= is_changed;
-			    error("");
+			    error(" ");
 			    modflg++;
 			    FullUpdate++;
 			    break;
@@ -2024,7 +1982,7 @@ main (int argc, char  **argv)
 			}
 			if (c == '*') {
 			    gotonote();
-			    error("");
+			    error(" ");
 			    break;
 			}
 			error("Invalid command");
@@ -2035,17 +1993,17 @@ main (int argc, char  **argv)
 			case ctl('m'):
 			    strow = currow;
 			    FullUpdate++;
-			    (void) clearok(stdscr,1);
+			    clearok(stdscr,1);
 			    break;
 			case '.':
 			    strow = -1;
 			    FullUpdate++;
-			    (void) clearok(stdscr,1);
+			    clearok(stdscr,1);
 			    break;
 			case '|':
 			    stcol = -1;
 			    FullUpdate++;
-			    (void) clearok(stdscr,1);
+			    clearok(stdscr,1);
 			    break;
 			case 'c':
 			    /* Force centering of current cell (or range, if
@@ -2055,7 +2013,7 @@ main (int argc, char  **argv)
 			    strow = -1;
 			    stcol = -1;
 			    FullUpdate++;
-			    (void) clearok(stdscr,1);
+			    clearok(stdscr,1);
 			    break;
 			default:
 			    break;
@@ -2126,19 +2084,19 @@ signals()
 #endif
 #endif
 
-    (void) signal(SIGINT, doquit);
+    signal(SIGINT, doquit);
 #if !defined(MSDOS)
-    (void) signal(SIGQUIT, dump_me);
-    (void) signal(SIGPIPE, nopipe);
-    (void) signal(SIGALRM, time_out);
+    signal(SIGQUIT, dump_me);
+    signal(SIGPIPE, nopipe);
+    signal(SIGALRM, time_out);
 #ifndef __DJGPP__
-    (void) signal(SIGBUS, doquit);
+    signal(SIGBUS, doquit);
 #endif
 #endif
-    (void) signal(SIGTERM, doquit);
-    (void) signal(SIGFPE, doquit);
+    signal(SIGTERM, doquit);
+    signal(SIGFPE, doquit);
 #ifdef	SIGWINCH
-    (void) signal(SIGWINCH, winchg);
+    signal(SIGWINCH, winchg);
 #endif
 }
 
@@ -2168,11 +2126,11 @@ winchg()
      */
     refresh();
     FullUpdate++;
-    (void) clearok(stdscr, TRUE);
+    clearok(stdscr, TRUE);
     update(1);
     refresh();
 #ifdef	SIGWINCH
-    (void) signal(SIGWINCH, winchg);
+    signal(SIGWINCH, winchg);
 #endif
 }
 
@@ -2210,10 +2168,10 @@ diesave()
 {   char	path[PATHLEN];
 
     if (modcheck(" before Spreadsheet dies") == 1)
-    {	(void) sprintf(path, "~/%s", SAVENAME);
+    {	sprintf(path, "~/%s", SAVENAME);
 	if (writefile(path, 0, 0, maxrow, maxcol) < 0)
 	{
-	    (void) sprintf(path, "/tmp/%s", SAVENAME);
+	    sprintf(path, "/tmp/%s", SAVENAME);
 	    if (writefile(path, 0, 0, maxrow, maxcol) < 0)
 		error("Couldn't save current spreadsheet, Sorry");
 	}
@@ -2228,7 +2186,7 @@ modcheck(char *endstr)
 	int	yn_ans;
 	char	lin[100];
 
-	(void) sprintf(lin,"File \"%s\" is modified, save%s? ",curfile,endstr);
+	sprintf(lin,"File \"%s\" is modified, save%s? ",curfile,endstr);
 	if ((yn_ans = yn_ask(lin)) < 0)
 		return(1);
 	else
