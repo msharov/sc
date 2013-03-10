@@ -1,10 +1,6 @@
+// SC is free software distributed under the MIT license
+//
 /*****************************************************************************
- *
- * Mark Nagel <nagel@ics.uci.edu>
- * 20 July 1989
- *
- * $Revision: 7.16 $
- *
  * bool
  * format(fmt, precision, num, buf, buflen)
  *  char *fmt;

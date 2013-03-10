@@ -1,3 +1,5 @@
+// SC is free software distributed under the MIT license
+
 #include "sc.h"
 #include <math.h>
 #include <signal.h>

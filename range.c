@@ -1,11 +1,4 @@
-
-/*	SC	A Spreadsheet Calculator
- *		Range Manipulations
- *
- *              Robert Bond, 4/87
- *
- *		$Revision: 7.16 $
- */
+// SC is free software distributed under the MIT license
 
 #include "sc.h"
 

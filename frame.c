@@ -1,11 +1,4 @@
-/*	SC	A Spreadsheet Calculator
- *		Framed range manipulation
- *
- *		Chuck Martin <nrocinu@myrealbox.com>
- *		Originally created:  December, 2000
- *
- *		$Revision: 7.16 $
- */
+// SC is free software distributed under the MIT license
 
 #include "sc.h"
 

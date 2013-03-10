@@ -1,11 +1,4 @@
-/*	SC	A Spreadsheet Calculator
- *		Abbreviations
- *
- *		Chuck Martin <nrocinu@myrealbox.com>
- *		Originally created:  November, 2001
- *
- *		$Revision: 7.16 $
- */
+// SC is free software distributed under the MIT license
 
 #include "sc.h"
 

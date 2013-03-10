@@ -1,14 +1,4 @@
-/*	SC	A Table Calculator
- *		Common definitions
- *
- *		original by James Gosling, September 1982
- *		modified by Mark Weiser and Bruce Israel,
- *			University of Maryland
- *		R. Bond  12/86
- *		More mods by Alan Silverstein, 3-4/88, see list of changes.
- *		$Revision: 7.16 $
- *
- */
+// SC is free software distributed under the MIT license
 
 #define _GNU_SOURCE
 #include "config.h"

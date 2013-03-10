@@ -1,3 +1,5 @@
+// SC is free software distributed under the MIT license
+
 #include "sc.h"
 
 char* scxmalloc(unsigned n)

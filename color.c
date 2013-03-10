@@ -1,12 +1,4 @@
-
-/*	SC	A Spreadsheet Calculator
- *		Color manipulation routines
- *
- *		Chuck Martin <nrocinu@myrealbox.com>
- *		Original Version Created:  January, 2001
- *
- *		$Revision: 7.16 $
- */
+// SC is free software distributed under the MIT license
 
 #include "sc.h"
 

@@ -1,7 +1,2 @@
-/*
- * CODE REVISION NUMBER:
- *
- * The part after the first colon, except the last char, appears on the screen.
- */
-
+// SC is free software distributed under the MIT license
 char *rev = "$Revision: 7.16 $";

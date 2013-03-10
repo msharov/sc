@@ -1,11 +1,4 @@
-/*	SC	A Spreadsheet Calculator
- *		Sorting routines
- *
- *		Chuck Martin <nrocinu@myrealbox.com>
- *		Originally created:  April, 2001
- *
- *		$Revision: 7.16 $
- */
+// SC is free software distributed under the MIT license
 
 #include "sc.h"
 

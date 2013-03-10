@@ -1,16 +1,4 @@
-/*	SC	A Spreadsheet Calculator
- *		Curses based Screen driver
- *
- *		original by James Gosling, September 1982
- *		modifications by Mark Weiser and Bruce Israel,
- *			University of Maryland
- *
- *              More mods Robert Bond, 12/86
- *		More mods by Alan Silverstein, 3-4/88, see list of changes.
- *		$Revision: 7.16 $
- *
- */
-
+// SC is free software distributed under the MIT license
 
 #include "sc.h"
 

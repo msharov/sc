@@ -1,11 +1,4 @@
-/*	SC	A Spreadsheet Calculator
- *		Routines for piping data to and from an external macro program
- *
- *		Chuck Martin <nrocinu@myrealbox.com>
- *		Original Version Created:  June, 2000
- *
- *		$Revision: 7.16 $
- */
+// SC is free software distributed under the MIT license
 
 #include "sc.h"
 #include <time.h>

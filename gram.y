@@ -1,18 +1,4 @@
-/*	SC	A Spreadsheet Calculator
- *		Command and expression parser
- *
- *		original by James Gosling, September 1982
- *		modified by Mark Weiser and Bruce Israel,
- *			University of Maryland
- *
- * 		more mods Robert Bond 12/86
- *
- *		More mods by Alan Silverstein, 3/88, see list of changes.
- *
- *		$Revision: 7.16 $
- */
-
-
+/* SC is free software distributed under the MIT license */
 
 %{
 #include "sc.h"

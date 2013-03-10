@@ -1,3 +1,5 @@
+// SC is free software distributed under the MIT license
+
 /* Sc parse routine
  *
  * usage psc options

@@ -1,9 +1,4 @@
-/*
- * Help functions for sc 
- * R. Bond, 1988
- * J. Buhrt 1990
- * $Revision: 7.16 $
- */
+// SC is free software distributed under the MIT license
 
 #include "sc.h"
 #ifdef QREF
