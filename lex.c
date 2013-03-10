@@ -1,69 +1,18 @@
-/*	SC	A Spreadsheet Calculator
- *		Lexical analyser
- *
- *		original by James Gosling, September 1982
- *		modifications by Mark Weiser and Bruce Israel,
- *			University of Maryland
- *
- *              More mods Robert Bond, 12/86
- *		More mods by Alan Silverstein, 3/88, see list of changes.
- *		$Revision: 7.16 $
- *
- */
-
 #include "sc.h"
 #include <math.h>
-#ifdef IEEE_MATH
-#include <ieeefp.h>
-#endif /* IEEE_MATH */
 #include <signal.h>
 #include <setjmp.h>
-
-#ifdef NONOTIMEOUT
-#define	notimeout(a1, a2)
-#endif
-
-#ifdef VMS
-#include "gram_tab.h"
-typedef union {
-    int ival;
-    double fval;
-    struct ent *ent;
-    struct enode *enode;
-    char *sval;
-    struct range_s rval;
-} YYSTYPE;
-extern YYSTYPE yylval;
-extern int VMS_read_raw;   /*sigh*/
-#else	/* VMS */
-#if defined(MSDOS)
-#include "y_tab.h"
-#else
-#include "y.tab.h"
-#endif /* MSDOS */
-#endif /* VMS */
-
-#ifdef hpux
-extern YYSTYPE yylval;
-#endif /* hpux */
+#include "gram.h"
 
 jmp_buf wakeup;
 jmp_buf fpe_buf;
 
 bool decimal = FALSE;
 
-void fpe_trap (int signo __attribute__((unused)))
+void fpe_trap (int signo UNUSED)
 {
-#if defined(i386) && !defined(M_XENIX)
-    asm("	fnclex");
-    asm("	fwait");
-#else
-#ifdef IEEE_MATH
-    fpsetsticky((fp_except)0);	/* Clear exception */
-#endif /* IEEE_MATH */
-#ifdef PC
-    _fpreset();
-#endif
+#if __i386__ || __x86_64__
+    __asm__ volatile ("fnclex\n\tfwait");
 #endif
     longjmp(fpe_buf, 1);
 }
@@ -336,351 +285,33 @@ int atocol(char *string, int len)
     return (col);
 }
 
-
-#ifdef SIMPLE
-
-void
-initkbd()
-{}
-
-void
-kbd_again()
-{}
-
-void
-resetkbd()
-{}
-
-#ifndef VMS
-
-int
-nmgetch()
-{
-    return (getchar());
-}
-
-#else /* VMS */
-
-int
-nmgetch()
-/*
-   This is not perfect, it doesn't move the cursor when goraw changes
-   over to deraw, but it works well enough since the whole sc package
-   is incredibly stable (loop constantly positions cursor).
-
-   Question, why didn't the VMS people just implement cbreak?
-
-   NOTE: During testing it was discovered that the DEBUGGER and curses
-   and this method of reading would collide (the screen was not updated
-   when continuing from screen mode in the debugger).
-*/
-{
-    short c;
-    static int key_id=0;
-    int status;
-#define VMScheck(a) {if (~(status = (a)) & 1) VMS_MSG (status);}
-
-    if (VMS_read_raw) {
-      VMScheck(smg$read_keystroke (&stdkb->_id, &c, 0, 0, 0));
-    } else
-       c = getchar();
-
-    switch (c) {
-	case SMG$K_TRM_LEFT:  c = KEY_LEFT;  break;
-	case SMG$K_TRM_RIGHT: c = KEY_RIGHT; break;
-	case SMG$K_TRM_UP:    c = ctl('p');  break;
-	case SMG$K_TRM_DOWN:  c = ctl('n');  break;
-	default:   c = c & A_CHARTEXT;
-    }
-    return (c);
-}
-
-
-VMS_MSG (int status)
-/*
-   Routine to put out the VMS operating system error (if one occurs).
-*/
-{
-#include <descrip.h>
-   char errstr[81], buf[120];
-   $DESCRIPTOR(errdesc, errstr);
-   short length;
-#define err_out(msg) fprintf (stderr,msg)
-
-/* Check for no error or standard error */
-
-    if (~status & 1) {
-	status = status & 0x8000 ? status & 0xFFFFFFF : status & 0xFFFF;
-	if (SYS$GETMSG(status, &length, &errdesc, 1, 0) == SS$_NORMAL) {
-	    errstr[length] = '\0';
-	    sprintf(buf, "<0x%x> %s", status, errdesc.dsc$a_pointer);
-	    err_out(buf);
-	} else
-	    err_out("System error");
-    }
-}
-#endif /* VMS */
-
-#else /*SIMPLE*/
-
-#if defined(BSD42) || defined (SYSIII) || defined(BSD43)
-
-#define N_KEY 4
-
-struct key_map {
-    char *k_str;
-    int k_val;
-    char k_index;
-}; 
-
-struct key_map km[N_KEY];
-
-char keyarea[N_KEY*30];
-
-char *tgetstr();
-char *getenv();
-char *ks;
-char ks_buf[20];
-char *ke;
-char ke_buf[20];
-
-#ifdef TIOCSLTC
-struct ltchars old_chars, new_chars;
-#endif
-
-char dont_use[] = {
-    ctl('['), ctl('a'), ctl('b'), ctl('c'), ctl('e'), ctl('f'), ctl('g'),
-    ctl('h'), ctl('i'), ctl('j'),  ctl('l'), ctl('m'), ctl('n'), ctl('p'),
-    ctl('q'), ctl('r'), ctl('s'), ctl('t'), ctl('u'), ctl('v'),  ctl('w'),
-    ctl('x'), ctl('z'), 0
-};
-
-void charout (int c)
-{
-    putchar(c);
-}
-
 void initkbd (void)
 {
-    register struct key_map *kp;
-    register i,j;
-    char *p = keyarea;
-    char *ktmp;
-    static char buf[1024]; /* Why do I have to do this again? */
-
-    if (!(ktmp = getenv("TERM"))) {
-	fprintf(stderr, "TERM environment variable not set\n");
-	exit (1);
-    }
-    if (tgetent(buf, ktmp) <= 0)
-	return;
-
-    km[0].k_str = tgetstr("kl", &p); km[0].k_val = KEY_LEFT;
-    km[1].k_str = tgetstr("kr", &p); km[1].k_val = KEY_RIGHT;
-    km[2].k_str = tgetstr("ku", &p); km[2].k_val = ctl('p');
-    km[3].k_str = tgetstr("kd", &p); km[3].k_val = ctl('n');
-
-    ktmp = tgetstr("ks",&p);
-    if (ktmp)  {
-	strcpy(ks_buf, ktmp);
-	ks = ks_buf;
-	tputs(ks, 1, charout);
-    }
-    ktmp = tgetstr("ke",&p);
-    if (ktmp)  {
-	strcpy(ke_buf, ktmp);
-	ke = ke_buf;
-    }
-
-    /* Unmap arrow keys which conflict with our ctl keys   */
-    /* Ignore unset, longer than length 1, and 1-1 mapped keys */
-
-    for (i = 0; i < N_KEY; i++) {
-	kp = &km[i];
-	if (kp->k_str && (kp->k_str[1] == 0) && (kp->k_str[0] != kp->k_val))
-	    for (j = 0; dont_use[j] != 0; j++)
-	        if (kp->k_str[0] == dont_use[j]) {
-		     kp->k_str = (char *)0;
-		     break;
-		}
-    }
-
-
-#ifdef TIOCSLTC
-    ioctl(fileno(stdin), TIOCGLTC, (char *)&old_chars);
-    new_chars = old_chars;
-    if (old_chars.t_lnextc == ctl('v'))
-	new_chars.t_lnextc = -1;
-    if (old_chars.t_rprntc == ctl('r'))
-	new_chars.t_rprntc = -1;
-    ioctl(fileno(stdin), TIOCSLTC, (char *)&new_chars);
-#endif
+    keypad(stdscr, TRUE);
+    notimeout(stdscr,TRUE);
 }
 
-void
-kbd_again()
-{
-    if (ks) 
-	tputs(ks, 1, charout);
-
-#ifdef TIOCSLTC
-    ioctl(fileno(stdin), TIOCSLTC, (char *)&new_chars);
-#endif
-}
-
-void
-resetkbd()
-{
-    if (ke) 
-	tputs(ke, 1, charout);
-
-#ifdef TIOCSLTC
-    ioctl(fileno(stdin), TIOCSLTC, (char *)&old_chars);
-#endif
-}
-
-int
-nmgetch() 
-{
-    register int c;
-    register struct key_map *kp;
-    register struct key_map *biggest;
-    register int i;
-    int almost;
-    int maybe;
-
-    static char dumpbuf[10];
-    static char *dumpindex;
-
-#ifdef SIGVOID
-    void time_out();
-#else
-    int time_out();
-#endif
-
-    if (dumpindex && *dumpindex)
-	return (*dumpindex++);
-
-    c = getchar();
-    biggest = 0;
-    almost = 0;
-
-    for (kp = &km[0]; kp < &km[N_KEY]; kp++) {
-	if (!kp->k_str)
-	    continue;
-	if (c == kp->k_str[kp->k_index]) {
-	    almost = 1;
-	    kp->k_index++;
-	    if (kp->k_str[kp->k_index] == 0) {
-		c = kp->k_val;
-		for (kp = &km[0]; kp < &km[N_KEY]; kp++)
-		    kp->k_index = 0;
-		return (c);
-	    }
-	}
-	if (!biggest && kp->k_index)
-	    biggest = kp;
-        else if (kp->k_index && biggest->k_index < kp->k_index)
-	    biggest = kp;
-    }
-
-    if (almost) { 
-        signal(SIGALRM, time_out);
-        alarm(1);
-
-	if (setjmp(wakeup) == 0) { 
-	    maybe = nmgetch();
-	    alarm(0);
-	    return (maybe);
-	}
-    }
-    
-    if (biggest) {
-	for (i = 0; i<biggest->k_index; i++) 
-	    dumpbuf[i] = biggest->k_str[i];
-	if (!almost)
-	    dumpbuf[i++] = c;
-	dumpbuf[i] = '\0';
-	dumpindex = &dumpbuf[1];
-	for (kp = &km[0]; kp < &km[N_KEY]; kp++)
-	    kp->k_index = 0;
-	return (dumpbuf[0]);
-    }
-
-    return(c);
-}
-
-#endif
-
-#if defined(SYSV2) || defined(SYSV3) || defined(MSDOS)
-
-void
-initkbd()
+void kbd_again (void)
 {
     keypad(stdscr, TRUE);
     notimeout(stdscr,TRUE);
 }
 
-void
-kbd_again()
-{
-    keypad(stdscr, TRUE);
-    notimeout(stdscr,TRUE);
-}
-
-void
-resetkbd()
+void resetkbd (void)
 {
     keypad(stdscr, FALSE);
     notimeout(stdscr, FALSE);
 }
 
-int
-nmgetch()
+int nmgetch (void)
 {
-    register int c;
-
-    c = getch();
-    switch (c) {
-#ifdef KEY_SELECT
-	case KEY_SELECT:	c = 'm';	break;
-#endif
-#ifdef KEY_C1
-/* This stuff works for a wyse wy75 in ANSI mode under 5.3.  Good luck. */
-/* It is supposed to map the curses keypad back to the numeric equiv. */
-
-/* I had to disable this to make programmable function keys work.  I'm
- * not familiar with the wyse wy75 terminal.  Does anyone know how to
- * make this work without causing problems with programmable function
- * keys on everything else?  - CRM
-
-	case KEY_C1:	c = '0'; break;
-	case KEY_A1:	c = '1'; break;
-	case KEY_B2:	c = '2'; break;
-	case KEY_A3:	c = '3'; break;
-	case KEY_F(5):	c = '4'; break;
-	case KEY_F(6):	c = '5'; break;
-	case KEY_F(7):	c = '6'; break;
-	case KEY_F(9):	c = '7'; break;
-	case KEY_F(10):	c = '8'; break;
-	case KEY_F0:	c = '9'; break;
-	case KEY_C3:	c = '.'; break;
-	case KEY_ENTER:	c = ctl('m'); break;
-
- *
- *
- */
-#endif
-	default:	break;
-    }
+    int c = getch();
+    if (c == KEY_SELECT)
+	c = 'm';
     return (c);
 }
 
-#endif /* SYSV2 || SYSV3 */
-
-#endif /* SIMPLE */
-
-void time_out (int signo __attribute__((unused)))
+void time_out (int signo UNUSED)
 {
     longjmp(wakeup, 1);
 }

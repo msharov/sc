@@ -11,6 +11,7 @@
  */
 
 #define _GNU_SOURCE
+#include "config.h"
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -20,6 +21,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
+#include <assert.h>
 #include <time.h>
 
 #define	ATBL(tbl, row, col)	(*(tbl + row) + (col))
@@ -562,6 +564,7 @@ extern	void sync_franges();
 extern	void sync_ranges();
 extern	void sync_refs();
 extern	void tblprintfile(char *fname, int r0, int c0, int rn, int cn);
+extern	void time_out (int signo);
 extern	void unlock_cells(struct ent *v1, struct ent *v2);
 extern	void update(int anychanged);
 extern	void valueize_area(int sr, int sc, int er, int ec);
@@ -581,9 +584,6 @@ extern	void yankrow (int arg);
 extern	void yyerror(char *err);
 extern	int yylex();
 extern	int yyparse();
-#ifdef DOBACKUPS
-extern	int backup_file(char *path);
-#endif
 
 extern	int modflg;
 extern	char *mdir;

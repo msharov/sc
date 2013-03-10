@@ -15,10 +15,6 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-#ifndef SAVENAME
-#define	SAVENAME "SC.SAVE" /* file name to use for emergency saves */
-#endif /* SAVENAME */
-
 /* Globals defined in sc.h */
 
 struct ent ***tbl;
@@ -218,7 +214,6 @@ main (int argc, char  **argv)
     int     nedistate;
     int	    running;
     char    *revi;
-    char    *home;
     int	    anychanged = FALSE;
     int     tempx, tempy; 	/* Temp versions of curx, cury */
 
@@ -503,9 +498,6 @@ main (int argc, char  **argv)
 
     modflg = 0;
     cellassign = 0;
-#ifdef VENIX
-    setbuf(stdin, NULL);
-#endif
 
     while (inloop) { running = 1;
     while (running) {
@@ -524,9 +516,6 @@ main (int argc, char  **argv)
 
 	update(anychanged);
 	anychanged = FALSE;
-#ifndef SYSV3	/* HP/Ux 3.1 this may not be wanted */
-	refresh(); /* 5.3 does a refresh in getch */ 
-#endif
 	c = nmgetch();
 	getyx(stdscr, tempy, tempx);
 	move(1, 0);
@@ -541,24 +530,14 @@ main (int argc, char  **argv)
 	 * there seems to be some question about what to do w/ the iscntrl
 	 * some BSD systems are reportedly broken as well
 	 */
-	/* if ((c < ' ') || ( c == DEL ))   how about international here ? PB */
-#if	pyr
-	    if(iscntrl(c) || (c >= 011 && c <= 015))	/* iscntrl broken in OSx4.1 */
-#else
-	    if ((isascii(c) && (iscntrl(c) || (c == 020))) ||	/* iscntrl broken in OSx4.1 */
-			c == KEY_END || c == KEY_BACKSPACE)
-#endif
+	if ((isascii(c) && (iscntrl(c) || (c == 020))) || c == KEY_END || c == KEY_BACKSPACE)
 	    switch(c) {
-#ifdef SIGTSTP
 		case ctl('z'):
 		    deraw(1);
 		    kill(0, SIGTSTP); /* Nail process group */
-
 		    /* the pc stops here */
-
 		    goraw();
 		    break;
-#endif
 		case ctl('r'):
 		    showneed = 1;
 		case ctl('l'):
@@ -1118,8 +1097,7 @@ main (int argc, char  **argv)
 		 */
 
 		case 'r':
-		    error(
-"Range: x:erase v:value c:copy f:fill d:def l:lock U:unlock S:show u:undef F:fmt");
+		    error("Range: x:erase v:value c:copy f:fill d:def l:lock U:unlock S:show u:undef F:fmt");
 		    if (braille) move(1, 0);
 		    refresh();
 
@@ -1499,9 +1477,7 @@ main (int argc, char  **argv)
 		case '^':
 		    gototop();
 		    break;
-#ifdef KEY_HELP
 		case KEY_HELP:
-#endif
 		case '?':
 		    help();
 		    break;
@@ -1653,9 +1629,7 @@ main (int argc, char  **argv)
 		    }
 		    break;
 		}
-#ifdef KEY_FIND
 		case KEY_FIND:
-#endif
 		case 'g':
 		    sprintf(line, "goto [v] ");
 		    linelim = strlen(line);
@@ -1816,9 +1790,7 @@ main (int argc, char  **argv)
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
-#ifdef KEY_DC
 		case KEY_DC:
-#endif
 		case 'x':
 		    if (calc_order == BYROWS)
 			eraser(lookat(currow, curcol),
@@ -1846,9 +1818,7 @@ main (int argc, char  **argv)
 		case 'H':
 			backcol(curcol - stcol + 2);
 			break;
-#ifdef KEY_NPAGE
 		case KEY_NPAGE:			/* next page */
-#endif
 		case 'J':
 		    {
 		    int ps;
@@ -1859,9 +1829,7 @@ main (int argc, char  **argv)
 		    FullUpdate++;
 		    }
 		    break;
-#ifdef	KEY_PPAGE
 		case KEY_PPAGE:			/* previous page */
-#endif
 		case 'K':
 		    {
 		    int ps;
@@ -1873,11 +1841,9 @@ main (int argc, char  **argv)
 		    FullUpdate++;
 		    }
 		    break;
-#ifdef KEY_HOME
 		case KEY_HOME:
 		    gohome();
 		    break;
-#endif
 		case 'L':
 		    forwcol(lcols - (curcol - stcol) + 1);
 		    break;
@@ -2019,13 +1985,6 @@ main (int argc, char  **argv)
 			    break;
 		    }
 		    break;
-#ifdef KEY_RESIZE
-		case KEY_RESIZE:
-#ifndef	SIGWINCH
-		    winchg();
-#endif
-		    break;
-#endif
 		default:
 		    if ((toascii(c)) != c)
 			error ("Weird character, decimal %d\n",
@@ -2041,81 +2000,28 @@ main (int argc, char  **argv)
     }				/*  while (inloop) */
     stopdisp();
     write_hist();
-#ifdef VMS	/* Until VMS "fixes" exit we should say 1 here */
-    exit (1);
-#else
     exit (0);
-#endif
     /*NOTREACHED*/
 }
 
 /* set the calculation order */
-void
-setorder(int i)
+void setorder (int i)
 {
-	if ((i == BYROWS) || (i == BYCOLS))
-	    calc_order = i;
+    if (i == BYROWS || i == BYCOLS)
+	calc_order = i;
 }
 
-void
-setauto(int i)
+void setauto (int i)
 {
-	autocalc = i;
+    autocalc = i;
 }
 
-void
-signals()
-{
-#ifdef SIGVOID
-    void doquit();
-    void time_out();
-    void dump_me();
-    void nopipe();
-#ifdef	SIGWINCH
-    void winchg();
-#endif
-#else
-    int doquit();
-    int time_out();
-    int dump_me();
-    int nopipe();
-#ifdef	SIGWINCH
-    int winchg();
-#endif
-#endif
-
-    signal(SIGINT, doquit);
-#if !defined(MSDOS)
-    signal(SIGQUIT, dump_me);
-    signal(SIGPIPE, nopipe);
-    signal(SIGALRM, time_out);
-#ifndef __DJGPP__
-    signal(SIGBUS, doquit);
-#endif
-#endif
-    signal(SIGTERM, doquit);
-    signal(SIGFPE, doquit);
-#ifdef	SIGWINCH
-    signal(SIGWINCH, winchg);
-#endif
-}
-
-#ifdef SIGVOID
-void
-#else
-int
-#endif
-nopipe()
+void nopipe (int i UNUSED)
 {
     brokenpipe = TRUE;
 }
 
-#ifdef SIGVOID
-void
-#else
-int
-#endif
-winchg()
+void winchg (int i UNUSED)
 {
     stopdisp();
     startdisp();
@@ -2129,17 +2035,10 @@ winchg()
     clearok(stdscr, TRUE);
     update(1);
     refresh();
-#ifdef	SIGWINCH
     signal(SIGWINCH, winchg);
-#endif
 }
 
-#ifdef SIGVOID
-void
-#else
-int
-#endif
-doquit()
+void doquit (int i UNUSED)
 {
     if (usecurses) {
 	diesave();
@@ -2149,12 +2048,7 @@ doquit()
     exit (1);
 }
 
-#ifdef SIGVOID
-void
-#else
-int
-#endif
-dump_me()
+void dump_me (int i UNUSED)
 {
     if (usecurses)
 	diesave();
@@ -2163,24 +2057,29 @@ dump_me()
 }
 
 /* try to save the current spreadsheet if we can */
-void
-diesave()
-{   char	path[PATHLEN];
-
+void diesave (void)
+{
     if (modcheck(" before Spreadsheet dies") == 1)
-    {	sprintf(path, "~/%s", SAVENAME);
-	if (writefile(path, 0, 0, maxrow, maxcol) < 0)
-	{
-	    sprintf(path, "/tmp/%s", SAVENAME);
-	    if (writefile(path, 0, 0, maxrow, maxcol) < 0)
-		error("Couldn't save current spreadsheet, Sorry");
-	}
-    }
+	if (writefile (DIESAVEPATH, 0, 0, maxrow, maxcol) < 0)
+	    error("Couldn't save current spreadsheet, Sorry");
+}
+
+void signals (void)
+{
+    signal(SIGINT, doquit);
+    signal(SIGQUIT, doquit);
+    signal(SIGABRT, dump_me);
+    signal(SIGSEGV, dump_me);
+    signal(SIGBUS, dump_me);
+    signal(SIGPIPE, nopipe);
+    signal(SIGALRM, time_out);
+    signal(SIGTERM, doquit);
+    signal(SIGFPE, doquit);
+    signal(SIGWINCH, winchg);
 }
 
 /* check if tbl was modified and ask to save */
-int
-modcheck(char *endstr)
+int modcheck (char *endstr)
 {
     if (modflg && curfile[0]) {
 	int	yn_ans;
@@ -2206,8 +2105,7 @@ modcheck(char *endstr)
 }
 
 /* Returns 1 if cell is locked, 0 otherwise */
-int
-locked_cell(int r, int c)
+int locked_cell (int r, int c)
 {
     struct ent *p = *ATBL(tbl, r, c);
     if (p && (p->flags & is_locked)) {
@@ -2218,17 +2116,17 @@ locked_cell(int r, int c)
 }
 
 /* Check if area contains locked cells */
-int
-any_locked_cells(int r1, int c1, int r2, int c2)
+int any_locked_cells (int r1, int c1, int r2, int c2)
 {
     int r, c;
     struct ent *p ;
 
-    for (r=r1; r<=r2; r++)
+    for (r=r1; r<=r2; r++) {
 	for (c=c1; c<=c2; c++) {
 	    p = *ATBL(tbl, r, c);
 	    if (p && (p->flags&is_locked))
 		return(1);
 	}
+    }
     return(0);
 }

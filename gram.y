@@ -16,9 +16,7 @@
 
 %{
 #include "sc.h"
-#ifdef USELOCALE
 #include <locale.h>
-#endif
 #define ENULL (struct enode *)0
 %}
 
@@ -1319,7 +1317,6 @@ setitem	:	K_AUTO			{ setauto(1); }
 	|	K_PAGESIZE '=' NUMBER	{ pagesize = $3; }
 	|	K_SCRC			{ scrc++; }
 	|	K_LOCALE		{
-#ifdef USELOCALE
 					  struct  lconv *locstruct;
 					  char    *loc;
 
@@ -1334,9 +1331,6 @@ setitem	:	K_AUTO			{ setauto(1); }
 					    thsep = ',';
 					  }
 					  FullUpdate++;
-#else
-					  error("Locale support not available");
-#endif
 					}
 	|	'!' K_LOCALE		{
 					  dpoint = '.';

@@ -926,12 +926,7 @@ eval(register struct enode *e)
     return ((double)0.0);
 }
 
-#ifdef SIGVOID
-void
-#else
-int
-#endif
-eval_fpe() /* Trap for FPE errors in eval */
+void eval_fpe (int i UNUSED) /* Trap for FPE errors in eval */
 {
 #if defined(i386) && !defined(M_XENIX)
     asm("	fnclex");
@@ -950,8 +945,7 @@ eval_fpe() /* Trap for FPE errors in eval */
     longjmp(fpe_save, 1);
 }
 
-double
-fn1_eval(double (*fn)(), double arg)
+double fn1_eval(double (*fn)(), double arg)
 {
     double res;
     errno = 0;

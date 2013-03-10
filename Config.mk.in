@@ -1,0 +1,20 @@
+name		:= @PKG_NAME@
+NAME		:= @PKG_UNAME@
+
+prefix		:= @prefix@
+BINDIR		:= @bindir@
+DATADIR		:= @datadir@
+MANDIR		:= @mandir@/man1
+MANEXT		:= 1
+
+INSTALLBIN	:= @INSTALL@ -D -p -m 755 -s
+INSTALLDOC	:= @INSTALL@ -D -p -m 644
+INSTALLMAN	:= @INSTALL@ -D -p -m 644
+
+YACC		:= bison -y
+LN		:= ln
+CC		:= @CC@
+CFLAGS		:= -Wall -Wextra -Os -ffloat-store -std=c11 -ffunction-sections -fdata-sections
+LDFLAGS		:= -Wl,-gc-sections
+SCLIBS		:= @libm@ @libncurses@
+PSCLIBS		:=

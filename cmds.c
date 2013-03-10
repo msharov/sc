@@ -2448,11 +2448,6 @@ FILE* openfile (char *fname, int *rpid, int *rfd)
 	    *rfd = 1;			/* Set to stdout just in case */
 	
 	efname = findhome(fname);
-#ifdef DOBACKUPS
-	if (rfd == NULL && !backup_file(efname) &&
-	    (yn_ask("Could not create backup copy.  Save anyway?: (y,n)") != 1))
-		return (0);
-#endif
 	return (fopen(efname, rfd == NULL ? "w" : "r"));
     }
 
@@ -3363,84 +3358,3 @@ char* findhome (char *path)
     }
     return (path);
 }
-
-#ifdef DOBACKUPS
-#include <sys/stat.h>
-
-/*
- * make a backup copy of a file, use the same mode and name in the format
- * [path/]file~
- * return 1 if we were successful, 0 otherwise
- */
-int backup_file (char *path)
-{
-    struct	stat	statbuf;
-    struct	utimbuf	timebuf;
-    char	fname[PATHLEN];
-    char	tpath[PATHLEN];
-#ifdef sequent
-    static	char	*buf = NULL;
-    static	unsigned buflen = 0;
-#else
-    char	buf[BUFSIZ];
-#endif
-    char	*tpp;
-    int		infd, outfd;
-    int		count;
-    mode_t	oldumask;
-
-    /* tpath will be the [path/]file ---> [path/]file~ */
-    strcpy(tpath, path);
-    if ((tpp = strrchr(tpath, '/')) == NULL)
-	tpp = tpath;
-    else
-	tpp++;
-    strcpy(fname, tpp);
-    sprintf(tpp, "%s~", fname);
-
-    if (stat(path, &statbuf) == 0) {
-#ifdef sequent
-	/* if we know the optimum block size, use it */
-	if ((statbuf.st_blksize > buflen) || (buf == NULL)) {
-	    buflen = statbuf.st_blksize;
-	    if ((buf = scxrealloc(buf, buflen)) == (char *)0) {
-		buflen = 0;
-		return (0);
-	    }
-	}
-#endif
-
-	if ((infd = open(path, O_RDONLY, 0)) < 0)
-		return (0);
-
-	oldumask = umask(0);
-	outfd = open(tpath, O_TRUNC|O_WRONLY|O_CREAT, statbuf.st_mode);
-	umask(oldumask);
-	if (outfd < 0)
-	    return (0);
-	chown(tpath, statbuf.st_uid, statbuf.st_gid);
-
-#ifdef sequent
-	while ((count = read(infd, buf, statbuf.st_blksize)) > 0) {
-#else
-	while ((count = read(infd, buf, sizeof(buf))) > 0) {
-#endif
-	    if (write(outfd, buf, count) != count) {
-		count = -1;
-		break;
-	    }
-	}
-	close(infd);
-	close(outfd);
-
-	/* copy access and modification times from original file */
-	timebuf.actime = statbuf.st_atime;
-	timebuf.modtime = statbuf.st_mtime;
-	utime(tpath, &timebuf);
-
-	return ((count < 0) ? 0 : 1);
-    } else if (errno == ENOENT)
-	return (1);
-    return (0);
-}
-#endif

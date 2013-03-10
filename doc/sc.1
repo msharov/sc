@@ -1,11 +1,11 @@
-.\" Warning:  The string "pname" is converted to the true program name
+.\" Warning:  The string "sc" is converted to the true program name
 .\" by the makefile, throughout this document.
 .\"
 .\" Warning:  The order of presentation of commands largely matches the
 .\" help screen built into the program.
 .\"
 .\" Conventions:
-.\" - pname italicized and never uppercased (it's a proper name).
+.\" - sc italicized and never uppercased (it's a proper name).
 .\" - Refer to lists of commands in the same order as introduced.
 .\" - Command and function names bold when introduced, italicized in all
 .\"   other places if possible, or in `` '' if not.
@@ -17,11 +17,11 @@
 .\" - Avoid passive voice and third person.
 .\" $Revision: 7.16 $
 .\"
-.TH PNAME 1 "19 September 2002" "PNAME #REVISION#"
+.TH SC 1 "19 September 2002" "SC #REVISION#"
 .SH NAME
-pname \- spreadsheet calculator
+sc \- spreadsheet calculator
 .SH SYNOPSIS
-.B pname
+.B sc
 .RB [ -a ]
 .RB [ -c ]
 .RB [ -e ]
@@ -44,13 +44,13 @@ pname \- spreadsheet calculator
 .\" ==========
 .SH DESCRIPTION
 The spreadsheet calculator
-.I pname
+.I sc
 is based on rectangular tables much like a financial spreadsheet.
 When invoked, it first looks for a file in the user's home
 directory called .scrc and if found, reads that file into memory.
 If that file contains the command
 .RI `` set\ scrc '',
-.I pname
+.I sc
 looks for a file called .scrc in the current directory,
 and if found, reads that file into memory, too.
 Next, it reads the options from the command line, and
@@ -77,7 +77,7 @@ However, an argument of a single - will be
 interpreted to mean that spreadsheet data
 will be taken from the standard input.
 This is useful for including
-.I pname
+.I sc
 in a pipeline if the system supports pipes.
 However, if standard input is not a terminal,
 the - is only necessary if there are multiple
@@ -87,7 +87,7 @@ read in after all other files in such cases
 if it is not specified explicitly, or if there
 are no other filenames on the command line.
 If
-.I pname
+.I sc
 is included in a pipeline, and a filename of ``-''
 is not specified, the standard input will be merged
 in after all of the other named files have been
@@ -113,11 +113,7 @@ often based on other cell values.
 .LP
 For an online tutorial, type the command:
 .IP
-pname #LIBDIR#/tutorial.pname
-.LP
-To print a quick reference card, type the command:
-.IP
-pnameqref | [your_printer_commmand]
+sc /usr/share/sc/tutorial.sc
 .\" ----------
 .SH OPTIONS
 .\" ----------
@@ -151,7 +147,7 @@ Start the program with automatic optimization of expressions enabled.
 Quit after loading all files, but before becoming interactive.
 This is useful in shell scripts for getting information from
 a file, for example, or using
-.I pname
+.I sc
 as a non-interactive calculator using the
 .I eval
 command.
@@ -237,7 +233,7 @@ A range of
 may be used to refer to the entire spreadsheet.
 If the range is left out, as shown in the
 second form above,
-.I pname
+.I sc
 will be started interactively in navigate mode,
 allowing you to navigate the spreadsheet and
 highlight the range you want to output.
@@ -266,26 +262,26 @@ All of these options can be changed with the
 and 
 .I S
 commands (see below) while
-.I pname
+.I sc
 is running.  Options specified when
-.I pname 
+.I sc
 is invoked
 override options saved in the data file.
 .\" ==========
 .SS "Personal Initialization File"
 .\" ----------
 When
-.I pname
+.I sc
 first starts, it looks for a file in the user's home
 directory called .scrc and if found, loads it into memory.
 The format of this file is the same as any other
-.I pname
+.I sc
 file, but should be reserved for setting certain defaults.
 Any options set which have equivalent command line options may
 be overridden by the command line.
 If that file contains the command
 .RI `` set\ scrc '',
-.I pname
+.I sc
 will then look for a file called .scrc in the current directory,
 and if found, load that file into memory, too (this is analogous
 to the ``set exrc'' command used by vi/ex).
@@ -293,7 +289,7 @@ These ``dotfiles'' may be created by any text editor.
 Several commands exist specifically for setting default file
 name extensions in the .scrc file, although they may also
 be used from macros, ordinary spreadsheet files, or from within
-.I pname
+.I sc
 at the command line.
 They will not, however, be saved along with the file.
 The extensions should be quoted, and should not include
@@ -307,16 +303,16 @@ These commands are:
 .TP
 .B scext
 This is the default extension for normal
-.I pname
+.I sc
 files (those created with the
 .I Put
 command).
 If this command is not used, all
-.I pname
+.I sc
 files will be saved without an extension,
 and any existing extension will not be removed.
 Setting this option causes all
-.I pname
+.I sc
 files to be saved with the specified extension added,
 unless it is already present.
 If the file name already has an extension of
@@ -437,7 +433,7 @@ will be used.
 The screen is divided into four regions.
 The top line is for entering commands and displaying cell values.
 The second line is for messages from
-.IR pname .
+.IR sc .
 The third line and the first four columns show the column and row numbers,
 from which are derived cell addresses, e.g.
 .I A0
@@ -681,7 +677,7 @@ key at the prompt selects no action
 (craction=0, which means that the cursor will remain in
 the current cell).
 No action is the default unless
-.I pname
+.I sc
 is started with either the -R or -C option.
 This option is ignored if the cell into which data is
 being entered is not the current cell.
@@ -845,7 +841,7 @@ region of that range.
 Other
 .I Set
 options are normally used only in 
-.I pname
+.I sc
 data files since they are available through 
 .IR ^T .
 You can also use them interactively.
@@ -982,7 +978,7 @@ for use in a user's .scrc file.
 Set/clear braille enhancement mode.
 When braille enhancement mode is set, the cursor
 behaves in a manner that makes the use of
-.I pname
+.I sc
 much easier when using a braille display.
 In spite of its name, this mode also works well with
 screen readers such as SpeakUp, and can even be used
@@ -1032,13 +1028,13 @@ is to press
 .IR CC ,
 which effectively changes modes twice, with a net
 effect of leaving
-.I pname
+.I sc
 in the original mode.
 .\" ----------
 .TP
 .BR locale / !locale
 If locale support is compiled into
-.IR pname ,
+.IR sc ,
 this option will cause certain locale-dependent
 behaviors, such as the display of numbers and the
 determination of word boundaries for some operations
@@ -1058,12 +1054,12 @@ and therefore is not saved when saving a file.
 .TP
 .BI scrc
 It tells
-.I pname
+.I sc
 to also read the file .scrc in the current directory when starting.
 Settings in this file will override those in $HOME/.scrc
 but may themselves be overridden by command line options.
 Setting this could be a potential security risk, since starting
-.I pname
+.I sc
 with an unknown .scrc could potentially execute arbitrary commands.
 This risk is probably very slight, since a spreadsheet program
 is not likely to be run in just any directory, and should
@@ -1189,7 +1185,7 @@ Scan the cursor forward (right and down) to the next valid cell.
 .TP
 .B g
 Go to a cell.
-.I pname
+.I sc
 prompts for a cell's name, a regular expression surrounded by
 quotes, or a number.
 If a cell's name such as
@@ -1201,7 +1197,7 @@ If a quoted regular expression such as "
 " or "
 .I ^Jan [0-9]*$
 " is given,
-.I pname
+.I sc
 searches for a cell containing a string matching the regular
 expression.
 See 
@@ -1222,7 +1218,7 @@ ordinary strings, since all numbers must be formatted or
 expressions decompiled on the fly during the search.
 .IP
 If a number is given, 
-.I pname
+.I sc
 will search for a cell containing that number.
 Searches for either strings or numbers proceed forward from the
 current cell, wrapping back to a0 at the end of the table, and
@@ -1291,7 +1287,7 @@ it will remain at the bottom of the visible screen.
 .TP
 .BI m x
 Mark the current cell.
-.I pname
+.I sc
 will prompt for a lowercase letter to be
 used as a mark specifier.
 Marked cells may be used as the source for the
@@ -1302,7 +1298,7 @@ or
 .I '
 (go to marked cell) command.
 In addition to cells marked with lowercase letters,
-.I pname
+.I sc
 also automatically marks the last nine cells that
 have been edited with the numbers 1-9, and the
 current cell being edited with the number 0.
@@ -1317,10 +1313,10 @@ key, or the last edit was aborted prematurely.
 .BI ` x
 Jump to a previously marked cell.
 If the target cell is currently on the screen,
-.I pname
+.I sc
 will simply jump to the target cell, making it current.
 Otherwise,
-.I pname
+.I sc
 will attempt to center the cell on the screen, if possible.
 As a special case, following the ` with another ` will
 return you to the cell you were in before the last g, ', `,
@@ -1380,7 +1376,7 @@ leaving only the previously computed constant numeric value.
 .TP
 .B =
 Enter a numeric constant or expression into the current cell.
-.I pname
+.I sc
 prompts for the expression on the top line.
 The usual way to enter a number into a cell is to type ``='',
 then enter the number in response to the prompt on the top line.
@@ -1555,7 +1551,7 @@ for strftime(3).
 .PP
 Strings you enter must start with ".
 You can leave off the trailing " and
-.I pname
+.I sc
 will add it for you.
 You can also enter a string expression
 by backspacing over the opening " in the prompt.
@@ -1619,7 +1615,7 @@ defines a range of cells via the cursor control commands or the arrow keys.
 Pressing
 .SM TAB
 automatically switches
-.I pname
+.I sc
 to navigate mode if you haven't already done so using the
 .I ^V
 command, and the range is highlighted,
@@ -1917,7 +1913,7 @@ commands (see below).
 .TP
 .BI m x
 Mark the current cell.
-.I pname
+.I sc
 will prompt for a lowercase letter to
 be used as a mark specifier.
 Marked cells may be used as the source for the
@@ -1932,7 +1928,7 @@ or
 .BI c x
 Copy a marked cell to the current cell, adjusting row and
 column references in its numeric or string expression, if any.
-.I pname
+.I sc
 will prompt for the name of the cell to be copied, which may
 be a lowercase letter specified previously with the
 .I m
@@ -1951,7 +1947,7 @@ range for the range copy
 command, and then the
 .I copy
 command is entered into the command line and
-.I pname
+.I sc
 switches to navigate mode.
 Moving the cell cursor will then highlight the destination
 range.
@@ -1976,7 +1972,7 @@ inserts the current cell address into the line, followed
 by another
 .IR + ,
 and
-.I pname
+.I sc
 remains in navigate mode, unless a range is highlighted.
 If a range is highlighted and the character immediately
 preceding the cursor is a ``+'' or ``-'',
@@ -2007,7 +2003,7 @@ inserts the current cell address into the line, followed
 by another
 .IR - ,
 and
-.I pname
+.I sc
 remains in navigate mode, unless a range is highlighted.
 If a range if highlighted and the character immediately
 preceding the cursor is a ``+'' or ``-'',
@@ -2027,7 +2023,7 @@ If you are not editing a cell (top line is empty),
 pressing
 .SM RETURN
 will make
-.I pname
+.I sc
 enter insert mode.
 At this point you may type any valid command or press
 .B ESC
@@ -2119,7 +2115,7 @@ commands, if you try to write to the last file used with the
 or
 .I Put
 commands, or the file specified on the command line when
-.I pname
+.I sc
 was invoked, you are asked to confirm that the
 (potentially) dangerous operation is really what you want.
 .\" ----------
@@ -2148,24 +2144,24 @@ the existing entries at matching cell locations.
 .B R
 Run macros.
 There are two different kinds of macros that can be used with
-.IR pname :
+.IR sc :
 simple macros, which are stored in plain text files,
 and advanced macros, which are executable files, and
 which can be written in the language of your choice.
 Advanced macros are only available on systems that support pipes.
 
 Simple macros are interpreted by
-.IR pname 's
+.IR sc 's
 internal parser, and use the same commands
 used to enter data and perform other operations
 (the single key commands are shortcuts which switch
 to input mode after first entering the beginning of
 the full command for you).
 These are also the same commands found in
-.I pname
+.I sc
 files created with the Put command.
 Since
-.I pname
+.I sc
 files are saved as ASCII files,
 it is possible to use them as primitive macro definition files.
 The
@@ -2183,9 +2179,9 @@ To write macros, you must be familiar with the file format written by the
 command.
 
 Advanced macros use executable files that are started by
-.I pname
+.I sc
 as a child process with stdin and stdout redirected back to
-.I pname
+.I sc
 for bidirectional communication.
 Special commands are available for requesting information
 such as cell contents, formatting information, or the
@@ -2441,7 +2437,7 @@ The
 command is a special case.
 It does not hide anything.
 Instead, the file will be saved, if modified, and
-.I pname
+.I sc
 will exit.
 See
 .I ZZ
@@ -2558,7 +2554,7 @@ defined by the upper left and lower right cells in the region.
 All of the commands in this class begin with ``r'';
 the second letter of the command indicates which command.
 A small menu lists the choices for the second letter when you type ``r''.
-.I pname
+.I sc
 prompts for needed parameters for each command.
 Phrases surrounded by square brackets in the prompt are
 informational only and may be erased with the backspace key.
@@ -3103,7 +3099,7 @@ foreground, and the background will default to black.
 Although the above example is the easiest way to specify
 foreground and background colors, and will probably meet
 most people's needs,
-.I pname
+.I sc
 allows much more power and flexibility, should the
 need arise, due to the fact that any color can be
 specified by an expression.
@@ -3164,12 +3160,12 @@ These default colors are as follows:
 .TP
 .B ^C
 Exit from
-.IR pname .
+.IR sc .
 If you made any changes since the last
 .I Get
 or
 .IR Put ,
-.I pname
+.I sc
 asks about saving your data before exiting.
 .PD
 .\" ----------
@@ -3195,7 +3191,7 @@ up-to-date.
 .TP
 .B !
 Shell escape.
-.I pname
+.I sc
 prompts for a shell command to run.
 End the command line with the
 .SM RETURN
@@ -4175,7 +4171,7 @@ pay $1000 per month?"
 .SS "Built-in Date and Time Functions"
 .\" ----------
 Time for
-.I pname
+.I sc
 follows the system standard:
 the number of seconds since the beginning of 1970.
 All date and time functions except
@@ -4213,7 +4209,7 @@ is valid, typically 14 Dec 1901 to 18 Jan 2038
 on a system that uses a 32 bit time_t.
 Invalid dates or dates outside of this range will return ERROR.
 For rapid entry of dates using only the numeric keypad,
-.I pname
+.I sc
 provides the alternate syntax
 .IR y.m.d
 or
@@ -4311,7 +4307,7 @@ Returns the number of iterations performed so far.
 .SS "Programmable Function Keys"
 .\" ----------
 Function keys can be used in
-.I pname
+.I sc
 if your terminal supports them, and they are programmable.
 To program the function keys, you use the
 .I fkey
@@ -4319,7 +4315,7 @@ command.
 This command may be used in a
 .I .scrc
 file or a macro file, or it may be entered directly into
-.IR pname 's
+.IR sc 's
 command line.
 Defined function keys will be saved with the file.
 There is no shortcut, as there is with most commands,
@@ -4377,24 +4373,24 @@ Undefining the F1 key will restore the default behavior.
 .\" ----------
 There are three ways in which external
 programs can be used as plugins with
-.IR pname .
+.IR sc .
 First, they can be used as external commands.
 When used as an external command, any command 
 not recognized by
-.I pname
+.I sc
 will be searched for first in $HOME/.sc/plugins,
-and then in #LIBDIR#/plugins.
+and then in /usr/share/sc/plugins.
 If found, it will be run with its standard input
 and standard output redirected back to
-.IR pname .
+.IR sc .
 These are used to send commands to, and receive
 responses back from
-.I pname
+.I sc
 in the same way that advanced macros do.
 .LP
 The second and third ways that programs can be used
 as plugins with
-.I pname
+.I sc
 are to automatically convert files to and from
 .I sc
 format based on their extensions.
@@ -4432,7 +4428,7 @@ For input, the plugin merely reads the specified file,
 performs whatever conversion is necessary, and writes
 the resulting data to standard output.
 For output, the plugin writes
-.I pname
+.I sc
 commands to standard output and reads the replies
 from standard input in the same way that an advanced
 macro would, and then converts the data to the
@@ -4441,7 +4437,7 @@ the specified filename.
 .\" ==========
 .SH FILES
 .TP 3in
-#LIBDIR#/tutorial.pname
+/usr/share/sc/tutorial.sc
 Tutorial spreadsheet.
 .TP 3in
 $HOME/.scrc
@@ -4449,7 +4445,7 @@ Initialization commands.
 .IP "./.scrc"
 More initialization commands.
 .SH SEE ALSO
-bc(1), dc(1), crypt(1), ppname(1)
+bc(1), dc(1), crypt(1), psc(1)
 .\" ==========
 .SH BUGS
 Top-to-bottom, left-to-right evaluation of expressions is silly.

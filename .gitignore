@@ -1,10 +1,10 @@
 *.o
+config.h
+Config.mk
+config.status
 sc
 psc
-scqref
-y.tab.h
+gram.h
 gram.c
-*res.h
-qhelp.c
-pxmalloc.c
-pvmtbl.c
+experres.h
+statres.h

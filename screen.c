@@ -14,11 +14,6 @@
 
 #include "sc.h"
 
-#ifdef VMS
-extern int VMS_read_raw;   /*sigh*/
-    VMS_read_raw = 1;
-#endif
-
 #pragma GCC diagnostic ignored "-Waddress"	// curses addr_get has a superfluous NULL comparison
 
 void	repaint(int x, int y, int len, int attron, int attroff);
@@ -50,9 +45,6 @@ extern	int *fwidth;
 extern	int showneed;	/* Causes cells needing values to be highlighted */
 extern	int showexpr;	/* Causes cell exprs to be displayed, highlighted */
 extern	int shownote;	/* Causes cells with attached notes to be highlighted */
-#ifdef RIGHT_CBUG
-extern	int wasforw;	/* Causes screen to be redisplay if on lastcol */
-#endif
 extern struct go_save gs;
 
 /*
@@ -63,8 +55,7 @@ extern struct go_save gs;
  */
 int	standlast	= FALSE;
 
-void
-update(int anychanged)		/* did any cell really change in value? */
+void update (int anychanged)	/* did any cell really change in value? */
 {
     int				row, col;
     struct ent			**pp;
@@ -77,13 +68,11 @@ update(int anychanged)		/* did any cell really change in value? */
     int				ftrows, fbrows, flcols, frcols;
     bool			message;
 
-#ifndef MSDOS
     /*
      * If receiving input from a pipeline, don't display spreadsheet data
      * on screen.
      */
     if (!usecurses) return;
-#endif
 
     getmaxyx(stdscr, lines, cols);
     fr = lastfr;
@@ -573,12 +562,6 @@ update(int anychanged)		/* did any cell really change in value? */
 	    printw("%*d", rescol - 1, i);
 	    row++;
 	}
-#ifdef RIGHT_CBUG
-	if (wasforw) {
-	    clearok(stdscr, TRUE);
-	    wasforw = 0;
-	}
-#endif
 	move(2, 0);
 	printw("%*s", rescol, " ");
 
@@ -1053,8 +1036,7 @@ update(int anychanged)		/* did any cell really change in value? */
 }
 
 /* redraw what is under the cursor from curses' idea of the screen */
-void
-repaint(int x, int y, int len, int attron, int attroff)
+void repaint(int x, int y, int len, int attron, int attroff)
 {
     while (len-- > 0) {
 	move(y, x);
@@ -1066,8 +1048,7 @@ repaint(int x, int y, int len, int attron, int attroff)
 int seenerr;
 
 /* error routine for yacc (gram.y) */
-void
-yyerror(char *err)
+void yyerror(char *err)
 {
     if (usecurses) {
 	if (seenerr) return;
@@ -1080,145 +1061,42 @@ yyerror(char *err)
 		       line + linelim);
 }
 
-#ifdef XENIX2_3
-struct termio tmio;
-#endif
-
-void
-startdisp()
+void startdisp (void)
 {
-#if sun
-    int	 fd;
-    fd = dup(0);
-#endif
-#ifndef MSDOS
-    if (usecurses) {
-#endif
-	int i;
-#ifdef TIOCGSIZE
-	{   struct ttysize size;
-	    if (ioctl(0, TIOCGSIZE, &size) == 0) { 
-		lines = size.ts_lines;
-		cols = size.ts_cols;
-	    }
-	}
-#endif
-
-#ifdef XENIX2_3
-	ioctl(fileno(stdin), TCGETA, & tmio);
-#endif
-	initscr();
-	start_color();
-	for (i = 0; i < 8; i++)
-	    if (cpairs[i])
-		init_pair(i + 1, cpairs[i]->fg, cpairs[i]->bg);
-	if (color && has_colors())
-	    bkgdset(COLOR_PAIR(1) | ' ');
-#if sun
-	close(0);
-	dup(fd);
-	close(fd);
-#endif
-	clear();
-#ifdef VMS
-	VMS_read_raw = 1;
-#else
-	nonl();
-	noecho();
-	cbreak();
-#endif
-	initkbd();
-	scrollok(stdscr, 1);
-
-#if defined(SYSV3) && !defined(NOIDLOK)
-# ifndef IDLOKBAD
-	/*
-	 * turn hardware insert/delete on, if possible.
-	 * turn on scrolling for systems with SYSVr3.{1,2} (SYSVr3.0 has
-	 * this set as the default)
-	 */
-	idlok(stdscr,TRUE);
-# else	/*
-	 * This seems to fix (with an empty spreadsheet):
-	 *	a) Redrawing the bottom half of the screen when you
-	 *		move between row 9 <-> 10
-	 *	b) the highlighted row labels being trash when you
-	 *		move between row 9 <-> 10
-	 *	c) On an xterm on Esix Rev. D+ from eating lines
-	 *	 -goto (or move) a few lines (or more) past the bottom
-	 *	 of the screen, goto (or move) to the top line on the
-	 *	 screen, move upward and the current line is deleted, the
-	 *	 others move up even when they should not, check by
-	 *	 noticing the rows become 2, 3, 40, 41, 42... (etc).
-	 */
-	idlok(stdscr,FALSE);
-# endif
-#endif
-
-	FullUpdate++;
-#ifndef MSDOS
-    }
-#endif
+    if (!usecurses)
+	return;
+    int i;
+    initscr();
+    start_color();
+    for (i = 0; i < 8; i++)
+	if (cpairs[i])
+	    init_pair(i + 1, cpairs[i]->fg, cpairs[i]->bg);
+    if (color && has_colors())
+	bkgdset(COLOR_PAIR(1) | ' ');
+    clear();
+    nonl();
+    noecho();
+    cbreak();
+    initkbd();
+    scrollok(stdscr, 1);
+    idlok(stdscr,TRUE);
+    FullUpdate++;
 }
 
-void
-stopdisp()
+void stopdisp (void)
 {
-#ifndef MSDOS
-    if (usecurses) {
-#endif
-	deraw(1);
-	resetkbd();
-	endwin();
-#ifdef XENIX2_3
-	ioctl(fileno(stdin), TCSETAW, & tmio);
-#endif
-#ifndef MSDOS
-    }
-#endif
+    if (!usecurses)
+	return;
+    deraw(1);
+    resetkbd();
+    endwin();
 }
 
 /* init curses */
-#ifdef VMS
-
-void
-goraw()
+void goraw (void)
 {
     if (usecurses) {
-	VMS_read_raw = 1;
-	if (color && has_colors())
-	    bkgdset(COLOR_PAIR(1) | ' ');
-	FullUpdate++;
-    }
-}
-
-void
-deraw(int ClearLastLine)
-{
-    if (usecurses) {
-	if (ClearLastLine) {
-	    if (color && has_colors())
-		bkgdset(COLOR_PAIR(0) | ' ');
-	    move(lines - 1, 0);
-	    clrtoeol();
-	    refresh();
-	}
-	VMS_read_raw = 0;
-    }
-}
-
-#else /* VMS */
-void
-goraw()
-{
-    if (usecurses) {
-#if SYSV2 || SYSV3
 	fixterm();
-#else /* SYSV2 || SYSV3 */
-	cbreak();
-	nonl();
-	noecho ();
-#endif /* SYSV2 || SYSV3 */
 	kbd_again();
 	if (color && has_colors())
 	    bkgdset(COLOR_PAIR(1) | ' ');
@@ -1227,8 +1105,7 @@ goraw()
 }
 
 /* clean up curses */
-void
-deraw(int ClearLastLine)
+void deraw (int ClearLastLine)
 {
     if (usecurses) {
 	if (ClearLastLine) {
@@ -1238,15 +1115,7 @@ deraw(int ClearLastLine)
 	    clrtoeol();
 	    refresh();
 	}
-#if SYSV2 || SYSV3
 	resetterm();
-#else
-	nocbreak();
-	nl();
-	echo();
-#endif
 	resetkbd();
     }
 }
-
-#endif /* VMS */

@@ -33,6 +33,8 @@ int	getrow(char *p);
 int	getcol(char *p);
 int	scan();
 
+extern int psc_growtbl (int rowcol, int topcol);
+
 int *fwidth;
 int *precision;
 int maxcols;
@@ -58,11 +60,11 @@ int strip_delim = TRUE;
 int drop_format = FALSE;
 int strnums	= FALSE;
 int plainnums	= FALSE;
+int maxrows = 0, maxcols = 0;
 
 char token[1000];
 
-int
-main(int argc, char **argv)
+int main (int argc, char **argv)
 {
     int c;
     int i, j;
@@ -120,7 +122,7 @@ main(int argc, char **argv)
     }
 
 	/* setup the spreadsheet arrays */
-    if (!growtbl(GROWNEW, 0, 0))
+    if (!psc_growtbl(GROWNEW, 0))
 	exit(1);
 
     curlen = 0;
@@ -146,7 +148,7 @@ main(int argc, char **argv)
 	    first = FALSE;
 	    printf("let %s%d = %s\n", coltoa(effc), effr, token);
 	    if (effc >= maxcols - 1) {
-		if (!growtbl(GROWCOL, 0, effc)) {
+		if (!psc_growtbl(GROWCOL, effc)) {
 		    fprintf(stderr, "Invalid column used: %s\n", coltoa(effc));
 		    continue;
 		}
@@ -189,7 +191,7 @@ main(int argc, char **argv)
 	    else
 		printf("rightstring %s%d = \"%s\"\n",coltoa(effc),effr,token); 
 	    if (effc >= maxcols - 1) {
-		if (!growtbl(GROWCOL, 0, effc)) {
+		if (!psc_growtbl(GROWCOL, effc)) {
 		    fprintf(stderr, "Invalid column used: %s\n", coltoa(effc));
 		    continue;
 		}

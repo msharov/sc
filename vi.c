@@ -1552,7 +1552,7 @@ write_hist()
     }
 
     /* now write to whole lot out to the proper save file */
-    strcpy(histfile, HISTORY_FILE);
+    snprintf (histfile, sizeof(histfile), HISTORY_FILE, getlogin());
     if (findhome(histfile) && (fp = fopen(histfile, "w")) != NULL) {
 	for (i = 1; i <= endhist; i++) {
 	    lasthist = lasthist % endhist + 1;
@@ -1579,7 +1579,7 @@ read_hist()
     FILE *fp;
     char histfile[PATHLEN];
 
-    strcpy(histfile, HISTORY_FILE);
+    snprintf (histfile, sizeof(histfile), HISTORY_FILE, getlogin());
     if (findhome(histfile) && (fp = fopen(histfile, "r")) != NULL)
 	readhistfile(fp);
     histsessionstart = lasthist;
