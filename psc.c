@@ -1,24 +1,23 @@
 // SC is free software distributed under the MIT license
 
-/* Sc parse routine
- *
- * usage psc options
- * options:
- *   -L		Left justify strings.  Default is right justify.
- *   -r		Assemble data into rows first, not columns.
- *   -R	n	Increment by n between rows 
- *   -C n	Increment by n between columns
- *   -n n	Length of the row (column) should be n.
- *   -s v	Top left location in the spreadsheet should be v; eg, k5
- *   -d c       Use c as the delimiter between the fields.
- *   -k         Keep all delimiters - Default is strip multiple delimiters to 1.
- *   -f         suppress 'format' lines in output
- *   -S		Use strings vs numbers for numbers
- *   -P		Use numbers only when there is no [-+eE] (plain numbers only)
- *
- *  Author: Robert Bond
- *  Adjustments: Jeff Buhrt, Eric Putz and Chuck Martin
- */
+// Sc parse routine
+//
+// usage psc options
+// options:
+//   -L		Left justify strings.  Default is right justify.
+//   -r		Assemble data into rows first, not columns.
+//   -R	n	Increment by n between rows 
+//   -C n	Increment by n between columns
+//   -n n	Length of the row (column) should be n.
+//   -s v	Top left location in the spreadsheet should be v; eg, k5
+//   -d c       Use c as the delimiter between the fields.
+//   -k         Keep all delimiters - Default is strip multiple delimiters to 1.
+//   -f         suppress 'format' lines in output
+//   -S		Use strings vs numbers for numbers
+//   -P		Use numbers only when there is no [-+eE] (plain numbers only)
+//
+//  Author: Robert Bond
+//  Adjustments: Jeff Buhrt, Eric Putz and Chuck Martin
 char *rev = "$Revision: 7.16 $";
 
 #include "sc.h"
@@ -29,11 +28,11 @@ char *rev = "$Revision: 7.16 $";
 #define SPACE	3
 #define EOL	4
 
-char	*coltoa(int col);
+char	*coltoa (int col);
 char	*progname;
-int	getrow(char *p);
-int	getcol(char *p);
-int	scan();
+int	getrow (char *p);
+int	getcol (char *p);
+int	scan (void);
 
 extern int psc_growtbl (int rowcol, int topcol);
 
@@ -48,7 +47,7 @@ int currow, roff;
 int first;
 int effr, effc;
 
-/* option flags reset */
+// option flags reset
 int colfirst = FALSE;
 int leftadj = FALSE;
 int r0 = 0;
@@ -64,66 +63,39 @@ int strnums	= FALSE;
 int plainnums	= FALSE;
 int maxrows = 0, maxcols = 0;
 
-char token[1000];
+char token [1000];
 
-int main (int argc, char **argv)
+int main (int argc, char** argv)
 {
     int c;
     int i, j;
-    register char *p;
+    char *p;
 
     progname = argv[0];
     while ((c = getopt(argc, argv, "rfLks:R:C:n:d:SPv")) != EOF) {
 	switch (c) {
-	case 'r':
-	    colfirst = TRUE;
-	    break;
-	case 'L':
-	    leftadj = TRUE;
-	    break;
-	case 's':
-	    c0 = getcol(optarg);
-	    r0 = getrow(optarg);
-	    break;
-	case 'R':
-	    rinc = atoi(optarg);
-	    break;
-	case 'C':
-	    cinc = atoi(optarg);
-	    break;
-	case 'n':
-	    len = atoi(optarg);
-	    break;
-	case 'd':
-	    delim1 = optarg[0];
-	    delim2 = '\0';
-	    break;
-	case 'k':
-	    strip_delim = FALSE;
-	    break;
-	case 'f':
-	    drop_format = TRUE;
-	    break;
-	case 'S':
-	    strnums = TRUE;
-	    break;
-	case 'P':
-	    plainnums = TRUE;
-	    break;
-	case 'v':
-	    fprintf(stderr,"%s: %s\n", progname, rev);
-	default:
-	    fprintf(stderr,"Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
-	    exit(1);
+	    case 'r': colfirst = TRUE; break;
+	    case 'L': leftadj = TRUE; break;
+	    case 's': c0 = getcol(optarg); r0 = getrow(optarg); break;
+	    case 'R': rinc = atoi(optarg); break;
+	    case 'C': cinc = atoi(optarg); break;
+	    case 'n': len = atoi(optarg); break;
+	    case 'd': delim1 = optarg[0]; delim2 = '\0'; break;
+	    case 'k': strip_delim = FALSE; break;
+	    case 'f': drop_format = TRUE; break;
+	    case 'S': strnums = TRUE; break;
+	    case 'P': plainnums = TRUE; break;
+	    case 'v': fprintf(stderr,"%s: %s\n", progname, rev);
+	    default:
+		fprintf(stderr,"Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
+		exit(1);
         }
     }
-
     if (optind < argc) {
-	    fprintf(stderr,"Usage: %s [-rL] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
-	    exit(1);
+	fprintf(stderr,"Usage: %s [-rL] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
+	exit(1);
     }
-
-	/* setup the spreadsheet arrays */
+    // setup the spreadsheet arrays
     if (!psc_growtbl(GROWNEW, 0))
 	exit(1);
 
@@ -133,17 +105,14 @@ int main (int argc, char **argv)
     first = TRUE;
 
     while (1) {
-
 	effr = currow+roff;
 	effc = curcol+coff;
-
 	switch (scan()) {
 	case END:
 	    if (drop_format) exit(0);
 	    for (i = 0; i<maxcols; i++) {
 		if (fwidth[i])
-		    printf("format %s %d %d %d\n", coltoa(i), 
-			fwidth[i]+1, precision[i], REFMTFIX);
+		    printf("format %s %d %d %d\n", coltoa(i), fwidth[i]+1, precision[i], REFMTFIX);
 	    }
 	    exit(0);
 	case NUM:
@@ -176,12 +145,11 @@ int main (int argc, char **argv)
 		if (fwidth[effc] < i)
 			fwidth[effc] = i;
 
-		/* now make sure:
-		 *	1234.567890 (format 11 6)
-		 *	1234567.890 (format 11 3)
-		 *	both show (format 14 6)
-		 *		(really it uses 15 6 to separate columns)
-		 */
+		// now make sure:
+		//	1234.567890 (format 11 6)
+		//	1234567.890 (format 11 3)
+		//	both show (format 14 6)
+		//		(really it uses 15 6 to separate columns)
 		if ((nw = i - j) > ow)
 			fwidth[effc] += nw - (fwidth[effc] - precision[effc]);
 	    }
@@ -237,12 +205,11 @@ int main (int argc, char **argv)
     }
 }
 
-int
-scan()
+int scan (void)
 {
-    register int c;
-    register char *p;
-    register int founddigit;
+    int c;
+    char *p;
+    int founddigit;
 
     p = token;
     c = getchar();
@@ -280,43 +247,34 @@ scan()
     p = token;
     c = *p;
     founddigit = FALSE;
-    /*
-     * str_nums always returns numbers as strings
-     * plainnums returns 'numbers' with [-+eE] in them as strings
-     * lastprtnum makes sure a number ends in one of [0-9eE.]
-     */
+    // str_nums always returns numbers as strings
+    // plainnums returns 'numbers' with [-+eE] in them as strings
+    // lastprtnum makes sure a number ends in one of [0-9eE.]
     if (!strnums && (isdigit(c) || c == '.' || c == '-' || c == '+')) {
-	int	lastprtnum = FALSE;
-
-	while (isdigit(c) || c == '.' || (!plainnums && (c == '-' ||
-					c == '+' || c == 'e' || c == 'E'))) {
-		if (isdigit(c)) 
-			lastprtnum = founddigit = TRUE;
-		else
-		if (!(c == '.' || c == 'e' || c == 'E'))
-			lastprtnum = FALSE;
-		c = *p++;
+	int lastprtnum = FALSE;
+	while (isdigit(c) || c == '.' || (!plainnums && (c == '-' || c == '+' || c == 'e' || c == 'E'))) {
+	    if (isdigit(c)) 
+		lastprtnum = founddigit = TRUE;
+	    else if (!(c == '.' || c == 'e' || c == 'E'))
+		lastprtnum = FALSE;
+	    c = *p++;
 	}
 	if (c == '\0' && founddigit && lastprtnum)
 	    return (NUM);
 	else
 	    return (ALPHA);
     }
-
     return (ALPHA);
 }
     
-/* turns [A-Z][A-Z] into a number */
-int
-getcol(char *p)
+// turns [A-Z][A-Z] into a number
+int getcol (char *p)
 {
-    int col;
-
-    col = 0;
+    int col = 0;
     if (!p)
 	return (0);
     while (*p && !isalpha(*p)) 
-	p++; 
+	++p;
     if (!*p)
 	return (0);
     col = (toupper(*p) - 'A');
@@ -325,34 +283,30 @@ getcol(char *p)
     return (col);
 }
 
-/* given a string turn it into a row number */
-int
-getrow(char *p)
+// given a string turn it into a row number
+int getrow (char *p)
 {
-    int row;
-
-    row = 0;
+    int row = 0;
     if (!p)
 	return (0);
     while (*p && !isdigit(*p))
-	p++; 
+	++p; 
     if (!*p)
 	return (0);
-    while (*p && isdigit(*p))
-    {	row = row * 10 + *p - '0';
-	p++;
+    while (*p && isdigit(*p)) {
+	row = row * 10 + *p - '0';
+	++p;
     }
     return (row);
 }
 
-/* turns a column number into [A-Z][A-Z] */
-char *
-coltoa(int col)
+// turns a column number into [A-Z][A-Z]
+char* coltoa (int col)
 {
     static char rname[3];
-    register char *p = rname;
+    char *p = rname;
 
-    if (col < 0 || col > 27*26)	/* A-Z, AA-ZZ */
+    if (col < 0 || col > 27*26)	// A-Z, AA-ZZ
 	fprintf(stderr,"coltoa: invalid col: %d", col);
 
     if (col > 25) {

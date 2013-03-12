@@ -5,10 +5,7 @@
 static struct frange *frame_base;
 extern struct frange *lastfr;
 
-void
-add_frange(struct ent *or_left, struct ent *or_right, struct ent *ir_left,
-	struct ent *ir_right, int toprows, int bottomrows, int leftcols,
-	int rightcols)
+void add_frange(struct ent *or_left, struct ent *or_right, struct ent *ir_left, struct ent *ir_right, int toprows, int bottomrows, int leftcols, int rightcols)
 {
     struct frange *r;
     int minr, minc, maxr, maxc;
@@ -40,10 +37,8 @@ add_frange(struct ent *or_left, struct ent *or_right, struct ent *ir_left,
     }
 
     if (frame_base) {
-	/*
-	 * Has this frange already been created?  If so, any negative
-	 * parameters mean "don't change this value."
-	 */
+	// Has this frange already been created?  If so, any negative
+	// parameters mean "don't change this value."
 	for (r = frame_base; r; r = r->r_next) {
 	    if ((r->or_left == or_left) && (r->or_right == or_right)) {
 		if (ir_left) {
@@ -64,7 +59,7 @@ add_frange(struct ent *or_left, struct ent *or_right, struct ent *ir_left,
 			    r->or_right->col - rightcols);
 		}
 
-		/* If all frame sides are 0, delete the frange */
+		// If all frame sides are 0, delete the frange
 		if (r->ir_left == r->or_left && r->ir_right == r->or_right) {
 		    if (r->r_next)
 			r->r_next->r_prev = r->r_prev;
@@ -80,9 +75,7 @@ add_frange(struct ent *or_left, struct ent *or_right, struct ent *ir_left,
 		return;
 	    }
 	}
-	/*
-	 * See if the specified range overlaps any previously created frange.
-	 */
+	// See if the specified range overlaps any previously created frange.
 	for (r = frame_base; r; r = r->r_next) {
 	    if (  !(r->or_left->row  > or_right->row ||
 		    r->or_right->row < or_left->row  ||
@@ -123,11 +116,10 @@ add_frange(struct ent *or_left, struct ent *or_right, struct ent *ir_left,
     }
 }
 
-void
-clean_frange()
+void clean_frange (void)
 {
-    register struct frange *fr;
-    register struct frange *nextfr;
+    struct frange *fr;
+    struct frange *nextfr;
 
     fr = frame_base;
     frame_base = NULL;
@@ -140,57 +132,39 @@ clean_frange()
     lastfr = NULL;
 }
 
-struct frange *
-find_frange(int row, int col)
+struct frange* find_frange(int row, int col)
 {
-    struct frange *r;
-
     if (frame_base)
-	for (r = frame_base; r; r = r->r_next) {
-	    if ((r->or_left->row <= row) && (r->or_left->col <= col) &&
-		    (r->or_right->row >= row) && (r->or_right->col >= col))
+	for (struct frange* r = frame_base; r; r = r->r_next)
+	    if (r->or_left->row <= row && r->or_left->col <= col && r->or_right->row >= row && r->or_right->col >= col)
 		return r;
-	}
     return 0;
 }
 
-void
-sync_franges()
+void sync_franges (void)
 {
-    struct frange *fr;
-
-    fr = frame_base;
-    while (fr) {
+    for (struct frange* fr = frame_base; fr; fr = fr->r_next) {
 	fr->or_left  = lookat(fr->or_left->row,  fr->or_left->col);
 	fr->or_right = lookat(fr->or_right->row, fr->or_right->col);
 	fr->ir_left  = lookat(fr->ir_left->row,  fr->ir_left->col);
 	fr->ir_right = lookat(fr->ir_right->row, fr->ir_right->col);
-	fr = fr->r_next;
     }
 }
 
-void
-write_franges(FILE *f)
+void write_franges (FILE *f)
 {
-    register struct frange *r;
-    register struct frange *nextr;
-
-    for (r = nextr = frame_base; nextr; r = nextr, nextr = r->r_next) /**/ ;
-    while (r) {
+    struct frange* r = frame_base;
+    for (struct frange* nextr = r; nextr; r = nextr, nextr = r->r_next) {}
+    for (; r; r = r->r_prev) {
 	fprintf(f, "frame %s", v_name(r->or_left->row, r->or_left->col));
 	fprintf(f, ":%s", v_name(r->or_right->row, r->or_right->col));
 	fprintf(f, " %s", v_name(r->ir_left->row, r->ir_left->col));
 	fprintf(f, ":%s\n", v_name(r->ir_right->row, r->ir_right->col));
-
-	r = r->r_prev;
     }
 }
 
 void list_frames (FILE *f)
 {
-    register struct frange *r;
-    register struct frange *nextr;
-
     if (!are_frames()) {
 	fprintf(f, "  No frames");
 	return;
@@ -200,66 +174,58 @@ void list_frames (FILE *f)
     if (!brokenpipe)
 	fprintf(f, "  %-30s %s\n","-----------","-----------");
 
-    for (r = nextr = frame_base; nextr; r = nextr, nextr = r->r_next) /* */ ;
-    while (r) {
-	fprintf(f, "  %-30s", r_name(r->or_left->row, r->or_left->col,
-		r->or_right->row, r->or_right->col));
-	fprintf(f, " %s\n", r_name(r->ir_left->row, r->ir_left->col,
-		r->ir_right->row, r->ir_right->col));
+    struct frange* r = frame_base;
+    for (struct frange* nextr = r; nextr; r = nextr, nextr = r->r_next) // */ ;
+    for (; r; r = r->r_prev) {
+	fprintf(f, "  %-30s", r_name(r->or_left->row, r->or_left->col, r->or_right->row, r->or_right->col));
+	fprintf(f, " %s\n", r_name(r->ir_left->row, r->ir_left->col, r->ir_right->row, r->ir_right->col));
 	if (brokenpipe) return;
-	r = r->r_prev;
     }
 }
 
-int
-are_frames()
+int are_frames (void)
 {
     return (frame_base != 0);
 }
 
-void
-fix_frames(int row1, int col1, int row2, int col2, int delta1, int delta2)
+void fix_frames (int row1, int col1, int row2, int col2, int delta1, int delta2)
 {
-    int r1, r2, c1, c2;
-    struct frange *fr, *cfr;
+    if (!frame_base)
+	return;
+    struct frange* cfr = find_frange(currow, curcol);
+    for (struct frange* fr = frame_base; fr; fr = fr->r_next) {
+	int r1 = fr->or_left->row, c1 = fr->or_left->col;
+	int r2 = fr->or_right->row, c2 = fr->or_right->col;
 
-    cfr = find_frange(currow, curcol);
-    if (frame_base)
-	for (fr = frame_base; fr; fr = fr->r_next) {
-	    r1 = fr->or_left->row;
-	    c1 = fr->or_left->col;
-	    r2 = fr->or_right->row;
-	    c2 = fr->or_right->col;
-
-	    if (!(cfr && (c1 < cfr->or_left->col || c1 > cfr->or_right->col))) {
-		if (r1 >= row1 && r1 <= row2) r1 = row2 - delta1;
-		if (c1 >= col1 && c1 <= col2) c1 = col2 - delta1;
-	    }
-
-	    if (!(cfr && (c2 < cfr->or_left->col || c2 > cfr->or_right->col))) {
-		if (r2 >= row1 && r2 <= row2) r2 = row1 + delta2;
-		if (c2 >= col1 && c2 <= col2) c2 = col1 + delta2;
-	    }
-
-	    fr->or_left = lookat(r1, c1);
-	    fr->or_right = lookat(r2, c2);
-
-	    r1 = fr->ir_left->row;
-	    c1 = fr->ir_left->col;
-	    r2 = fr->ir_right->row;
-	    c2 = fr->ir_right->col;
-
-	    if (!(cfr && (c1 < cfr->or_left->col || c1 > cfr->or_right->col))) {
-		if (r1 >= row1 && r1 <= row2) r1 = row2 - delta1;
-		if (c1 >= col1 && c1 <= col2) c1 = col2 - delta1;
-	    }
-
-	    if (!(cfr && (c2 < cfr->or_left->col || c2 > cfr->or_right->col))) {
-		if (r2 >= row1 && r2 <= row2) r2 = row1 + delta2;
-		if (c2 >= col1 && c2 <= col2) c2 = col1 + delta2;
-	    }
-
-	    fr->ir_left = lookat(r1, c1);
-	    fr->ir_right = lookat(r2, c2);
+	if (!(cfr && (c1 < cfr->or_left->col || c1 > cfr->or_right->col))) {
+	    if (r1 >= row1 && r1 <= row2) r1 = row2 - delta1;
+	    if (c1 >= col1 && c1 <= col2) c1 = col2 - delta1;
 	}
+
+	if (!(cfr && (c2 < cfr->or_left->col || c2 > cfr->or_right->col))) {
+	    if (r2 >= row1 && r2 <= row2) r2 = row1 + delta2;
+	    if (c2 >= col1 && c2 <= col2) c2 = col1 + delta2;
+	}
+
+	fr->or_left = lookat(r1, c1);
+	fr->or_right = lookat(r2, c2);
+
+	r1 = fr->ir_left->row;
+	c1 = fr->ir_left->col;
+	r2 = fr->ir_right->row;
+	c2 = fr->ir_right->col;
+
+	if (!(cfr && (c1 < cfr->or_left->col || c1 > cfr->or_right->col))) {
+	    if (r1 >= row1 && r1 <= row2) r1 = row2 - delta1;
+	    if (c1 >= col1 && c1 <= col2) c1 = col2 - delta1;
+	}
+
+	if (!(cfr && (c2 < cfr->or_left->col || c2 > cfr->or_right->col))) {
+	    if (r2 >= row1 && r2 <= row2) r2 = row1 + delta2;
+	    if (c2 >= col1 && c2 <= col2) c2 = col1 + delta2;
+	}
+
+	fr->ir_left = lookat(r1, c1);
+	fr->ir_right = lookat(r2, c2);
+    }
 }

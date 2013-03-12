@@ -2,7 +2,7 @@
 
 #include "sc.h"
 
-char* scxmalloc(unsigned n)
+char* scxmalloc (unsigned n)
 {
     char* p = (char*) malloc (n);
     assert (p && "out of memory");
@@ -10,7 +10,7 @@ char* scxmalloc(unsigned n)
     return (p);
 }
 
-/* we make sure realloc will do a malloc if needed */
+// we make sure realloc will do a malloc if needed
 char* scxrealloc (char *ptr, unsigned n)
 {
     char* p = (char*) realloc (ptr, n);
@@ -19,7 +19,7 @@ char* scxrealloc (char *ptr, unsigned n)
     return (p);
 }
 
-void scxfree(char *p)
+void scxfree (char *p)
 {
     assert (p && "scxfree: NULL");
     free(p);

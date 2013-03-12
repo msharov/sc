@@ -2,7 +2,7 @@
 
 #include "sc.h"
 
-int compare(const void *row1, const void *row2);
+int compare (const void *row1, const void *row2);
 
 struct sortcrit {
     int direction, type, column;
@@ -10,8 +10,7 @@ struct sortcrit {
 
 int howmany;
 
-void
-sortrange(struct ent *left, struct ent *right, char *criteria)
+void sortrange (struct ent *left, struct ent *right, char *criteria)
 {
     int minr, minc, maxr, maxc, r, c;
     int *rows, col = 0;
@@ -36,7 +35,7 @@ sortrange(struct ent *left, struct ent *right, char *criteria)
 	sort[1].type = 0;
 	sort[1].column = minc;
 	howmany = 2;
-    } else
+    } else {
 	for (howmany = 0; criteria[cp]; howmany++) {
 	    if (howmany > 1)
 		sort = (struct sortcrit *)scxrealloc((char *)sort,
@@ -77,6 +76,7 @@ sortrange(struct ent *left, struct ent *right, char *criteria)
 		return;
 	    }
 	}
+    }
 
     qsort(rows, maxr - minr + 1, sizeof(int), compare);
     erase_area(minr, minc, maxr, maxc, 1);
@@ -107,15 +107,13 @@ sortrange(struct ent *left, struct ent *right, char *criteria)
     curcol = c;
 }
 
-int
-compare(const void *row1, const void *row2)
+int compare (const void* row1, const void* row2)
 {
     struct ent *p1;
     struct ent *p2;
     double diff;
     int result = 0;
     int i;
-
     for (i = 0; !result && i < howmany; i++) {
 	p1 = *ATBL(tbl, *((int *) row1), sort[i].column);
 	p2 = *ATBL(tbl, *((int *) row2), sort[i].column);
@@ -140,9 +138,7 @@ compare(const void *row1, const void *row2)
 
 	result *= sort[i].direction;
     }
-
     if (!result)
-	result = (*((int *) row1) - *((int *) row2));
-
+	result = (*((int*) row1) - *((int*) row2));
     return (result);
 }

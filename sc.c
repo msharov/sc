@@ -4,7 +4,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 
-/* Globals defined in sc.h */
+// Globals defined in sc.h
 
 struct ent ***tbl;
 int arg = 1;
@@ -25,7 +25,7 @@ int changed;
 struct ent *delbuf[DELBUFSIZE];
 char *delbuffmt[DELBUFSIZE];
 int dbidx;
-int qbuf;	/* buffer no. specified by " command */
+int qbuf;	// buffer no. specified by " command
 int modflg;
 int cellassign;
 int numeric;
@@ -41,9 +41,9 @@ char *latexext;
 char *slatexext;
 char *texext;
 int scrc = 0;
-int showsc, showsr;	/* Starting cell for highlighted range */
-int usecurses = TRUE;	/* Use curses unless piping/redirection or using -q */
-int brokenpipe = FALSE;	/* Set to true if SIGPIPE is received */
+int showsc, showsr;	// Starting cell for highlighted range
+int usecurses = TRUE;	// Use curses unless piping/redirection or using -q
+int brokenpipe = FALSE;	// Set to true if SIGPIPE is received
 #ifdef RIGHT_CBUG
 int	wasforw	= FALSE;
 #endif
@@ -60,55 +60,52 @@ extern void	gotobottom();
 char    curfile[PATHLEN];
 char    revmsg[80];
 
-/* numeric separators, country-dependent if locale support enabled: */
-char	dpoint = '.';	/* decimal point */
-char	thsep = ',';	/* thousands separator */
+// numeric separators, country-dependent if locale support enabled:
+char	dpoint = '.';	// decimal point
+char	thsep = ',';	// thousands separator
 
 int  linelim = -1;
 
-int  showtop   = 1;	/* Causes current cell value display in top line  */
-int  showcell  = 1;	/* Causes current cell to be highlighted	  */
-int  showrange = 0;	/* Causes ranges to be highlighted		  */
-int  showneed  = 0;	/* Causes cells needing values to be highlighted  */
-int  showexpr  = 0;	/* Causes cell exprs to be displayed, highlighted */
-int  shownote  = 0;	/* Causes cells with attached notes to be
-			   highlighted					  */
-int  braille   = 0;	/* Be nice to users of braille displays		  */
-int  braillealt = 0;	/* Alternate mode for braille users		  */
+int  showtop   = 1;	// Causes current cell value display in top line
+int  showcell  = 1;	// Causes current cell to be highlighted
+int  showrange = 0;	// Causes ranges to be highlighted
+int  showneed  = 0;	// Causes cells needing values to be highlighted
+int  showexpr  = 0;	// Causes cell exprs to be displayed, highlighted
+int  shownote  = 0;	// Causes cells with attached notes to be highlighted
+int  braille   = 0;	// Be nice to users of braille displays
+int  braillealt = 0;	// Alternate mode for braille users
 
-int  autocalc  = 1;	/* 1 to calculate after each update */
-int  autolabel = 1;     /* If room, causes label to be created after a define */
-int  autoinsert = 0;    /* Causes rows to be inserted if craction is non-zero
-			   and the last cell in a row/column of the scrolling
-			   portion of a framed range has been filled	  */
-int  autowrap = 0;      /* Causes cursor to move to next row/column if craction
-			   is non-zero and the last cell in a row/column of
-			   the scrolling portion of a framed range has been
-			   filled */
+int  autocalc  = 1;	// 1 to calculate after each update
+int  autolabel = 1;     // If room, causes label to be created after a define
+int  autoinsert = 0;    // Causes rows to be inserted if craction is non-zero
+			// and the last cell in a row/column of the scrolling
+			// portion of a framed range has been filled
+int  autowrap = 0;      // Causes cursor to move to next row/column if craction
+			// is non-zero and the last cell in a row/column of
+			// the scrolling portion of a framed range has been filled
 int  calc_order = BYROWS;
-int  optimize  = 0;	/* Causes numeric expressions to be optimized */
-int  tbl_style = 0;	/* headers for T command output */
+int  optimize  = 0;	// Causes numeric expressions to be optimized
+int  tbl_style = 0;	// headers for T command output
 int  rndtoeven = 0;
-int  color     = 0;	/* Use color */
-int  colorneg  = 0;	/* Increment color number for cells with negative
-			   numbers */
-int  colorerr  = 0;	/* Color cells with errors with color 3 */
-int  numeric_field = 0; /* Started the line editing with a number */
-int  craction = 0;	/* 1 for down, 2 for right */
-int  pagesize = 0;	/* If nonzero, use instead of 1/2 screen height */
+int  color     = 0;	// Use color
+int  colorneg  = 0;	// Increment color number for cells with negative numbers
+int  colorerr  = 0;	// Color cells with errors with color 3
+int  numeric_field = 0; // Started the line editing with a number
+int  craction = 0;	// 1 for down, 2 for right
+int  pagesize = 0;	// If nonzero, use instead of 1/2 screen height
 int  rowlimit = -1;
 int  collimit = -1;
 int  rowsinrange = 1;
 int  colsinrange = DEFWIDTH;
 
-extern	int lastmx, lastmy;	/* Screen address of the cursor */
-extern	int lastcol, lcols;	/* Spreadsheet Column the cursor was in last */
-extern	int lastendrow;		/* Last bottom row of screen */
-extern	int framerows;		/* Rows in current frame */
-extern	int framecols;		/* Columns in current frame */
-extern	char mode_ind;		/* Mode indicator */
+extern	int lastmx, lastmy;	// Screen address of the cursor
+extern	int lastcol, lcols;	// Spreadsheet Column the cursor was in last
+extern	int lastendrow;		// Last bottom row of screen
+extern	int framerows;		// Rows in current frame
+extern	int framecols;		// Columns in current frame
+extern	char mode_ind;		// Mode indicator
 
-/* a linked list of free [struct ent]'s, uses .next as the pointer */
+// a linked list of free [struct ent]'s, uses .next as the pointer
 struct ent *freeents = NULL;
 
 extern	int	seenerr;
@@ -118,11 +115,10 @@ extern	char	*rev;
 int VMS_read_raw = 0;
 #endif
 
-/* return a pointer to a cell's [struct ent *], creating if needed */
-struct ent *
-lookat(int row, int col)
+// return a pointer to a cell's [struct ent *], creating if needed
+struct ent* lookat (int row, int col)
 {
-    register struct ent **pp;
+    struct ent **pp;
 
     checkbounds(&row, &col);
     pp = ATBL(tbl, row, col);
@@ -151,14 +147,11 @@ lookat(int row, int col)
     return (*pp);
 }
 
-/*
- * This structure is used to keep ent structs around before they
- * are deleted to allow the sync_refs routine a chance to fix the
- * variable references.
- * We also use it as a last-deleted buffer for the 'p' command.
- */
-void
-free_ent(register struct ent *p, int unlock)
+// This structure is used to keep ent structs around before they
+// are deleted to allow the sync_refs routine a chance to fix the
+// variable references.
+// We also use it as a last-deleted buffer for the 'p' command.
+void free_ent (struct ent *p, int unlock)
 {
     p->next = delbuf[dbidx];
     delbuf[dbidx] = p;
@@ -167,12 +160,11 @@ free_ent(register struct ent *p, int unlock)
 	p->flags &= ~is_locked;
 }
 
-/* free deleted cells */
-void
-flush_saved()
+// free deleted cells
+void flush_saved (void)
 {
-    register struct ent *p;
-    register struct ent *q;
+    struct ent *p;
+    struct ent *q;
 
     if (dbidx < 0)
 	return;
@@ -183,7 +175,7 @@ flush_saved()
     while (p) {
 	clearent(p);
 	q = p->next;
-	p->next = freeents;	/* put this ent on the front of freeents */
+	p->next = freeents;	// put this ent on the front of freeents
 	freeents = p;
 	p = q;
     }
@@ -193,23 +185,20 @@ flush_saved()
 char	*progname;
 int	Vopt;
 
-int
-main (int argc, char  **argv)
+int main (int argc, char** argv)
 {
     int     inloop = 1;
-    register int   c;
+    int   c;
     int     edistate = -1;
     int     narg;
     int     nedistate;
     int	    running;
     char    *revi;
     int	    anychanged = FALSE;
-    int     tempx, tempy; 	/* Temp versions of curx, cury */
+    int     tempx, tempy; 	// Temp versions of curx, cury
 
-    /*
-     * Keep command line options around until the file is read so the
-     * command line overrides file options
-     */
+    // Keep command line options around until the file is read so the
+    // command line overrides file options
 
     int mopt = 0;
     int oopt = 0;
@@ -239,73 +228,45 @@ main (int argc, char  **argv)
 
     while ((c = getopt(argc, argv, "axmoncrCReP:W:vq")) != EOF) {
     	switch (c) {
-	    case 'a':
-		    skipautorun = 1;
-		    break;
-	    case 'm':
-		    mopt = 1;
-		    break;
-	    case 'o':
-		    oopt = 1;
-		    break;
-	    case 'n':
-		    nopt = 1;
-		    break;
-	    case 'c':
-		    copt = 1;
-		    break;
-	    case 'r':
-		    ropt = 1;
-		    break;
-	    case 'C':
-		    Copt = 1;
-		    craction = CRCOLS;
-		    break;
-	    case 'R':
-		    Ropt = 1;
-		    craction = CRROWS;
-		    break;
-	    case 'e':
-		    rndtoeven = 1;
-		    eopt = 1;
-		    break;
+	    case 'a': skipautorun = 1; break;
+	    case 'm': mopt = 1; break;
+	    case 'o': oopt = 1; break;
+	    case 'n': nopt = 1; break;
+	    case 'c': copt = 1; break;
+	    case 'r': ropt = 1; break;
+	    case 'C': Copt = 1; craction = CRCOLS; break;
+	    case 'R': Ropt = 1; craction = CRROWS; break;
+	    case 'e': rndtoeven = 1; eopt = 1; break;
 	    case 'P':
-	    case 'W':
-		    popt = 1;
-	    case 'v':
-		    break;
-	    case 'q':
-		    qopt = 1;
-		    break;
+	    case 'W': popt = 1;
+	    case 'v': break;
+	    case 'q': qopt = 1; break;
 	    default:
-		    fprintf(stderr,
-			    "Usage: %s [-acemnoqrxCR] [file...]\n", progname);
-		    exit (1);
+		fprintf(stderr, "Usage: %s [-acemnoqrxCR] [file...]\n", progname);
+		exit (1);
 	}
     }
 
-    if (!isatty(STDOUT_FILENO) || popt || qopt) usecurses = FALSE;
+    if (!isatty(STDOUT_FILENO) || popt || qopt)
+	usecurses = FALSE;
     startdisp();
     signals();
     read_hist();
 
-    /* setup the spreadsheet arrays, initscr() will get the screen size */
+    // setup the spreadsheet arrays, initscr() will get the screen size
     if (!growtbl(GROWNEW, 0, 0)) {
      	stopdisp();
 	exit (1);
     }
 
-    /*
-     * Build revision message for later use:
-     */
-
+    // Build revision message for later use:
     if (popt)
 	*revmsg = '\0';
     else {
 	strcpy(revmsg, progname);
-	for (revi = rev; (*revi++) != ':'; );	/* copy after colon */
+	for (revi = rev; (*revi++) != ':'; );	// copy after colon
 	strcat(revmsg, revi);
-	revmsg[strlen(revmsg) - 2] = 0;		/* erase last character */
+	revmsg[strlen(revmsg) - 2] = 0;		// erase last character
 	strcat(revmsg, ":  Type '?' for help.");
     }
 
@@ -316,7 +277,7 @@ main (int argc, char  **argv)
 	optind++;
     if (optind < argc && argv[optind][0] != '|' &&
 	    strcmp(argv[optind], "-"))
-#endif /* MSDOS */
+#endif // MSDOS
 	strcpy(curfile, argv[optind]);
     for (dbidx = DELBUFSIZE - 1; dbidx >= 0; ) {
 	delbuf[dbidx] = NULL;
@@ -418,7 +379,7 @@ main (int argc, char  **argv)
 					write_line(c);
 					break;
 				    }
-		    		    /* else drop through */
+		    		    // else drop through
 				case ctl('m'):
 				    strcpy(line, "put ");
 				    linelim = 4;
@@ -440,9 +401,8 @@ main (int argc, char  **argv)
 				    write_line(c);
 				    break;
 			    }
-			    /* goto switches to insert mode when done, so we
-			     * have to switch back.
-			     */
+			    // goto switches to insert mode when done, so we
+			    // have to switch back.
 			    if (mode_ind == 'i')
 				write_line(ctl('v'));
 			    error(" ");
@@ -492,14 +452,13 @@ main (int argc, char  **argv)
     while (running) {
 	nedistate = -1;
 	narg = 1;
-	if (edistate < 0 && linelim < 0 && autocalc && (changed || FullUpdate))
-	{
+	if (edistate < 0 && linelim < 0 && autocalc && (changed || FullUpdate)) {
 	    EvalAll();
-	    if (changed)		/* if EvalAll changed or was before */
+	    if (changed)		// if EvalAll changed or was before
 		anychanged = TRUE;
 	    changed = 0;
 	}
-	else		/* any cells change? */
+	else		// any cells change?
 	if (changed)
 	    anychanged = TRUE;
 
@@ -511,20 +470,18 @@ main (int argc, char  **argv)
 	clrtoeol();
 	move(tempy, tempx);
 	seenerr = 0;
-	showneed = 0;	/* reset after each update */
+	showneed = 0;	// reset after each update
 	showexpr = 0;
 	shownote = 0;
 
-	/*
-	 * there seems to be some question about what to do w/ the iscntrl
-	 * some BSD systems are reportedly broken as well
-	 */
+	// there seems to be some question about what to do w/ the iscntrl
+	// some BSD systems are reportedly broken as well
 	if ((isascii(c) && (iscntrl(c) || (c == 020))) || c == KEY_END || c == KEY_BACKSPACE)
 	    switch(c) {
 		case ctl('z'):
 		    deraw(1);
-		    kill(0, SIGTSTP); /* Nail process group */
-		    /* the pc stops here */
+		    kill(0, SIGTSTP); // Nail process group
+		    // the pc stops here
 		    goraw();
 		    break;
 		case ctl('r'):
@@ -649,9 +606,7 @@ main (int argc, char  **argv)
 
 		case ctl('f'):
 		    {
-		    int ps;
-
-		    ps = pagesize ? pagesize : (LINES - RESROW - framerows)/2;
+		    int ps = pagesize ? pagesize : (LINES - RESROW - framerows)/2;
 		    forwrow(arg * ps);
 		    strow = strow + (arg * ps);
 		    FullUpdate++;
@@ -665,7 +620,7 @@ main (int argc, char  **argv)
 		    clrtoeol();
 		    break;
 
-		case ESC:	/* ctl('[') */
+		case ESC:	// ctl('[')
 		    write_line(ESC);
 		    break;
 
@@ -676,15 +631,15 @@ main (int argc, char  **argv)
 		case KEY_BACKSPACE:
 		case DEL:
 		case ctl('h'):
-		    if (linelim < 0) {	/* not editing line */
-			backcol(arg);	/* treat like ^B    */
+		    if (linelim < 0) {	// not editing line
+			backcol(arg);	// treat like ^B
 			break;
 		    }
 		    write_line(ctl('h'));
 		    break;
 
-		case ctl('i'): 		/* tab */
-		    if (linelim < 0) {	/* not editing line */
+		case ctl('i'): 		// tab
+		    if (linelim < 0) {	// not editing line
 			forwcol(arg);
 			break;
 		    }
@@ -727,10 +682,10 @@ main (int argc, char  **argv)
 		    break;
 
 		case ctl('q'):
-		    break;	/* ignore flow control */
+		    break;	// ignore flow control
 
 		case ctl('s'):
-		    break;	/* ignore flow control */
+		    break;	// ignore flow control
 
 		case ctl('t'):
 		    error("Toggle: a:auto,c:cell,e:ext funcs,n:numeric,t:top,$:pre-scale,<MORE>");
@@ -763,13 +718,13 @@ main (int argc, char  **argv)
 			    repaint(lastmx, lastmy, fwidth[lastcol]);
 			    error("Cell highlighting %sabled.",
 				    showcell ? "en" : "dis");
-			    --modflg;	/* negate the modflg++ */
+			    --modflg;	// negate the modflg++
 			    break;
 			case 'b':
 			    braille ^= 1;
 			    error("Braille enhancement %sabled.",
 				    braille ? "en" : "dis");
-			    --modflg;	/* negate the modflg++ */
+			    --modflg;	// negate the modflg++
 			    break;
 			case 's':
 			    cslop ^= 1;
@@ -821,7 +776,7 @@ main (int argc, char  **argv)
 			case ESC:
 			case ctl('g'):
 			    error(" ");
-			    --modflg;	/* negate the modflg++ */
+			    --modflg;	// negate the modflg++
 			    break;
 			case 'r': case 'R':
 			    error("Which direction after return key?");
@@ -867,7 +822,7 @@ main (int argc, char  **argv)
 			    break;
 			default:
 			    error("Invalid toggle command");
-			    --modflg;	/* negate the modflg++ */
+			    --modflg;	// negate the modflg++
 		    }
 		    FullUpdate++;
 		    modflg++;
@@ -878,19 +833,19 @@ main (int argc, char  **argv)
 		    nedistate = 1;
 		    break;
 
-		case ctl('v'):	/* switch to navigate mode, or if already *
-				 * in navigate mode, insert variable name */
+		case ctl('v'):	// switch to navigate mode, or if already *
+				// in navigate mode, insert variable name
 		    if (linelim >= 0)
 		        write_line(ctl('v'));
 		    break;
 
-		case ctl('w'):	/* insert variable expression */
+		case ctl('w'):	// insert variable expression
 		    if (linelim >= 0)  {
 			static	char *temp = NULL, *temp1 = NULL;
 			static	unsigned	templen = 0;
 			int templim;
 
-			/* scxrealloc will scxmalloc if needed */
+			// scxrealloc will scxmalloc if needed
 			if (strlen(line)+1 > templen) {
 			    templen = strlen(line)+40;
 
@@ -899,7 +854,7 @@ main (int argc, char  **argv)
 			}
 			strcpy(temp, line);
 			templim = linelim;
-			linelim = 0;		/* reset line to empty	*/
+			linelim = 0;		// reset line to empty
 			editexp(currow,curcol);
 			strcpy(temp1, line);
 			strcpy(line, temp);
@@ -921,19 +876,19 @@ main (int argc, char  **argv)
 			FullUpdate++;
 		    }
 		    break;
-		case '\035':	/* ^] */
+		case '\035':	// ^]
 		    if (linelim >= 0)
 			write_line(c);
 		    break;
 
-	    } /* End of the control char switch stmt */
+	    } // End of the control char switch stmt
 	else if (isascii(c) && isdigit(c) && ((!numeric && linelim < 0) ||
 		(linelim >= 0 && (mode_ind == 'e' || mode_ind == 'v')) ||
 		edistate >= 0)) {
-	    /* we got a leading number */
+	    // we got a leading number
 	    if (edistate != 0) {
-		/* First char of the count */
-		if (c == '0') {    /* just a '0' goes to left col */
+		// First char of the count
+		if (c == '0') {    // just a '0' goes to left col
 		    if (linelim >= 0)
 			write_line(c);
 		    else
@@ -943,7 +898,7 @@ main (int argc, char  **argv)
 		    narg = c - '0';
 		}
 	    } else {
-		/* Succeeding count chars */
+		// Succeeding count chars
 		nedistate = 0;
 		narg = arg * 10 + (c - '0');
 	    }
@@ -953,7 +908,7 @@ main (int argc, char  **argv)
 	    goraw();
 	    clear();
 	} else if (linelim >= 0) {
-	    /* Editing line */
+	    // Editing line
 	    switch (c) {
 		case ')':
 		case ',':
@@ -966,8 +921,8 @@ main (int argc, char  **argv)
 	    write_line(c);
 
 	} else if (!numeric && ( c == '+' || c == '-' )) {
-	    /* increment/decrement ops */
-	    register struct ent *p = *ATBL(tbl, currow, curcol);
+	    // increment/decrement ops
+	    struct ent *p = *ATBL(tbl, currow, curcol);
 	    if (!p || !(p->flags & is_valid)) {
 		if (c == '+') {
 		    editv(currow, curcol);
@@ -988,7 +943,7 @@ main (int argc, char  **argv)
 	    else
 		p->v -= (double) arg;
 	} else if (c > KEY_F0 && c <= KEY_F(FKEYS)) {
-	    /* a function key was pressed */
+	    // a function key was pressed
 	    if (fkey[c - KEY_F0 - 1]) {
 		char *tpp;
 
@@ -1011,12 +966,12 @@ main (int argc, char  **argv)
 		write_line(ctl('m'));
 	    }
 	} else
-	    /* switch on a normal command character */
+	    // switch on a normal command character
 	    switch (c) {
 		case ':':
 		    if (linelim >= 0)
 			write_line(':');
-		    break;	/* Be nice to vi users */
+		    break;	// Be nice to vi users
 
 		case '@':
 		    EvalAll();
@@ -1029,7 +984,7 @@ main (int argc, char  **argv)
 		case '.':
 		    if (locked_cell(currow, curcol))
 			break;
-		    /* set mark 0 */
+		    // set mark 0
 		    savedrow[27] = currow;
 		    savedcol[27] = curcol;
 		    savedstrow[27] = strow;
@@ -1046,7 +1001,7 @@ main (int argc, char  **argv)
 		case '-':
 		    if (!locked_cell(currow, curcol)) {
 			struct ent *p = lookat(currow, curcol);
-			/* set mark 0 */
+			// set mark 0
 			savedrow[27] = currow;
 			savedcol[27] = curcol;
 			savedstrow[27] = strow;
@@ -1066,7 +1021,7 @@ main (int argc, char  **argv)
 		case '=':
 		    if (locked_cell(currow, curcol))
 			break;
-		    /* set mark 0 */
+		    // set mark 0
 		    savedrow[27] = currow;
 		    savedcol[27] = curcol;
 		    savedstrow[27] = strow;
@@ -1081,10 +1036,7 @@ main (int argc, char  **argv)
 		    doshell();
 		    break;
 
-		/*
-		 * Range commands:
-		 */
-
+		// Range commands:
 		case 'r':
 		    error("Range: x:erase v:value c:copy f:fill d:def l:lock U:unlock S:show u:undef F:fmt");
 		    if (braille) move(1, 0);
@@ -1207,9 +1159,8 @@ main (int argc, char  **argv)
 			startshow();
 			break;
 		    case 'S':
-			/* Show color definitions and various types of
-			 * ranges
-			 */
+			// Show color definitions and various types of
+			// ranges
 			if (!are_ranges() && !are_frames() && !are_colors())
 			    error("Nothing to show");
 			else {
@@ -1294,10 +1245,7 @@ main (int argc, char  **argv)
 			error("Invalid buffer");
 		    break;
 
-		/*
-		 * Row/column commands:
-		 */
-
+		// Row/column commands:
 		case KEY_IC:
 		case 'i':
 		case 'o':
@@ -1316,7 +1264,7 @@ main (int argc, char  **argv)
 			    break;
 			}
 
-			error(" ");	/* clear line */
+			error(" ");	// clear line
 
 			if (rcqual == ESC || rcqual == ctl('g'))
 			    break;
@@ -1359,10 +1307,8 @@ main (int argc, char  **argv)
 				while (arg--)		pullcells(rcqual);
 				break;
 
-			    /*
-			     * turn an area starting at currow/curcol into
-			     * constants vs expressions - not reversable
-			     */
+			    // turn an area starting at currow/curcol into
+			    // constants vs expressions - not reversable
 			    case 'v':
 				if (rcqual == 'r') {
 				    struct frange *fr;
@@ -1397,7 +1343,7 @@ main (int argc, char  **argv)
 				break;
 
 			    case 's':
-			    /* special case; no repeat count */
+			    // special case; no repeat count
 
 				if (rcqual == 'r')	rowshow_op();
 				else			colshow_op();
@@ -1414,7 +1360,7 @@ main (int argc, char  **argv)
 		    break;
 		case 'w':
 		    {
-		    register struct ent *p;
+		    struct ent *p;
 
 		    while (--arg>=0) {
 			do {
@@ -1440,7 +1386,7 @@ main (int argc, char  **argv)
 		    }
 		case 'b':
 		    {
-		    register struct ent *p;
+		    struct ent *p;
 
 		    while (--arg>=0) {
 			do {
@@ -1472,7 +1418,7 @@ main (int argc, char  **argv)
 		    break;
 		case '\\':
 		    if (!locked_cell(currow, curcol)) {
-			/* set mark 0 */
+			// set mark 0
 			savedrow[27] = currow;
 			savedcol[27] = curcol;
 			savedstrow[27] = strow;
@@ -1487,7 +1433,7 @@ main (int argc, char  **argv)
 
 		case '<':
 		    if (!locked_cell(currow, curcol)) {
-			/* set mark 0 */
+			// set mark 0
 			savedrow[27] = currow;
 			savedcol[27] = curcol;
 			savedstrow[27] = strow;
@@ -1502,7 +1448,7 @@ main (int argc, char  **argv)
 
 		case '>':
 		    if (!locked_cell(currow, curcol)) {
-			/* set mark 0 */
+			// set mark 0
 			savedrow[27] = currow;
 			savedcol[27] = curcol;
 			savedstrow[27] = strow;
@@ -1548,7 +1494,7 @@ main (int argc, char  **argv)
 		    if (!locked_cell(currow, curcol)) {
 			struct ent *p = lookat(currow, curcol);
 
-			/* set mark 0 */
+			// set mark 0
 			savedrow[27] = currow;
 			savedcol[27] = curcol;
 			savedstrow[27] = strow;
@@ -1564,7 +1510,7 @@ main (int argc, char  **argv)
 		    break;
 		case 'E':
 		    if (!locked_cell(currow, curcol)) {
-			/* set mark 0 */
+			// set mark 0
 			savedrow[27] = currow;
 			savedcol[27] = curcol;
 			savedstrow[27] = strow;
@@ -1578,7 +1524,7 @@ main (int argc, char  **argv)
 		    formatcol(arg);
 		    break;
 		case 'F': {
-		    register struct ent *p = *ATBL(tbl, currow, curcol);
+		    struct ent *p = *ATBL(tbl, currow, curcol);
 		    if (p && p->format) {
 			sprintf(line, "fmt [format] %s \"%s",
 				v_name(currow, curcol), p->format);
@@ -1630,9 +1576,7 @@ main (int argc, char  **argv)
 		case 'P':
 		    sprintf(line, "put [\"dest\" range] \"");
 
-/* See the comments under "case 'W':" below for an explanation of the
- * logic here.
- */
+		    // See the comments under "case 'W':" below for an explanation of the logic here.
 		    curfile[strlen(curfile) + 1] = '\0';
 		    if (strrchr(curfile, '.') != NULL) {
 			if (!strcmp((strrchr(curfile, '.')), ".sc")) {
@@ -1692,14 +1636,13 @@ main (int argc, char  **argv)
 		case 'W':
 		    sprintf(line, "write [\"dest\" range] \"");
 
-/* First, append an extra null byte to curfile.  Then, if curfile ends in
- * ".sc" (or '.' followed by the string in scext), move the '.' to the
- * end and replace it with a null byte.  This results in two consecutive
- * null-terminated strings, the first being curfile with the ".sc" (or '.'
- * and scext) removed, if present, and the second being either "sc." (or
- * scext and '.') or "", depending on whether the ".sc" (or '.' and scext)
- * was present or not.
- */
+		    // First, append an extra null byte to curfile.  Then, if curfile ends in
+		    // ".sc" (or '.' followed by the string in scext), move the '.' to the
+		    // end and replace it with a null byte.  This results in two consecutive
+		    // null-terminated strings, the first being curfile with the ".sc" (or '.'
+		    // and scext) removed, if present, and the second being either "sc." (or
+		    // scext and '.') or "", depending on whether the ".sc" (or '.' and scext)
+		    // was present or not.
 		    curfile[strlen(curfile) + 1] = '\0';
 		    if (strrchr(curfile, '.') != NULL) {
 			if (!strcmp((strrchr(curfile, '.')), ".sc")) {
@@ -1713,17 +1656,15 @@ main (int argc, char  **argv)
 			}
 		    }
 
-/* Now append ".asc" (or '.' and the value of ascext) to the possibly
- * truncated curfile.
- */
+		    // Now append ".asc" (or '.' and the value of ascext) to the possibly
+		    // truncated curfile.
 		    if (*curfile)
 			error("Default file is \"%s.%s\"", curfile,
 				ascext == NULL ? "asc" : ascext);
 
-/* Now swap the '.' and null bytes again.  If there is no '.', swap a
- * null byte with itself.  This may seem convoluted, but it works well,
- * and obviates the need for a 1024 byte temporary buffer. - CRM
- */
+		    // Now swap the '.' and null bytes again.  If there is no '.', swap a
+		    // null byte with itself.  This may seem convoluted, but it works well,
+		    // and obviates the need for a 1024 byte temporary buffer. - CRM
 		    c = *(curfile + strlen(curfile) +
 			    strlen(curfile + strlen(curfile) + 1));
 		    *(curfile + strlen(curfile) +
@@ -1732,18 +1673,15 @@ main (int argc, char  **argv)
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
-		case 'S':	/* set options */
+		case 'S':	// set options
 		    sprintf(line, "set ");
 		    error("Options:byrows,bycols,iterations=n,tblstyle=(0|tbl|latex|slatex|tex|frame),<MORE>");
 		    linelim = strlen(line);
 		    insert_mode();
 		    break;
-		case 'T':	/* tbl output */
+		case 'T':	// tbl output
 		    sprintf(line, "tbl [\"dest\" range] \"");
-
-/* See the comments under "case 'W':" above for an explanation of the
- * logic here.
- */
+		    // See the comments under "case 'W':" above for an explanation of the logic here.
 		    curfile[strlen(curfile) + 1] = '\0';
 		    if (strrchr(curfile, '.') != NULL) {
 			if (!strcmp((strrchr(curfile, '.')), ".sc")) {
@@ -1807,23 +1745,19 @@ main (int argc, char  **argv)
 		case 'H':
 			backcol(curcol - stcol + 2);
 			break;
-		case KEY_NPAGE:			/* next page */
+		case KEY_NPAGE:			// next page
 		case 'J':
 		    {
-		    int ps;
-
-		    ps = pagesize ? pagesize : (LINES - RESROW - framerows)/2;
+		    int ps = pagesize ? pagesize : (LINES - RESROW - framerows)/2;
 		    forwrow(arg * ps);
 		    strow = strow + (arg * ps);
 		    FullUpdate++;
 		    }
 		    break;
-		case KEY_PPAGE:			/* previous page */
+		case KEY_PPAGE:			// previous page
 		case 'K':
 		    {
-		    int ps;
-
-		    ps = pagesize ? pagesize : (LINES - RESROW - framerows)/2;
+		    int ps = pagesize ? pagesize : (LINES - RESROW - framerows)/2;
 		    backrow(arg * ps);
 		    strow = strow - (arg * ps);
 		    if (strow < 0) strow = 0;
@@ -1902,7 +1836,7 @@ main (int argc, char  **argv)
 			break;
 		case '*':
 		    {
-			register struct ent *p;
+			struct ent *p;
 
 			error("Note: Add/Delete/Show/*(go to note)?");
 			if ((c = nmgetch()) == ESC || c == ctl('g')) {
@@ -1961,10 +1895,9 @@ main (int argc, char  **argv)
 			    clearok(stdscr,1);
 			    break;
 			case 'c':
-			    /* Force centering of current cell (or range, if
-			     * we've just jumped to a new range with the goto
-			     * command).
-			     */
+			    // Force centering of current cell (or range, if
+			    // we've just jumped to a new range with the goto
+			    // command).
 			    strow = -1;
 			    stcol = -1;
 			    FullUpdate++;
@@ -1984,16 +1917,15 @@ main (int argc, char  **argv)
 	    }
 	edistate = nedistate;
 	arg = narg;
-    }				/* while (running) */
+    }				// while (running)
     inloop = modcheck(" before exiting");
-    }				/*  while (inloop) */
+    }				//  while (inloop)
     stopdisp();
     write_hist();
     exit (0);
-    /*NOTREACHED*/
 }
 
-/* set the calculation order */
+// set the calculation order
 void setorder (int i)
 {
     if (i == BYROWS || i == BYCOLS)
@@ -2014,11 +1946,9 @@ void winchg (int i UNUSED)
 {
     stopdisp();
     startdisp();
-    /*
-     * I'm not sure why a refresh() needs to be done both before and after
-     * the clearok() and update(), but without doing it this way, a screen
-     * (or window) that grows bigger will leave the added space blank. - CRM
-     */
+    // I'm not sure why a refresh() needs to be done both before and after
+    // the clearok() and update(), but without doing it this way, a screen
+    // (or window) that grows bigger will leave the added space blank. - CRM
     refresh();
     FullUpdate++;
     clearok(stdscr, TRUE);
@@ -2045,7 +1975,7 @@ void dump_me (int i UNUSED)
     abort();
 }
 
-/* try to save the current spreadsheet if we can */
+// try to save the current spreadsheet if we can
 void diesave (void)
 {
     if (modcheck(" before Spreadsheet dies") == 1)
@@ -2067,7 +1997,7 @@ void signals (void)
     signal(SIGWINCH, winchg);
 }
 
-/* check if tbl was modified and ask to save */
+// check if tbl was modified and ask to save
 int modcheck (char *endstr)
 {
     if (modflg && curfile[0]) {
@@ -2077,14 +2007,12 @@ int modcheck (char *endstr)
 	sprintf(lin,"File \"%s\" is modified, save%s? ",curfile,endstr);
 	if ((yn_ans = yn_ask(lin)) < 0)
 		return(1);
-	else
-	if (yn_ans == 1) {
+	else if (yn_ans == 1) {
 	    if (writefile(curfile, 0, 0, maxrow, maxcol) < 0)
  		return (1);
 	}
     } else if (modflg) {
 	int	yn_ans;
-
 	if ((yn_ans = yn_ask("Do you want a chance to save the data? ")) < 0)
 		return(1);
 	else
@@ -2093,7 +2021,7 @@ int modcheck (char *endstr)
     return(0);
 }
 
-/* Returns 1 if cell is locked, 0 otherwise */
+// Returns 1 if cell is locked, 0 otherwise
 int locked_cell (int r, int c)
 {
     struct ent *p = *ATBL(tbl, r, c);
@@ -2104,7 +2032,7 @@ int locked_cell (int r, int c)
     return(0);
 }
 
-/* Check if area contains locked cells */
+// Check if area contains locked cells
 int any_locked_cells (int r1, int c1, int r2, int c2)
 {
     int r, c;

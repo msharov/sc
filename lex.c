@@ -50,18 +50,16 @@ int yylex (void)
 	isfunc = isgoto = 0;
 	ret = -1;
     } else if (isalpha(*p) || (*p == '_')) {
-	register char *la;	/* lookahead pointer */
-	register struct key *tblp;
+	char *la;	// lookahead pointer
+	struct key *tblp;
 
 	if (!tokenst) {
 	    tokenst = p;
 	    tokenl = 0;
 	}
-	/*
-	 *  This picks up either 1 or 2 alpha characters (a column) or
-	 *  tokens made up of alphanumeric chars and '_' (a function or
-	 *  token or command or a range name)
-	 */
+	//  This picks up either 1 or 2 alpha characters (a column) or
+	//  tokens made up of alphanumeric chars and '_' (a function or
+	//  token or command or a range name)
 	while (isalpha(*p) && isascii(*p)) {
 	    p++;
 	    tokenl++;
@@ -69,10 +67,8 @@ int yylex (void)
 	la = p;
 	while (isdigit(*la) || (*la == '$'))
 	    la++;
-	/*
-	 * A COL is 1 or 2 char alpha with nothing but digits following
-	 * (no alpha or '_')
-	 */
+	// A COL is 1 or 2 char alpha with nothing but digits following
+	// (no alpha or '_')
 	if (!isdigit(*tokenst) && tokenl && tokenl <= 2 && (colstate ||
 		(isdigit(*(la-1)) && !(isalpha(*la) || (*la == '_'))))) {
 	    ret = COL;
@@ -142,7 +138,7 @@ int yylex (void)
 	    return FNUMBER;
 	}
 
-	if (*p=='.' && dateflag) {  /* .'s in dates are returned as tokens. */
+	if (*p=='.' && dateflag) {  // .'s in dates are returned as tokens.
 	    ret = *p++;
 	    dateflag--;
 	} else {
@@ -156,19 +152,17 @@ int yylex (void)
 		if (dateflag) {
 		    ret = NUMBER;
 		    yylval.ival = (int)v;
-		/*
-		 *  If a string of digits is followed by two .'s separated by
-		 *  one or two digits, assume this is a date and return the
-		 *  .'s as tokens instead of interpreting them as decimal
-		 *  points.  dateflag counts the .'s as they're returned.
-		 */
+		//  If a string of digits is followed by two .'s separated by
+		//  one or two digits, assume this is a date and return the
+		//  .'s as tokens instead of interpreting them as decimal
+		//  points.  dateflag counts the .'s as they're returned.
 		} else if (*p=='.' && isdigit(*(p+1)) && (*(p+2)=='.' ||
 			(isdigit(*(p+2)) && *(p+3)=='.'))) {
 		    ret = NUMBER;
 		    yylval.ival = (int)v;
 		    dateflag = 2;
 		} else if (*p == 'e' || *p == 'E') {
-		    while (isdigit(*++p)) /* */;
+		    while (isdigit(*++p)) // */;
 		    if (isalpha(*p) || *p == '_') {
 			linelim = p - line;
 			return (yylex());
@@ -187,8 +181,8 @@ int yylex (void)
 		else
 		    decimal = TRUE;
 	    } else {
-		/* A NUMBER must hold at least MAXROW and MAXCOL */
-		/* This is consistent with a short row and col in struct ent */
+		// A NUMBER must hold at least MAXROW and MAXCOL
+		// This is consistent with a short row and col in struct ent
 		if (v > (double)32767 || v < (double)-32768) {
 		    ret = FNUMBER;
 		    yylval.fval = v;
@@ -207,7 +201,7 @@ int yylex (void)
 	signal(SIGFPE, sig_save);
     } else if (*p=='"') {
 	char *ptr;
-        ptr = p+1;	/* "string" or "string\"quoted\"" */
+        ptr = p+1;	// "string" or "string\"quoted\""
         while (*ptr && ((*ptr != '"') || (*(ptr-1) == '\\')))
 	    ptr++;
         ptr = scxmalloc((unsigned)(ptr-p));
@@ -236,13 +230,9 @@ int yylex (void)
     return ret;
 }
 
-/*
-* This is a very simpleminded test for plugins:  does the file merely exist
-* in the plugin directories.  Perhaps should test for it being executable
-*/
-
-int
-plugin_exists(char *name, int len, char *path)
+// This is a very simpleminded test for plugins:  does the file merely exist
+// in the plugin directories.  Perhaps should test for it being executable
+int plugin_exists (char *name, int len, char *path)
 {
     FILE *fp;
     static char *HomeDir;
@@ -266,24 +256,15 @@ plugin_exists(char *name, int len, char *path)
     return 0;
 }
 
-/*
- * Given a token string starting with a symbolic column name and its valid
- * length, convert column name ("A"-"Z" or "AA"-"ZZ") to a column number (0-N).
- * Never mind if the column number is illegal (too high).  The procedure's name
- * and function are the inverse of coltoa().
- * 
- * Case-insensitivity is done crudely, by ignoring the 040 bit.
- */
-
-int atocol(char *string, int len)
+// Given a token string starting with a symbolic column name and its valid
+// length, convert column name ("A"-"Z" or "AA"-"ZZ") to a column number (0-N).
+// Never mind if the column number is illegal (too high).  The procedure's name
+// and function are the inverse of coltoa().
+int atocol (char *string, int len)
 {
-    register int col;
-
-    col = (toupper(string[0])) - 'A';
-
-    if (len == 2)		/* has second char */
+    int col = (toupper(string[0])) - 'A';
+    if (len == 2)		// has second char
 	col = ((col + 1) * 26) + ((toupper(string[1])) - 'A');
-
     return (col);
 }
 

@@ -4,17 +4,15 @@
 
 static	struct range *rng_base;
 void	sync_enode(struct enode *e);
-void	fix_enode(struct enode *e, int row1, int col1, int row2, int col2,
-	int delta1, int delta2);
+void	fix_enode(struct enode *e, int row1, int col1, int row2, int col2, int delta1, int delta2);
 
-void
-add_range(char *name, struct ent_ptr left, struct ent_ptr right, int is_range)
+void add_range (char *name, struct ent_ptr left, struct ent_ptr right, int is_range)
 {
     struct range *r;
-    register char *p;
+    char *p;
     int minr, minc, maxr, maxc;
     int minrf, mincf, maxrf, maxcf;
-    register struct ent *rcp;
+    struct ent *rcp;
     struct range *prev = 0;
 
     if (left.vp->row < right.vp->row) {
@@ -38,32 +36,31 @@ add_range(char *name, struct ent_ptr left, struct ent_ptr right, int is_range)
     right.vp = lookat(maxr, maxc);
     right.vf = maxrf | maxcf;
 
-    if (!find_range(name, strlen(name), (struct ent *)0, (struct ent *)0,
-	    &prev)) {
+    if (!find_range(name, strlen(name), (struct ent *)0, (struct ent *)0, &prev)) {
 	error("Error: range name \"%s\" already defined", name);
 	scxfree(name);
 	return;
     }
 
-    for (p = name; *p; p++)
+    for (p = name; *p; p++) {
 	if (!(isalpha(*p) || isdigit(*p) || *p == '_')) {
 	    error("Invalid range name \"%s\" - illegal combination", name);
 	    scxfree(name);
 	    return;
 	}
+    }
  
     p = name;
-    if (isdigit(*p) || (isalpha(*p++) && (isdigit(*p) ||
-		(isalpha(*p++) && isdigit(*p))))) {
+    if (isdigit(*p) || (isalpha(*p++) && (isdigit(*p) || (isalpha(*p++) && isdigit(*p))))) {
 	if (*name == '0' && (name[1] == 'x' || name[1] == 'X')) {
 	    ++p;
-	    while (isxdigit(*++p)) /* */;
+	    while (isxdigit(*++p)) {}
 	    if (*p == 'p' || *p == 'P')
-		while (isxdigit(*++p)) /* */;
+		while (isxdigit(*++p)) {}
 	} else {
-	    while (isdigit(*++p)) /* */;
+	    while (isdigit(*++p)) {}
 	    if (isdigit(*name) && (*p == 'e' || *p == 'E'))
-		while (isdigit(*++p)) /* */;
+		while (isdigit(*++p)) {}
 	}
 	if (!(*p)) {
 	    error("Invalid range name \"%s\" - ambiguous", name);
@@ -75,10 +72,10 @@ add_range(char *name, struct ent_ptr left, struct ent_ptr right, int is_range)
     if (autolabel && minc>0 && !is_range) {
 	rcp = lookat(minr, minc-1);
 	if (rcp->label==0 && rcp->expr==0 && rcp->v==0)
-		label(rcp, name, 0);
+	    label(rcp, name, 0);
     }
 
-    r = (struct range *)scxmalloc((unsigned)sizeof(struct range));
+    r = (struct range*) scxmalloc (sizeof(struct range));
     r->r_name = name;
     r->r_left = left;
     r->r_right = right;
@@ -99,8 +96,7 @@ add_range(char *name, struct ent_ptr left, struct ent_ptr right, int is_range)
     modflg++;
 }
 
-void
-del_range(struct ent *left, struct ent *right)
+void del_range (struct ent *left, struct ent *right)
 {
     struct range *r;
     int minr, minc, maxr, maxc;
@@ -127,11 +123,10 @@ del_range(struct ent *left, struct ent *right)
     modflg++;
 }
 
-void
-clean_range()
+void clean_range (void)
 {
-    register struct range *r;
-    register struct range *nextr;
+    struct range *r;
+    struct range *nextr;
 
     r = rng_base;
     rng_base = (struct range *)0;
@@ -144,7 +139,7 @@ clean_range()
     }
 }
 
-/* Match on name or lmatch, rmatch */
+// Match on name or lmatch, rmatch
 
 int find_range (char *name, int len, struct ent *lmatch, struct ent *rmatch, struct range **rng)
 {
@@ -178,8 +173,7 @@ int find_range (char *name, int len, struct ent *lmatch, struct ent *rmatch, str
     return (-1);
 }
 
-void
-sync_ranges()
+void sync_ranges (void)
 {
     int i, j;
     struct range *r;
@@ -197,8 +191,7 @@ sync_ranges()
     sync_cranges();
 }
 
-void
-sync_enode(struct enode *e)
+void sync_enode (struct enode *e)
 {
     if (e) {
 	if ((e->op & REDUCE)) {
@@ -211,13 +204,12 @@ sync_enode(struct enode *e)
     }
 }
 
-void
-write_ranges(FILE *f)
+void write_ranges (FILE *f)
 {
-    register struct range *r;
-    register struct range *nextr;
+    struct range *r;
+    struct range *nextr;
 
-    for (r = nextr = rng_base; nextr; r = nextr, nextr = r->r_next) /* */ ;
+    for (r = nextr = rng_base; nextr; r = nextr, nextr = r->r_next) // */ ;
     while (r) {
 	fprintf(f, "define \"%s\" %s%s%s%d",
 			r->r_name,
@@ -237,11 +229,10 @@ write_ranges(FILE *f)
     }
 }
 
-void
-list_ranges(FILE *f)
+void list_ranges (FILE *f)
 {
-    register struct range *r;
-    register struct range *nextr;
+    struct range *r;
+    struct range *nextr;
 
     if (!are_ranges()) {
 	fprintf(f, "  No ranges defined");
@@ -251,7 +242,7 @@ list_ranges(FILE *f)
     fprintf(f, "  %-30s %s\n","Name","Definition");
     if (!brokenpipe) fprintf(f, "  %-30s %s\n","----","----------");
 
-    for (r = nextr = rng_base; nextr; r = nextr, nextr = r->r_next) /* */ ;
+    for (r = nextr = rng_base; nextr; r = nextr, nextr = r->r_next) // */ ;
     while (r) {
 	fprintf(f, "  %-30s %s%s%s%d",
 			    r->r_name,
@@ -273,8 +264,7 @@ list_ranges(FILE *f)
     }
 }
 
-char *
-v_name(int row, int col)
+char* v_name (int row, int col)
 {
     struct ent *v;
     struct range *r;
@@ -289,8 +279,7 @@ v_name(int row, int col)
     }
 }
 
-char *
-r_name(int r1, int c1, int r2, int c2)
+char* r_name (int r1, int c1, int r2, int c2)
 {
     struct ent *v1, *v2;
     struct range *r;
@@ -307,14 +296,12 @@ r_name(int r1, int c1, int r2, int c2)
     }
 }
 
-int
-are_ranges()
+int are_ranges (void)
 {
     return (rng_base != 0);
 }
 
-void
-fix_ranges(int row1, int col1, int row2, int col2, int delta1, int delta2)
+void fix_ranges (int row1, int col1, int row2, int col2, int delta1, int delta2)
 {
     int r1, r2, c1, c2, i, j;
     struct range *r;
@@ -323,8 +310,8 @@ fix_ranges(int row1, int col1, int row2, int col2, int delta1, int delta2)
 
     fr = find_frange(currow, curcol);
 
-    /* First we fix all of the named ranges. */
-    if (rng_base)
+    // First we fix all of the named ranges.
+    if (rng_base) {
 	for (r = rng_base; r; r = r->r_next) {
 	    r1 = r->r_left.vp->row;
 	    c1 = r->r_left.vp->col;
@@ -343,10 +330,10 @@ fix_ranges(int row1, int col1, int row2, int col2, int delta1, int delta2)
 	    r->r_left.vp = lookat(r1, c1);
 	    r->r_right.vp = lookat(r2, c2);
 	}
+    }
 
-    /* Next, we go through all valid cells with expressions and fix any ranges
-     * that need fixing.
-     */
+    // Next, we go through all valid cells with expressions and fix any ranges
+    // that need fixing.
     for (i=0; i<=maxrow; i++)
 	for (j=0; j<=maxcol; j++)
 	    if ((p = *ATBL(tbl,i,j)) && p->expr)
@@ -355,9 +342,7 @@ fix_ranges(int row1, int col1, int row2, int col2, int delta1, int delta2)
     fix_colors(row1, col1, row2, col2, delta1, delta2);
 }
 
-void
-fix_enode(struct enode *e, int row1, int col1, int row2, int col2,
-	int delta1, int delta2)
+void fix_enode (struct enode *e, int row1, int col1, int row2, int col2, int delta1, int delta2)
 {
     if (e) {
 	if ((e->op & REDUCE)) {

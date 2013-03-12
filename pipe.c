@@ -3,7 +3,7 @@
 #include "sc.h"
 #include <time.h>
 
-void getnum(int r0, int c0, int rn, int cn, int fd)
+void getnum (int r0, int c0, int rn, int cn, int fd)
 {
     struct ent	**pp;
     struct ent	*p;
@@ -34,7 +34,7 @@ void getnum(int r0, int c0, int rn, int cn, int fd)
     linelim = -1;
 }
 
-void fgetnum(int r0, int c0, int rn, int cn, int fd)
+void fgetnum (int r0, int c0, int rn, int cn, int fd)
 {
     struct ent	**pp;
     struct ent	*p;
@@ -76,8 +76,7 @@ void fgetnum(int r0, int c0, int rn, int cn, int fd)
     linelim = -1;
 }
 
-void
-getstring(int r0, int c0, int rn, int cn, int fd)
+void getstring (int r0, int c0, int rn, int cn, int fd)
 {
     struct ent	**pp;
     int		r, c;
@@ -101,8 +100,7 @@ getstring(int r0, int c0, int rn, int cn, int fd)
     linelim = -1;
 }
 
-void
-getexp(int r0, int c0, int rn, int cn, int fd)
+void getexp (int r0, int c0, int rn, int cn, int fd)
 {
     struct ent	**pp;
     struct ent	*p;
@@ -114,7 +112,7 @@ getexp(int r0, int c0, int rn, int cn, int fd)
 	    p = *pp;
 	    if (p && p->expr) {
 		linelim = 0;
-		decompile(p->expr, 0);	/* set line to expr */
+		decompile(p->expr, 0);	// set line to expr
 		line[linelim] = '\0';
 		if (*line == '?')
 		    *line = '\0';
@@ -133,16 +131,14 @@ getexp(int r0, int c0, int rn, int cn, int fd)
     linelim = -1;
 }
 
-void
-getformat(int col, int fd)
+void getformat (int col, int fd)
 {
     sprintf(line, "%d %d %d\n", fwidth[col], precision[col], realfmt[col]);
     write(fd, line, strlen(line));
     linelim = -1;
 }
 
-void
-getfmt(int r0, int c0, int rn, int cn, int fd)
+void getfmt (int r0, int c0, int rn, int cn, int fd)
 {
     struct ent	**pp;
     int		r, c;
@@ -205,20 +201,20 @@ void getrange (char *name, int fd)
 		    r->r_right.vf & FIX_ROW ? "$" : "",
 		    r->r_right.vp->row);
 	}
-	/************************************************/
-	/*                                              */
-	/* if(r->r_is_range)                            */
-	/*         sprintf(line,"%d:%d:%d:%d",          */
-	/*                         r->r_left.vp->col,   */
-	/*                         r->r_left.vp->row,   */
-	/*                         r->r_right.vp->col,  */
-	/*                         r->r_right.vp->row); */
-	/* else                                         */
-	/*         sprintf(line,"%d:%d",                */
-	/*                         r->r_left.vp->col,   */
-	/*                         r->r_left.vp->row);  */
-	/*                                              */
-	/************************************************/
+	//----------------------------------------------
+	//
+	// if(r->r_is_range)
+	//         sprintf(line,"%d:%d:%d:%d",
+	//                         r->r_left.vp->col,
+	//                         r->r_left.vp->row,
+	//                         r->r_right.vp->col,
+	//                         r->r_right.vp->row);
+	// else
+	//         sprintf(line,"%d:%d",
+	//                         r->r_left.vp->col,
+	//                         r->r_left.vp->row);
+	//
+	//----------------------------------------------
     }
     strcat(line, "\n");
     write(fd, line, strlen(line));
@@ -313,13 +309,10 @@ void dogetkey (void)
 	sprintf(line + 1, "UNKNOWN KEY");
 	len = strlen(line + 1) + 1;
     }
-
-
     write(macrofd, line, len);
 }
 
-void
-dostat(int fd)
+void dostat (int fd)
 {
     *line = '\0';
     if (modflg)			sprintf(line, "m");

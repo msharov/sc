@@ -2,11 +2,9 @@
 
 #include "sc.h"
 
-/*
- * check to see if *rowp && *colp are currently allocated, if not expand the
- * current size if we can.
- */
-void checkbounds(int *rowp, int *colp)
+// check to see if *rowp && *colp are currently allocated, if not expand the
+// current size if we can.
+void checkbounds (int *rowp, int *colp)
 {
     if (*rowp < 0)
 	*rowp = 0;
@@ -37,11 +35,10 @@ void checkbounds(int *rowp, int *colp)
 static const char nolonger[] = "The table can't be any longer";
 static const char nowider[] = "The table can't be any wider";
 
-/*
- * grow the main && auxiliary tables (reset maxrows/maxcols as needed)
- * toprow &&/|| topcol tell us a better guess of how big to become.
- * we return TRUE if we could grow, FALSE if not....
- */
+//
+// grow the main && auxiliary tables (reset maxrows/maxcols as needed)
+// toprow &&/|| topcol tell us a better guess of how big to become.
+// we return TRUE if we could grow, FALSE if not....
 int growtbl (int rowcol, int toprow UNUSED, int topcol)
 {
     int		*fwidth2;
@@ -60,7 +57,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
     newcols = maxcols;
     if (rowcol == GROWNEW) {
 	maxrows = toprow = 0;
-	/* when we first start up, fill the screen w/ cells */
+	// when we first start up, fill the screen w/ cells
 	{
 	    int startval;
 	    startval = LINES - RESROW;
@@ -70,7 +67,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
 	}
 	maxcols = topcol = 0;
     }
-    /* set how much to grow */
+    // set how much to grow
     if (rowcol == GROWROW || rowcol == GROWBOTH) {
 	if (toprow > maxrows)
 	    newrows = GROWAMT + toprow;
@@ -96,10 +93,8 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
 
 	GROWALLOC(row_hidden2, row_hidden, newrows, char, nolonger);
 	memset(row_hidden+maxrows, 0, (newrows-maxrows)*sizeof(char));
-	/*
-	 * alloc tbl row pointers, per net.lang.c, calloc does not
-	 * necessarily fill in NULL pointers
-	 */
+	// alloc tbl row pointers, per net.lang.c, calloc does not
+	// necessarily fill in NULL pointers
 	GROWALLOC(tbl2, tbl, newrows, struct ent **, nolonger);
 	for (lnullit = tbl+maxrows, lcnt = 0; lcnt < newrows-maxrows;
 		lcnt++, lnullit++)
@@ -118,7 +113,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
 	    realfmt[i] = DEFREFMT;
 	}
 
-	/* [re]alloc the space for each row */
+	// [re]alloc the space for each row
 	for (i = 0; i < maxrows; i++) {
 	    if ((tbl[i] = (struct ent **)scxrealloc((char *)tbl[i],
 		(unsigned)(newcols * sizeof(struct ent **)))) == (struct ent **)0) {
@@ -133,7 +128,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
     else
 	i = maxrows;
 
-    /* fill in the bottom of the table */
+    // fill in the bottom of the table
     for (; i < newrows; i++) {
 	if ((tbl[i] = (struct ent **)scxmalloc((unsigned)(newcols *
 		sizeof(struct ent **)))) == (struct ent **)0) {
@@ -154,11 +149,9 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
     return (TRUE);
 }
 
-/*
- * grow the main && auxiliary tables (reset maxrows/maxcols as needed)
- * toprow &&/|| topcol tell us a better guess of how big to become.
- * we return TRUE if we could grow, FALSE if not....
- */
+// grow the main && auxiliary tables (reset maxrows/maxcols as needed)
+// toprow &&/|| topcol tell us a better guess of how big to become.
+// we return TRUE if we could grow, FALSE if not....
 int psc_growtbl (int rowcol, int topcol)
 {
     int newcols = maxcols;

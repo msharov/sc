@@ -4,46 +4,43 @@
 
 #pragma GCC diagnostic ignored "-Waddress"	// curses addr_get has a superfluous NULL comparison
 
-void	repaint(int x, int y, int len, int attron, int attroff);
+void	repaint (int x, int y, int len, int attron, int attroff);
 
-char	under_cursor = ' '; /* Data under the < cursor */
+char	under_cursor = ' '; // Data under the < cursor
 char	mode_ind = 'i';
 char	search_ind = ' ';
 extern	char    revmsg[];
 
 int	lines, cols;
 int	rows, lcols;
-int	lastmx, lastmy;	/* Screen address of the cursor */
-int	lastrow = -1;	/* Spreadsheet Row the cursor was in last */
-int	lastcol = -1;	/* Spreadsheet Column the cursor was in last */
-int	lastendrow = -1;	/* Last bottom row of screen */
-int	lastftoprows = 0;	/* Rows in top of frame cursor was in last */
-int	lastfbottomrows = 0;	/* Rows in bottom of frame cursor was in last */
-int	lastfleftcols = 0;	/* Columns in left side of frame cursor was
-				    in last */
+int	lastmx, lastmy;	// Screen address of the cursor
+int	lastrow = -1;	// Spreadsheet Row the cursor was in last
+int	lastcol = -1;	// Spreadsheet Column the cursor was in last
+int	lastendrow = -1;	// Last bottom row of screen
+int	lastftoprows = 0;	// Rows in top of frame cursor was in last
+int	lastfbottomrows = 0;	// Rows in bottom of frame cursor was in last
+int	lastfleftcols = 0;	// Columns in left side of frame cursor was in last
 int	lastfrightcols = 0;
-struct	frange *lastfr = 0;	/* Last framed range we were in */
-bool	frTooLarge = 0;	/* If set, either too many rows or too many columns
-			    exist in frame to allow room for the scrolling
-			    portion of the framed range */
-int	framerows;	/* Rows in current frame */
-int	framecols;	/* Columns in current frame */
-int	rescol = 4;	/* Columns reserved for row numbers */
+struct	frange *lastfr = 0;	// Last framed range we were in
+bool	frTooLarge = 0;	// If set, either too many rows or too many columns
+			// exist in frame to allow room for the scrolling
+			// portion of the framed range
+int	framerows;	// Rows in current frame
+int	framecols;	// Columns in current frame
+int	rescol = 4;	// Columns reserved for row numbers
 extern	int *fwidth;
-extern	int showneed;	/* Causes cells needing values to be highlighted */
-extern	int showexpr;	/* Causes cell exprs to be displayed, highlighted */
-extern	int shownote;	/* Causes cells with attached notes to be highlighted */
+extern	int showneed;	// Causes cells needing values to be highlighted
+extern	int showexpr;	// Causes cell exprs to be displayed, highlighted
+extern	int shownote;	// Causes cells with attached notes to be highlighted
 extern struct go_save gs;
 
-/*
- * update() does general screen update
- *
- * standout last time in update()?
- *	At this point we will let curses do work
- */
+// update() does general screen update
+//
+// standout last time in update()?
+//	At this point we will let curses do work
 int	standlast	= FALSE;
 
-void update (int anychanged)	/* did any cell really change in value? */
+void update (int anychanged)	// did any cell really change in value?
 {
     int				row, col;
     struct ent			**pp;
@@ -56,16 +53,14 @@ void update (int anychanged)	/* did any cell really change in value? */
     int				ftrows, fbrows, flcols, frcols;
     bool			message;
 
-    /*
-     * If receiving input from a pipeline, don't display spreadsheet data
-     * on screen.
-     */
+    // If receiving input from a pipeline, don't display spreadsheet data
+    // on screen.
     if (!usecurses) return;
 
     getmaxyx(stdscr, lines, cols);
     fr = lastfr;
-    if (!(fr && fr->or_left->row <= currow &&	/* If we've left the	    */
-	    fr->or_left->col <= curcol &&	/* previous framed range... */
+    if (!(fr && fr->or_left->row <= currow &&	// If we've left the
+	    fr->or_left->col <= curcol &&	// previous framed range...
 	    fr->or_right->row >= currow &&
 	    fr->or_right->col >= curcol)) {
 	fr = find_frange(currow, curcol);
@@ -167,12 +162,10 @@ void update (int anychanged)	/* did any cell really change in value? */
 	}
     }
 
-    /*
-     * Place the cursor on the screen.  Set col, curcol, stcol, lastcol as
-     * needed.  If strow and stcol are negative, centering is forced.
-     */
+    // Place the cursor on the screen.  Set col, curcol, stcol, lastcol as
+    // needed.  If strow and stcol are negative, centering is forced.
     if ((curcol != lastcol) || FullUpdate) {
-	while (col_hidden[curcol])   /* You can't hide the last row or col */
+	while (col_hidden[curcol])   // You can't hide the last row or col
 	    curcol++;
 	if (fwidth[curcol] > cols - rescol - 2) {
 	    error("column %s too wide - resizing", coltoa(curcol));
@@ -180,7 +173,7 @@ void update (int anychanged)	/* did any cell really change in value? */
 		    precision[curcol], realfmt[curcol]);
 	}
 
-	/* First see if the last display still covers curcol */
+	// First see if the last display still covers curcol
 	if (stcol >= 0 && stcol <= curcol) {
 	    int c = 0;
 
@@ -215,10 +208,9 @@ void update (int anychanged)	/* did any cell really change in value? */
 		if (col_hidden[i])
 		    continue;
 
-		/* If there isn't room for more columns, and we haven't yet
-		 * reached the current column, start removing columns from
-		 * the left.
-		 */
+		// If there isn't room for more columns, and we haven't yet
+		// reached the current column, start removing columns from
+		// the left.
 		while (col + fwidth[i] > cols - 2) {
 		    lcols--;
 		    col -= fwidth[stcol];
@@ -250,10 +242,10 @@ void update (int anychanged)	/* did any cell really change in value? */
 
 	    FullUpdate++;
 
-		/* How about back one? */
+		// How about back one?
 	    if (stcol - 1 == curcol) {
 		stcol--;
-		/* Forward one? */
+		// Forward one?
 	    } else if (stcol >= 0 && stcol + lcols == curcol) {
 		stcol++;
 	    } else if (stcol >= 0 && fr && curcol >= fr->or_left->col &&
@@ -266,10 +258,9 @@ void update (int anychanged)	/* did any cell really change in value? */
 		    if (col_hidden[++stcol]) lcols--;
 		}
 	    } else {
-		/* Try to put the cursor in the center of the screen.
-		 * If we've just jumped to a range using the goto command,
-		 * center the range instead.
-		 */
+		// Try to put the cursor in the center of the screen.
+		// If we've just jumped to a range using the goto command,
+		// center the range instead.
 		colsinrange = (colsinrange > cols - rescol -
 			flcols - frcols - 2 ?
 			cols - rescol - flcols - frcols - 2 : colsinrange);
@@ -290,7 +281,7 @@ void update (int anychanged)	/* did any cell really change in value? */
 			stcol = curcol;
 		}
 	    }
-	    /* Now pick up the counts again */
+	    // Now pick up the counts again
 	    i = stcol;
 	    lcols = 0;
 	    col = rescol + frcols;
@@ -321,9 +312,9 @@ void update (int anychanged)	/* did any cell really change in value? */
 	    stcol = curcol;
     }
 
-    /* Now - same process on the rows as the columns */
+    // Now - same process on the rows as the columns
     if ((currow != lastrow) || FullUpdate) {
-	while (row_hidden[currow])   /* You can't hide the last row or col */
+	while (row_hidden[currow])   // You can't hide the last row or col
 	    currow++;
 	if (strow >= 0 && strow <= currow) {
 	    int c = 0;
@@ -358,10 +349,9 @@ void update (int anychanged)	/* did any cell really change in value? */
 		if (row_hidden[i])
 		    continue;
 
-		/* If there isn't room for more rows, and we haven't yet
-		 * reached the current row, start removing rows from the
-		 * top.
-		 */
+		// If there isn't room for more rows, and we haven't yet
+		// reached the current row, start removing rows from the
+		// top.
 		if (row >= lines) {
 		    rows--;
 		    row--;
@@ -385,10 +375,10 @@ void update (int anychanged)	/* did any cell really change in value? */
 
 	    FullUpdate++;
 
-		/* How about up one? */
+		// How about up one?
 	    if (strow - 1 == currow) {
 		strow--;
-		/* Down one? */
+		// Down one?
 	    } else if (strow >= 0 && strow + rows == currow) {
 		strow++;
 	    } else if (strow >= 0 && fr && currow >= fr->or_left->row &&
@@ -401,10 +391,9 @@ void update (int anychanged)	/* did any cell really change in value? */
 		    if (row_hidden[++strow]) rows--;
 		}
 	    } else {
-		/* Try to put the cursor in the center of the screen.
-		 * If we've just jumped to a range using the goto command,
-		 * center the range instead.
-		 */
+		// Try to put the cursor in the center of the screen.
+		// If we've just jumped to a range using the goto command,
+		// center the range instead.
 		rowsinrange = (rowsinrange > lines - RESROW - ftrows - fbrows ?
 			lines - RESROW - ftrows - fbrows : rowsinrange);
 		row = (lines - RESROW - ftrows - fbrows - rowsinrange)/2; 
@@ -422,7 +411,7 @@ void update (int anychanged)	/* did any cell really change in value? */
 		    if (currow < strow)
 			strow = currow;
 	    }
-	    /* Now pick up the counts again */
+	    // Now pick up the counts again
 	    i = strow;
 	    rows = 0;
 	    row = RESROW + fbrows;
@@ -462,7 +451,7 @@ void update (int anychanged)	/* did any cell really change in value? */
     lastfleftcols = fleftcols;
     lastfrightcols = frightcols;
 
-    /* Get rid of cursor standout on the cell at previous cursor position */
+    // Get rid of cursor standout on the cell at previous cursor position
     if (!FullUpdate) {
 	if (showcell) {
 	    pp = ATBL(tbl, lastrow, lastcol);
@@ -499,7 +488,7 @@ void update (int anychanged)	/* did any cell really change in value? */
     lastcol = curcol;
     lastendrow = strow + rows;
 
-    /* where is the the cursor now? */
+    // where is the the cursor now?
     lastmy =  RESROW;
     if (fr && strow >= fr->or_left->row)
 	if (strow < fr->ir_left->row)
@@ -556,7 +545,7 @@ void update (int anychanged)	/* did any cell really change in value? */
 	for (col = rescol, i = (fleftcols && stcol >= fr->or_left->col ?
 		fr->or_left->col : stcol);
 		i <= mxcol; i++) {
-	    register int k;
+	    int k;
 	    if (fleftcols && stcol >= fr->or_left->col &&
 		    col == rescol + flcols)
 		i = (stcol < i ? i : stcol);
@@ -623,226 +612,209 @@ void update (int anychanged)	/* did any cell really change in value? */
 	printw("Current cell:   %s%d ", coltoa(curcol), currow);
     }
 
-    /* Repaint the visible screen */
+    // Repaint the visible screen
     if (showrange || anychanged || FullUpdate || standlast) {
-	/* may be reset in loop, if not next time we will do a FullUpdate */
-      if (standlast) {
-      	FullUpdate = TRUE;
-	standlast = FALSE;
-      }
+	// may be reset in loop, if not next time we will do a FullUpdate
+	if (standlast) {
+	    FullUpdate = TRUE;
+	    standlast = FALSE;
+	}
 
-      for (row = (ftoprows && strow >= fr->or_left->row ?
-		  fr->or_left->row : strow), r = RESROW;
-	    row <= mxrow; row++) {
-	int c = rescol;
-	int do_stand = 0;
-	int fieldlen;
-	int nextcol;
+	for (row = (ftoprows && strow >= fr->or_left->row ?
+		    fr->or_left->row : strow), r = RESROW;
+		row <= mxrow; row++) {
+	    int c = rescol;
+	    int do_stand = 0;
+	    int fieldlen;
+	    int nextcol;
 
-	if (row_hidden[row])
-	    continue;
-	if (ftoprows && strow >= fr->or_left->row && r == RESROW + ftrows)
-	    row = (strow < row ? row : strow);
-	if (fbottomrows && r == lines - fbrows)
-	    row = fr->or_right->row - fbottomrows + 1;
-	for (pp = ATBL(tbl, row, col = (fleftcols && stcol >= fr->or_left->col ?
-		fr->or_left->col : stcol));
-		col <= mxcol;
-		pp += nextcol - col,  col = nextcol, c += fieldlen) {
-
-	    if (fleftcols && stcol >= fr->or_left->col &&
-		    c == rescol + flcols) {
-		col = (stcol < col ? col : stcol);
-		pp = ATBL(tbl, row, col);
-	    }
-	    if (frightcols && c + fwidth[col] >= cols - 1 - frcols &&
-		    col < fr->or_right->col - frightcols + 1) {
-		col = fr->or_right->col - frightcols + 1;
-		pp = ATBL(tbl, row, col);
-	    }
-	    nextcol = col + 1;
-	    if (col_hidden[col]) {
-		fieldlen = 0;
+	    if (row_hidden[row])
 		continue;
-	    }
+	    if (ftoprows && strow >= fr->or_left->row && r == RESROW + ftrows)
+		row = (strow < row ? row : strow);
+	    if (fbottomrows && r == lines - fbrows)
+		row = fr->or_right->row - fbottomrows + 1;
+	    for (pp = ATBL(tbl, row, col = (fleftcols && stcol >= fr->or_left->col ? fr->or_left->col : stcol));
+		    col <= mxcol;
+		    pp += nextcol - col,  col = nextcol, c += fieldlen) {
 
-	    fieldlen = fwidth[col];
-
-	    /*
-	     * Set standout if:
-	     *
-	     * - showing ranges, and not showing cells which need to be filled
-	     *	 in, and not showing cell expressions, and in a range, OR
-	     *
-	     * - showing cells which need to be filled in and this one is
-	     *	 of that type (has a value and doesn't have an expression,
-	     *	 or it is a string expression), OR
-	     *
-	     * - showing cells which have expressions and this one does.
-	     */
-	    if ((showrange && (!showneed) && (!showexpr)
-			&& (row >= minsr) && (row <= maxsr)
-			&& (col >= minsc) && (col <= maxsc))
-		    || (showneed && (*pp) && ((*pp)->flags & is_valid) &&
-			(((*pp)->flags & is_strexpr) || !((*pp)->expr)))
-		    || (showexpr && (*pp) && ((*pp)->expr))
-		    || (shownote && (*pp) && ((*pp)->nrow >= 0))) {
-
-		move(r, c);
-		standout();
-		if (color && has_colors() && (cr = find_crange(row, col)))
-		    color_set(cr->r_color, NULL);
-		standlast++;
-		if (!*pp) {	/* no cell, but standing out */
-		    printw("%*s", fwidth[col], " ");
-		    standend();
-		    if (color && has_colors())
-			color_set(1, NULL);
+		if (fleftcols && stcol >= fr->or_left->col &&
+			c == rescol + flcols) {
+		    col = (stcol < col ? col : stcol);
+		    pp = ATBL(tbl, row, col);
+		}
+		if (frightcols && c + fwidth[col] >= cols - 1 - frcols &&
+			col < fr->or_right->col - frightcols + 1) {
+		    col = fr->or_right->col - frightcols + 1;
+		    pp = ATBL(tbl, row, col);
+		}
+		nextcol = col + 1;
+		if (col_hidden[col]) {
+		    fieldlen = 0;
 		    continue;
-		} else
-		    do_stand = 1;
-	    } else
-		do_stand = 0;
-
-	    if ((cr = find_crange(row, col)) && color && has_colors())
-		color_set(cr->r_color, NULL);
-
-	    if ((*pp) && (((*pp)->flags & is_changed || FullUpdate) ||
-		    do_stand)) {
-		if (do_stand) {
-		    (*pp)->flags |= is_changed; 
-		} else {
-		    move(r, c);
-		    (*pp)->flags &= ~is_changed;
 		}
 
-		/*
-		 * Show expression; takes priority over other displays:
-		 */
+		fieldlen = fwidth[col];
 
-		if ((*pp)->cellerror) {
-		    if (color && colorerr && has_colors())
-			color_set(3, NULL);
-		    printw("%*.*s", fwidth[col], fwidth[col],
-			(*pp)->cellerror == CELLERROR ? "ERROR" : "INVALID");
+		// Set standout if:
+		// - showing ranges, and not showing cells which need to be filled
+		//	 in, and not showing cell expressions, and in a range, OR
+		//
+		// - showing cells which need to be filled in and this one is
+		//	 of that type (has a value and doesn't have an expression,
+		//	 or it is a string expression), OR
+		//
+		// - showing cells which have expressions and this one does.
+		if ((showrange && (!showneed) && (!showexpr)
+			    && (row >= minsr) && (row <= maxsr)
+			    && (col >= minsc) && (col <= maxsc))
+			|| (showneed && (*pp) && ((*pp)->flags & is_valid) &&
+			    (((*pp)->flags & is_strexpr) || !((*pp)->expr)))
+			|| (showexpr && (*pp) && ((*pp)->expr))
+			|| (shownote && (*pp) && ((*pp)->nrow >= 0))) {
+
+		    move(r, c);
+		    standout();
+		    if (color && has_colors() && (cr = find_crange(row, col)))
+			color_set(cr->r_color, NULL);
+		    standlast++;
+		    if (!*pp) {	// no cell, but standing out
+			printw("%*s", fwidth[col], " ");
+			standend();
+			if (color && has_colors())
+			    color_set(1, NULL);
+			continue;
+		    } else
+			do_stand = 1;
 		} else
-		if (showexpr && ((*pp)->expr)) {
-		    linelim = 0;
-		    editexp(row, col);		/* set line to expr */
-		    linelim = -1;
-		    showstring(line, /* leftflush = */ 1, /* hasvalue = */ 0,
-			    row, col, &nextcol, mxcol, &fieldlen, r, c,
-			    fr, frightcols, flcols, frcols);
-		} else {
-		    /*
-		     * Show cell's numeric value:
-                     */
+		    do_stand = 0;
 
-		    if ((*pp)->flags & is_valid) {
-			char field[FBUFLEN];
-			char *cfmt;
-			int note;
+		if ((cr = find_crange(row, col)) && color && has_colors())
+		    color_set(cr->r_color, NULL);
 
-			*field = '\0';
-			note = (*pp)->nrow >= 0 ? 1 : 0;
-			cfmt = (*pp)->format ? (*pp)->format :
-			    (realfmt[col] >= 0 && realfmt[col] < COLFORMATS &&
-			    colformat[realfmt[col]]) ?
-			    colformat[realfmt[col]] : NULL;
-			if (color && has_colors() && colorneg && (*pp)->v < 0) {
-			    if (cr)
-				color_set(((cr->r_color) % CPAIRS) + 1, NULL);
-			    else
-				color_set(2, NULL);
-			}
-			if (cfmt) {
-			    if (*cfmt == ctl('d')) {
-				time_t v = (time_t) ((*pp)->v);
-				strftime(field, sizeof(field),
-					cfmt + 1, localtime(&v));
-			    } else
-				format(cfmt, precision[col], (*pp)->v,
+		if ((*pp) && (((*pp)->flags & is_changed || FullUpdate) ||
+			    do_stand)) {
+		    if (do_stand) {
+			(*pp)->flags |= is_changed; 
+		    } else {
+			move(r, c);
+			(*pp)->flags &= ~is_changed;
+		    }
+
+		    // Show expression; takes priority over other displays:
+		    if ((*pp)->cellerror) {
+			if (color && colorerr && has_colors())
+			    color_set(3, NULL);
+			printw("%*.*s", fwidth[col], fwidth[col], (*pp)->cellerror == CELLERROR ? "ERROR" : "INVALID");
+		    } else if (showexpr && ((*pp)->expr)) {
+			linelim = 0;
+			editexp(row, col);		// set line to expr
+			linelim = -1;
+			showstring(line, /*leftflush=*/ 1, /*hasvalue=*/ 0,
+				row, col, &nextcol, mxcol, &fieldlen, r, c,
+				fr, frightcols, flcols, frcols);
+		    } else {
+			// Show cell's numeric value:
+			if ((*pp)->flags & is_valid) {
+			    char field[FBUFLEN];
+			    char *cfmt;
+			    int note;
+
+			    *field = '\0';
+			    note = (*pp)->nrow >= 0 ? 1 : 0;
+			    cfmt = (*pp)->format ? (*pp)->format :
+				(realfmt[col] >= 0 && realfmt[col] < COLFORMATS &&
+				 colformat[realfmt[col]]) ?
+				colformat[realfmt[col]] : NULL;
+			    if (color && has_colors() && colorneg && (*pp)->v < 0) {
+				if (cr)
+				    color_set(((cr->r_color) % CPAIRS) + 1, NULL);
+				else
+				    color_set(2, NULL);
+			    }
+			    if (cfmt) {
+				if (*cfmt == ctl('d')) {
+				    time_t v = (time_t) ((*pp)->v);
+				    strftime(field, sizeof(field),
+					    cfmt + 1, localtime(&v));
+				} else
+				    format(cfmt, precision[col], (*pp)->v,
+					    field, sizeof(field));
+			    } else {
+				engformat(realfmt[col], fwidth[col] - note,
+					precision[col], (*pp)->v, 
 					field, sizeof(field));
-			} else {
-			    engformat(realfmt[col], fwidth[col] - note,
-				    precision[col], (*pp)->v, 
-				    field, sizeof(field));
-			}
-			if (strlen(field) > (unsigned) fwidth[col]) {
-			    for (i = 0; i < fwidth[col]; i++) {
+			    }
+			    if (strlen(field) > (unsigned) fwidth[col]) {
+				for (i = 0; i < fwidth[col]; i++) {
+				    if (note) {
+					attr_t attr;
+					short curcolor = 0;
+					if (!i && color && has_colors()) {
+					    attr_get(&attr, &curcolor, NULL);
+					    color_set(4, NULL);
+					}
+					addch('*');
+					if (!i && color && has_colors())
+					    color_set(curcolor, NULL);
+					i++;
+				    }
+				    addch('*');
+				}
+			    } else {
+				if (cfmt && *cfmt != ctl('d'))
+				    for (i = 0; i < (int)(fwidth[col] - strlen(field) - note); i++)
+					addch(' ');
 				if (note) {
 				    attr_t attr;
 				    short curcolor = 0;
-				    if (!i && color && has_colors()) {
+				    if (color && has_colors()) {
 					attr_get(&attr, &curcolor, NULL);
 					color_set(4, NULL);
 				    }
 				    addch('*');
-				    if (!i && color && has_colors())
+				    if (color && has_colors())
 					color_set(curcolor, NULL);
-				    i++;
 				}
-				addch('*');
+				addstr(field);
+				if (cfmt && *cfmt == ctl('d'))
+				    for (i = 0; i < (int)(fwidth[col] - strlen(field) - note); i++)
+					addch(' ');
 			    }
-			} else {
-			    if (cfmt && *cfmt != ctl('d'))
-				for (i = 0; i < (int)(fwidth[col] - strlen(field) - note); i++)
-				    addch(' ');
-			    if (note) {
-				attr_t attr;
-				short curcolor = 0;
-				if (color && has_colors()) {
-				    attr_get(&attr, &curcolor, NULL);
-				    color_set(4, NULL);
-				}
-				addch('*');
-				if (color && has_colors())
-				    color_set(curcolor, NULL);
-			    }
-			    addstr(field);
-			    if (cfmt && *cfmt == ctl('d'))
-				for (i = 0; i < (int)(fwidth[col] - strlen(field) - note); i++)
-				    addch(' ');
 			}
-		    }
 
-		    /*
-		     * Show cell's label string:
-		     */
-
-		    if ((*pp)->label) {
-			showstring((*pp)->label,
+			// Show cell's label string:
+			if ((*pp)->label) {
+			    showstring((*pp)->label,
 				    (*pp)->flags & (is_leftflush|is_label),
 				    (*pp)->flags & is_valid,
 				    row, col, &nextcol, mxcol, &fieldlen,
 				    r, c, fr, frightcols, flcols, frcols);
-		    } else	/* repaint a blank cell: */
-		    if ((((do_stand || !FullUpdate) &&
-			    ((*pp)->flags & is_changed)) ||
-			    (color && has_colors() &&
-			    cr && cr->r_color != 1)) &&
-			    !((*pp)->flags & is_valid) && !(*pp)->label) {
-			printw("%*s", fwidth[col], " ");
-		    }
-		} /* else */
-	    } else
-	    if (!*pp && color && has_colors() && cr && cr->r_color != 1) {
-		move(r, c);
-		color_set(cr->r_color, NULL);
-		printw("%*s", fwidth[col], " ");
+			} else if ((((do_stand || !FullUpdate) && // repaint a blank cell:
+					((*pp)->flags & is_changed)) ||
+				    (color && has_colors() &&
+				     cr && cr->r_color != 1)) &&
+				!((*pp)->flags & is_valid) && !(*pp)->label) {
+			    printw("%*s", fwidth[col], " ");
+			}
+		    } // else
+		} else if (!*pp && color && has_colors() && cr && cr->r_color != 1) {
+		    move(r, c);
+		    color_set(cr->r_color, NULL);
+		    printw("%*s", fwidth[col], " ");
+		}
+		if (color && has_colors())
+		    color_set(1, NULL);
+		if (do_stand) {
+		    standend();
+		    do_stand = 0;
+		}
 	    }
-	    if (color && has_colors())
-		color_set(1, NULL);
-	    if (do_stand) {
-		standend();
-		do_stand = 0;
-	    }
+	    r++;
 	}
-	r++;
-      }
     }
 
-    /* place 'cursor marker' */
+    // place 'cursor marker'
     if (showcell && (!showneed) && (!showexpr) && (!shownote)) {
 	move(lastmy, lastmx);
 	pp = ATBL(tbl, currow, curcol);
@@ -896,9 +868,9 @@ void update (int anychanged)	/* did any cell really change in value? */
 	else
 	    move(lastmy, lastmx);
     } else {
-	if (showtop) {			/* show top line */
-	    register struct ent *p1;
-	    int printed = 0;		/* printed something? */
+	if (showtop) {			// show top line
+	    struct ent *p1;
+	    int printed = 0;		// printed something?
 
 	    printw("%s%d ", coltoa(curcol), currow);
 
@@ -906,36 +878,31 @@ void update (int anychanged)	/* did any cell really change in value? */
 		printw("{*%s} ", r_name(p1->nrow, p1->ncol,
 			p1->nlastrow, p1->nlastcol));
 
-	    /* show the current cell's format */
+	    // show the current cell's format
 	    if ((p1) && p1->format)
 		printw("(%s) ", p1->format);
 	    else
-		printw("(%d %d %d) ", fwidth[curcol], precision[curcol],
-				realfmt[curcol]);
+		printw("(%d %d %d) ", fwidth[curcol], precision[curcol], realfmt[curcol]);
 
 	    if (p1) {
 		if (p1->expr) {
-		    /* has expr of some type */
+		    // has expr of some type
 		    linelim = 0;
-		    editexp(currow, curcol);	/* set line to expr */
+		    editexp(currow, curcol);	// set line to expr
 		    linelim = -1;
 		}
 
-		/*
-		 * Display string part of cell:
-		 */
-
+		// Display string part of cell:
 		if ((p1->expr) && (p1->flags & is_strexpr)) {
  		    if (p1->flags & is_label)
 			addstr("|{");
 		    else
 			addstr((p1->flags & is_leftflush) ? "<{" : ">{");
 		    addstr(line);
-		    addstr("} ");	/* and this '}' is for vi % */
+		    addstr("} ");	// and this '}' is for vi %
 		    printed = 1;
-
 		} else if (p1->label) {
-		    /* has constant label only */
+		    // has constant label only
 		    if (p1->flags & is_label)
 			addstr("|\"");
 		    else
@@ -945,25 +912,21 @@ void update (int anychanged)	/* did any cell really change in value? */
 		    printed = 1;
 		}
 
-		/*
-		 * Display value part of cell:
-		 */
-
+		// Display value part of cell:
 		if (p1->flags & is_valid) {
-		    /* has value or num expr */
+		    // has value or num expr
 		    if ((!(p1->expr)) || (p1->flags & is_strexpr))
 			sprintf(line, "%.15g", p1->v);
-
 		    addch('[');
 		    addstr(line);
 		    addch(']');
-		    *line = '\0'; /* this is the input buffer ! */
+		    *line = '\0'; // this is the input buffer !
 		    printed = 1;
 		}
 	    }
 	    if (!printed)
 		addstr("[]");
-	    /* Display if cell is locked */
+	    // Display if cell is locked
 	    if (p1 && p1->flags&is_locked)
 		addstr(" locked");
 	}
@@ -985,9 +948,9 @@ void update (int anychanged)	/* did any cell really change in value? */
 
     if (revmsg[0]) {
 	move(0, 0);
-	clrtoeol();	/* get rid of topline display */
+	clrtoeol();	// get rid of topline display
 	printw(revmsg);
-	*revmsg = '\0';		/* don't show it again */
+	*revmsg = '\0';		// don't show it again
 	if (braille)
 	    if (message)
 		move(1, 0);
@@ -1006,9 +969,9 @@ void update (int anychanged)	/* did any cell really change in value? */
 
     if (revmsg[0]) {
 	move(0, 0);
-	clrtoeol();	/* get rid of topline display */
+	clrtoeol();	// get rid of topline display
 	printw(revmsg);
-	*revmsg = '\0';		/* don't show it again */
+	*revmsg = '\0';		// don't show it again
 	if (braille)
 	    if (message)
 		move(1, 0);
@@ -1023,7 +986,7 @@ void update (int anychanged)	/* did any cell really change in value? */
     FullUpdate = FALSE;
 }
 
-/* redraw what is under the cursor from curses' idea of the screen */
+// redraw what is under the cursor from curses' idea of the screen
 void repaint(int x, int y, int len, int attron, int attroff)
 {
     while (len-- > 0) {
@@ -1035,7 +998,7 @@ void repaint(int x, int y, int len, int attron, int attroff)
 
 int seenerr;
 
-/* error routine for yacc (gram.y) */
+// error routine for yacc (gram.y)
 void yyerror(char *err)
 {
     if (usecurses) {
@@ -1045,8 +1008,7 @@ void yyerror(char *err)
 	clrtoeol();
 	printw("%s: %.*s<=%s", err, linelim, line, line + linelim);
     } else
-	fprintf(stderr, "%s: %.*s<=%s\n", err, linelim, line,
-		       line + linelim);
+	fprintf(stderr, "%s: %.*s<=%s\n", err, linelim, line, line + linelim);
 }
 
 void startdisp (void)
@@ -1080,7 +1042,7 @@ void stopdisp (void)
     endwin();
 }
 
-/* init curses */
+// init curses
 void goraw (void)
 {
     if (usecurses) {
@@ -1092,7 +1054,7 @@ void goraw (void)
     }
 }
 
-/* clean up curses */
+// clean up curses
 void deraw (int ClearLastLine)
 {
     if (usecurses) {

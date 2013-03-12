@@ -2,11 +2,11 @@
 
 #include "sc.h"
 #ifdef QREF
-char	*header = " Quick Reference";
-char	*revision = "$Revision: 7.16 $";
-#endif /* QREF */
+const char* header = " Quick Reference";
+const char* revision = "$Revision: 7.16 $";
+#endif // QREF
 
-char *intro[] = {
+const char* intro[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -34,10 +34,10 @@ char *intro[] = {
 " P:   Time and date functions",
 " ",
 " Q:   Return to main spreadsheet",
-(char *)0
+NULL
 };
 
-char *toggleoptions[] = {
+const char* toggleoptions[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -61,10 +61,10 @@ char *toggleoptions[] = {
 "               after entry and move right after entry.",
 "          z    Set the newline action limits to the current row and column",
 "            (for r && z see also set rowlimit=n, collimit=n)",
-(char *)0
+NULL
 };
 
-char *setoptions[] = {
+const char* setoptions[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -87,10 +87,10 @@ char *setoptions[] = {
 "          rowlimit=n    Set the remembered row limit for newline action.",
 "          collimit=n    Set the remembered column limit for newline action.",
 "                        (rowlimit and collimit can both be set by ^Tz)",
-(char *)0
+NULL
 };
 
-char *cursor[] = {
+const char* cursor[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -119,11 +119,11 @@ char *cursor[] = {
 "     g          Go to a cell.  Cell name, range name, quoted string,",
 "                a number, 'error', or 'invalid' to specify which cell.",
 "     ` '        Go to a marked cell (see help screen e for more info.",
-(char *)0
+NULL
 };
 
 
-char *cell[] = {
+const char* cell[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -154,11 +154,11 @@ char *cell[] = {
 " ",
 "     In numeric mode, a decimal digit, ``+'', ``-'', and ``.'' all start",
 "     a new numeric constant or expression.",
-(char *)0
+NULL
 };
 
 
-char *vi[] = {
+const char* vi[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -191,10 +191,10 @@ char *vi[] = {
 "     ^V           Enter navigate mode.  Another ^V enters current cell address.",
 "     ^W           Type, in the command line, the current cell's expression.",
 "     ^A           Type, in the command line, the current cell's numeric value.",
-(char *)0
+NULL
 };
 
-char *file[] = {
+const char* file[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -218,11 +218,11 @@ char *file[] = {
 "     a program for Put, Write and Table.  If a cell name is used",
 "     as the file name, the cell's string part will be used as the",
 "     file name.",
-(char *)0
+NULL
 };
 
 
-char *row[] = {
+const char* row[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -252,11 +252,11 @@ char *row[] = {
 " ",
 "     @myrow, @mycol        return the row or column of the current cell",
 "     @lastrow, @lastcol    return the row or column of the current cell",
-(char *)0
+NULL
 };
 
 
-char *range[] = {
+const char* range[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -286,11 +286,11 @@ char *range[] = {
 "     A range is specified by giving the cell names separated by ``:'',",
 "     such as ``a20:k52''.  Another way to refer to a range is to use",
 "     a name previously defined using ``rd''.",
-(char *)0
+NULL
 };
 
 
-char *misc[] = {
+const char* misc[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -314,10 +314,10 @@ char *misc[] = {
 "     @        Recalculate the spreadsheet.",
 "     TAB      When the character cursor is on the top line TAB can be used",
 "              to start or stop the display of the default range.",
-(char *)0
+NULL
 };
 
-char *var[] = {
+const char* var[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -346,10 +346,10 @@ char *var[] = {
 "     e?e1:e2  or @if(e,e1,e2)",
 "             Conditional: If e is non zero then then e1, else e2.",
 "     Terms may be constants, variables, and parenthesized expressions.",
-(char *)0
+NULL
 };
 
-char *rangef[] = {
+const char* rangef[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -378,10 +378,10 @@ char *rangef[] = {
 "                       the value from the next column (row); @hlookup",
 "                       (@vlookup) searches the first row (column) in r and",
 "                       returns the value n columns (rows) from the match.",
-(char *)0
+NULL
 };
 
-char *numericf[] = {
+const char* numericf[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -411,10 +411,10 @@ char *numericf[] = {
 "     @dtr(e)  @rtd(e)           Convert degrees to/from radians.",
 "     @cos(e)  @sin(e)  @tan(e)  Trig functions of radian arguments.",
 "     @asin(e) @acos(e) @atan(e) Inverse trig function.",
-(char *)0
+NULL
 };
 
-char *stringf[] = {
+const char* stringf[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -444,11 +444,10 @@ char *stringf[] = {
 "     @capital(e)       Return the string with words in upper case",
 "     String expressions are made up of constant strings (characters",
 "     surrounded by quotes), variables, and string functions.",
-(char *)0
+NULL
 };
 
-
-char *finf[] = {
+const char* finf[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -477,11 +476,10 @@ char *finf[] = {
 "                       interest.  It answers the question: ``How",
 "                       much can I borrow at 18% for 30 years if I",
 "                       pay $1000 per month?''",
-(char *)0
+NULL
 };
 
-
-char *timef[] = {
+const char* timef[] = {
 " ",
 #if defined(QREF) && defined(TROFF)
 ".SH",
@@ -512,19 +510,17 @@ char *timef[] = {
 "                       last full hour: 0 to 59.",
 "     @second(e)        Return the number of seconds since the",
 "                       last full minute: 0 to 59.",
-(char *)0
+NULL
 };
 
 #ifndef QREF
-static	int	pscreen(char *screen[]);
+static int pscreen (const char* const screen[]);
 
-void
-help()
+void help (void)
 {
     int option;
-    char **ns = intro;
-
-    while((option = pscreen(ns)) != 'q' && option != 'Q') {
+    const char* const* ns = intro;
+    while ((option = pscreen(ns)) != 'q' && option != 'Q') {
     	switch (option) {
 	case 'a': case 'A': ns = intro; break;
 	case 'b': case 'B': ns = toggleoptions; break;
@@ -550,16 +546,12 @@ help()
     clrtobot();
 }
 
-static int
-pscreen(char *screen[])
+static int pscreen (const char* const screen[])
 {
-    int lineno;
-    int dbline;
-
     move(1,0);
     clrtobot();
-    dbline = 1;
-    for (lineno = 0; screen[lineno]; lineno++) {
+    int dbline = 1;
+    for (int lineno = 0; screen[lineno]; lineno++) {
 	move(dbline++, 4);
 	addstr (screen[lineno]);
 	clrtoeol();
@@ -568,53 +560,49 @@ pscreen(char *screen[])
     printw("Which Screen? [a-p, q]");
     clrtoeol();
     refresh();
-    return(nmgetch());
+    return (nmgetch());
 }
 #else
-char	** pages[] = { intro, toggleoptions, setoptions, cursor, cell, vi,
-			file, row, range, misc, var, rangef, numericf, stringf,
-			finf, timef, NULL};
+static const char* const* pages[] = {
+    intro, toggleoptions, setoptions, cursor, cell,
+    vi, file, row, range, misc,
+    var, rangef, numericf, stringf, finf,
+    timef, NULL
+};
 
-int
-main()
-{   int	lineno;
-    char	***pagep = pages;
+int main (void)
+{
+    int lineno;
+    const char* const* const* pagep = pages;
 #ifdef TROFF
     int	pageno = 0;
+    puts(".nr PS 12");
+    puts(".nr VS 14");
+    puts(".nr HM 1i");
+    puts(".nr FM 1i");
+    puts(".nr PO 0.5i");
+    printf(".EH '%s%s''%s'\n", SCNAME, header, revision);
+    printf(".OH '%s%s''%s'\n", SCNAME, header, revision);
+    puts(".EF ''%''");
+    puts(".OF ''%''");
+    puts(".de Lp");
+    puts(".LP");
+    puts(".ft CW");
+    puts(".na");
+    puts(".nf");
+    puts("..");
+    puts(".P1");
+    puts(".LP");
 #endif
-
-#ifdef TROFF
-puts(".nr PS 12");
-puts(".nr VS 14");
-puts(".nr HM 1i");
-puts(".nr FM 1i");
-puts(".nr PO 0.5i");
-printf(".EH '%s%s''%s'\n", SCNAME, header, revision);
-printf(".OH '%s%s''%s'\n", SCNAME, header, revision);
-puts(".EF ''%''");
-puts(".OF ''%''");
-puts(".de Lp");
-puts(".LP");
-puts(".ft CW");
-puts(".na");
-puts(".nf");
-puts("..");
-puts(".P1");
-puts(".LP");
-#endif
-
-    while (*pagep)
-    {
+    while (*pagep) {
 #ifndef TROFF
 	fputs(SCNAME, stdout);
 	fputs(header, stdout);
 	printf("\n");
 	puts(revision);
 #endif
-
-	for (lineno = 0; (*pagep)[lineno]; lineno++) {
-		puts((*pagep)[lineno]);
-	}
+	for (lineno = 0; (*pagep)[lineno]; lineno++)
+	    puts((*pagep)[lineno]);
 #if !defined(TROFF)
 	putchar('\f');
 #endif
@@ -626,4 +614,4 @@ puts(".LP");
     }
     exit(0);
 }
-#endif /* QREF */
+#endif // QREF

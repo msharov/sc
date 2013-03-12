@@ -1,4 +1,4 @@
-/* SC is free software distributed under the MIT license */
+// SC is free software distributed under the MIT license
 
 %{
 #include "sc.h"
@@ -30,13 +30,11 @@
 %token <sval> PLUGIN
 %token <ival> COL
 
-/*
- *  When adding new commands, make sure that any commands that may take
- *  COL as an argument precede S_FORMAT in the %token list.  All other
- *  commands must come after S_FORMAT.  This is necessary so that range
- *  names can be less than three letters without being parsed as column
- *  names.
- */
+//  When adding new commands, make sure that any commands that may take
+//  COL as an argument precede S_FORMAT in the %token list.  All other
+//  commands must come after S_FORMAT.  This is necessary so that range
+//  names can be less than three letters without being parsed as column
+//  names.
 
 %token S_SHOW
 %token S_HIDE
@@ -355,8 +353,8 @@ command:	S_LET var_or_range '=' e
 				  } else
 				    error("Invalid format number");
 				}
-	|	S_GET strarg	{  /* This tmp hack is because readfile
-				    * recurses back through yyparse. */
+	|	S_GET strarg	{  // This tmp hack is because readfile
+				   // recurses back through yyparse.
 				    char *tmp;
 				    tmp = $2;
 				    readfile(tmp, 1);
@@ -577,8 +575,7 @@ command:	S_LET var_or_range '=' e
 	|       S_GOTO '%' STRING	{ str_search($3, 0, 0,
 					  maxrow, maxcol, 2); }
 	|	S_GOTO			{ go_last(); }
-	|	S_GOTO WORD		{ /* don't repeat last goto on
-						"unintelligible word" */ ; }
+	|	S_GOTO WORD		{ ; } // don't repeat last goto on "unintelligible word"
 	|	S_DEFINE strarg		{ struct ent_ptr arg1, arg2;
 					  arg1.vp = lookat(showsr, showsc);
 					  arg1.vf = 0;
@@ -616,7 +613,7 @@ command:	S_LET var_or_range '=' e
 					  }
 					}
 	|	S_FRAME			{ struct frange *cfr;
-					  /* cfr points to current frange */
+					  // cfr points to current frange
 					  cfr = find_frange(currow, curcol);
 					  if (showrange && cfr) {
 					    showrange = 0;
@@ -634,7 +631,7 @@ command:	S_LET var_or_range '=' e
 					{ add_frange($2.left.vp, $2.right.vp,
 						NULL, NULL, $3, -1, -1, -1); }
 	|	S_FRAMETOP NUMBER	{ struct frange *cfr;
-					  /* cfr points to current frange */
+					  // cfr points to current frange
 					  cfr = find_frange(currow, curcol);
 					  if (cfr)
 					    add_frange(cfr->or_left,
@@ -644,7 +641,7 @@ command:	S_LET var_or_range '=' e
 					{ add_frange($2.left.vp, $2.right.vp,
 						NULL, NULL, -1, $3, -1, -1); }
 	|	S_FRAMEBOTTOM NUMBER	{ struct frange *cfr;
-					  /* cfr points to current frange */
+					  // cfr points to current frange
 					  cfr = find_frange(currow, curcol);
 					  if (cfr)
 					    add_frange(cfr->or_left,
@@ -654,7 +651,7 @@ command:	S_LET var_or_range '=' e
 					{ add_frange($2.left.vp, $2.right.vp,
 						NULL, NULL, -1, -1, $3, -1); }
 	|	S_FRAMELEFT NUMBER	{ struct frange *cfr;
-					  /* cfr points to current frange */
+					  // cfr points to current frange
 					  cfr = find_frange(currow, curcol);
 					  if (cfr)
 					    add_frange(cfr->or_left,
@@ -664,7 +661,7 @@ command:	S_LET var_or_range '=' e
 					{ add_frange($2.left.vp, $2.right.vp,
 						NULL, NULL, -1, -1, -1, $3); }
 	|	S_FRAMERIGHT NUMBER	{ struct frange *cfr;
-					  /* cfr points to current frange */
+					  // cfr points to current frange
 					  cfr = find_frange(currow, curcol);
 					  if (cfr)
 					    add_frange(cfr->or_left,
@@ -673,7 +670,7 @@ command:	S_LET var_or_range '=' e
 	|	S_UNFRAME range		{ add_frange($2.left.vp, $2.right.vp,
 						NULL, NULL, 0, 0, 0, 0); }
 	|	S_UNFRAME		{ struct frange *cfr;
-					  /* cfr points to current frange */
+					  // cfr points to current frange
 					  cfr = find_frange(currow, curcol);
 					  if (cfr)
 					    add_frange(cfr->or_left,
@@ -986,7 +983,7 @@ command:	S_LET var_or_range '=' e
 					  sprintf(line + 1, $1);
 					  readfile(line, 0);
 					  scxfree($1); }
-	|	/* nothing */
+	|	// nothing
 	|	error;
 
 term: 		var			{ $$ = new_var(O_VAR, $1); }
@@ -1156,7 +1153,7 @@ term: 		var			{ $$ = new_var(O_VAR, $1); }
 	| '@' K_WHITE		{ $$ = new(WHITE, ENULL, ENULL); }
 	;
 
-/* expressions */
+// expressions
 e:		e '+' e		{ $$ = new('+', $1, $3); }
 	|	e '-' e		{ $$ = new('-', $1, $3); }
 	|	e '*' e		{ $$ = new('*', $1, $3); }
@@ -1218,12 +1215,12 @@ strarg:		STRING		{ $$ = $1; }
 				}
   	;
 
-/* allows >=1 'setitem's to be listed in the same 'set' command */
+// allows >=1 'setitem's to be listed in the same 'set' command
 setlist :
 	|	setlist	setitem
 	;
 
-/* things that you can 'set' */
+// things that you can 'set'
 setitem	:	K_AUTO			{ setauto(1); }
 	|	K_AUTOCALC		{ setauto(1); }
 	|	'~' K_AUTO		{ setauto(0); }
@@ -1330,7 +1327,7 @@ setitem	:	K_AUTO			{ setauto(1); }
 					}
   	;
 
-/* types of errors, to 'goto' */
+// types of errors, to 'goto'
 errlist :	K_ERROR range		{ num_search((double)0,
 					  $2.left.vp->row, $2.left.vp->col,
 					  $2.right.vp->row, $2.right.vp->col,

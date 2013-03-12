@@ -2,7 +2,7 @@
 
 #include "sc.h"
 
-static	struct abbrev *abbr_base;
+static struct abbrev* abbr_base;
 
 static bool are_abbrevs (void)
 {
@@ -12,7 +12,7 @@ static bool are_abbrevs (void)
 void add_abbr (char *string)
 {
     struct abbrev *a;
-    register char *p;
+    char *p;
     struct abbrev *prev = NULL;
     char *expansion;
     
@@ -104,8 +104,7 @@ void add_abbr (char *string)
     }
 }
 
-void
-del_abbr(char *abbrev)
+void del_abbr (char *abbrev)
 {
     struct abbrev *a;
     struct abbrev **prev = NULL;
@@ -123,8 +122,7 @@ del_abbr(char *abbrev)
     scxfree((char *)a);
 }
 
-struct abbrev *
-find_abbr(char *abbrev, int len, struct abbrev **prev)
+struct abbrev* find_abbr (char* abbrev, int len, struct abbrev** prev)
 {
     struct abbrev *a;
     int cmp;
@@ -146,13 +144,12 @@ find_abbr(char *abbrev, int len, struct abbrev **prev)
     return NULL;
 }
 
-void
-write_abbrevs(FILE *f)
+void write_abbrevs (FILE *f)
 {
-    register struct abbrev *a;
-    register struct abbrev *nexta;
+    struct abbrev *a;
+    struct abbrev *nexta;
 
-    for (a = nexta = abbr_base; nexta; a = nexta, nexta = a->a_next) /* */ ;
+    for (a = nexta = abbr_base; nexta; a = nexta, nexta = a->a_next) {}
     while (a) {
 	fprintf(f, "abbrev \"%s\" \"%s\"\n", a->abbr, a->exp);
 	a = a->a_prev;

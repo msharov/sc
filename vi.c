@@ -49,23 +49,22 @@ static void stop_edit();
 static int  to_char(int arg, int n);
 static void u_save(int c);
 static void yank_cmd(int delete, int change);
-static void yank_chars(register int first, register int last, int delete);
+static void yank_chars(int first, int last, int delete);
 
-extern int framerows;		/* Rows in current frame */
-extern char mode_ind;		/* Mode indicator */
-extern char search_ind;		/* Search indicator */
-extern int lcols;		/* Spreadsheet Column the cursor was in last */
+extern int framerows;		// Rows in current frame
+extern char mode_ind;		// Mode indicator
+extern char search_ind;		// Search indicator
+extern int lcols;		// Spreadsheet Column the cursor was in last
 char	*completethis = NULL;
-int	search_dir;		/* Search direction:  forward = 0; back = 1 */
+int	search_dir;		// Search direction:  forward = 0; back = 1
 
-/* values for mode below */
+// values for mode below
 
-#define INSERT_MODE	0	/* Insert mode */
-#define EDIT_MODE       1	/* Edit mode */
-#define REP_MODE        2	/* Replace mode */
-#define SEARCH_MODE	3	/* Get arguments for '/' command */
-#define NAVIGATE_MODE	4	/* Navigate the spreadsheet while editing
-					a line */
+#define INSERT_MODE	0	// Insert mode
+#define EDIT_MODE       1	// Edit mode
+#define REP_MODE        2	// Replace mode
+#define SEARCH_MODE	3	// Get arguments for '/' command
+#define NAVIGATE_MODE	4	// Navigate the spreadsheet while editing a line
 
 #define	DOTLEN		200
 
@@ -96,8 +95,7 @@ static int	findfunc = '\0';
 static int	findchar = 1;
 static int	finddir = 0;
 
-void
-write_line(int c)
+void write_line (int c)
 {
     struct frange *fr;
     struct crange *cr;
@@ -287,9 +285,8 @@ write_line(int c)
 	case (ctl('e')):	last_col();				break;
 	case ESC:		ins_in_line(0);
 				edit_mode();				break;
-	/* '\035' is ^], which expands abbreviations without inserting another
-	 * character in the line
-	 */
+	// '\035' is ^], which expands abbreviations without inserting another
+	// character in the line
 	case '\035':		if (linelim > 0) doabbrev();		break;
 	default:		ins_in_line(c);				break;
 	}
@@ -300,9 +297,8 @@ write_line(int c)
 	case (ctl('m')):	search_hist();				break;
 	case ESC:		ins_in_line(0);
 				edit_mode();				break;
-	/* '\035' is ^], which expands abbreviations without inserting another
-	 * character in the line
-	 */
+	// '\035' is ^], which expands abbreviations without inserting another
+	// character in the line
 	case '\035':		if (linelim > 0) doabbrev();		break;
 	default:		ins_in_line(c);				break;
 	}
@@ -372,7 +368,7 @@ write_line(int c)
 				    toggle_navigate_mode();
 				    cr_line();
 				}					break;
-	case 'v':	{   /* insert variable value */
+	case 'v':	{   // insert variable value
 				    struct ent *p = *ATBL(tbl, currow, curcol);
 				    char temp[100];
 
@@ -426,7 +422,7 @@ write_line(int c)
 				showrange = 0;				break;
 	case 'H':		backcol(curcol - stcol + 2);
 									break;
-	case KEY_NPAGE:			/* next page */
+	case KEY_NPAGE:			// next page
 	case (ctl('f')):
 	case 'J':
 				{
@@ -439,7 +435,7 @@ write_line(int c)
 				FullUpdate++;
 				}
 									break;
-	case KEY_PPAGE:			/* previous page */
+	case KEY_PPAGE:			// previous page
 	case (ctl('b')):
 	case 'K':
 				{
@@ -477,7 +473,7 @@ write_line(int c)
 	case 'g':		dogoto();				break;
 	case 'n':		go_last();				break;
 	case 'w':		{
-				register struct ent *p;
+				struct ent *p;
 
 				while (--arg>=0) {
 				    do {
@@ -502,7 +498,7 @@ write_line(int c)
 				break;
 				}
 	case 'b':		{
-				register struct ent *p;
+				struct ent *p;
 
 				while (--arg>=0) {
 				    do {
@@ -532,35 +528,30 @@ write_line(int c)
     }
 }
 
-void
-edit_mode()
+void edit_mode (void)
 {
     mode_ind = 'e';
     mode = EDIT_MODE;
-    if (linelim < 0)	/* -1 says stop editing, ...so we still aren't */
+    if (linelim < 0)	// -1 says stop editing, ...so we still aren't
 	return;
     numeric_field = 0;
     linelim = back_line(1);
 }
 
-void
-insert_mode()
+void insert_mode (void)
 {
     mode_ind = 'i';
     mode = INSERT_MODE;
     istart = linelim;
 }
 
-static void
-search_mode(char sind)
+static void search_mode (char sind)
 {
     if (search_ind == ' ') {
-	/*
-	 * This back and forth movement through the history is just a quick
-	 * way to force the current command to be saved in history[0].histline,
-	 * allocating space for it if necessary.  The command will be copied
-	 * back into line by search_hist() before the search is done. - CRM
-	 */
+	// This back and forth movement through the history is just a quick
+	// way to force the current command to be saved in history[0].histline,
+	// allocating space for it if necessary.  The command will be copied
+	// back into line by search_hist() before the search is done. - CRM
 	back_hist();
 	for_hist();
 	line[0] = '\0';
@@ -573,15 +564,13 @@ search_mode(char sind)
     }
 }
 
-static void
-replace_mode()
+static void replace_mode (void)
 {
     mode_ind = 'R';
     mode = REP_MODE;
 }
 
-void
-toggle_navigate_mode()
+void toggle_navigate_mode (void)
 {
     static char prev_mode = NAVIGATE_MODE;
     int limtmp;
@@ -614,8 +603,7 @@ toggle_navigate_mode()
     }
 }
 
-void
-dotab()
+void dotab (void)
 {
     static struct range *firstmatch;
     static struct range *lastmatch;
@@ -625,7 +613,7 @@ dotab()
     if (linelim > 0 && (isalnum(line[linelim-1]) || line[linelim-1] == '_' || (completethis && line[linelim-1] == ' '))) {
 	if (!completethis) {
 	    for (completethis = line + linelim - 1; isalnum(*completethis) ||
-		    *completethis == '_'; completethis--) /* */;
+		    *completethis == '_'; completethis--) // */;
 	    completethis++;
 	    len = line + linelim - completethis;
 	    if (!find_range(completethis, -len, NULL, NULL, &lastmatch)) {
@@ -653,9 +641,8 @@ dotab()
 	startshow();
 }
 
-/* show the current range (see ^I), we are moving around to define a range */
-void
-startshow()
+// show the current range (see ^I), we are moving around to define a range
+void startshow (void)
 {
     showrange = 1;
     showsr = currow;
@@ -663,10 +650,9 @@ startshow()
     toggle_navigate_mode();
 }
 
-/* insert the range we defined by moving around the screen, see startshow() */
+// insert the range we defined by moving around the screen, see startshow (void)
 
-void
-showdr()
+void showdr (void)
 {
     int			minsr, minsc, maxsr, maxsc;
     char		r[12];
@@ -705,10 +691,8 @@ showdr()
     showrange = 0;
 }
 
-/* dot command functions.  Saves info so we can redo on a '.' command */
-
-static void
-savedot(int c)
+// dot command functions.  Saves info so we can redo on a '.' command
+static void savedot (int c)
 {
     if (do_dot || nosavedot || (c == '\n'))
 	return;
@@ -729,12 +713,9 @@ savedot(int c)
 
 static int dotcalled = 0;
 
-static void
-dotcmd()
+static void dotcmd (void)
 {
-    int c;
-
-    if (dotcalled)	/* stop recursive calling of dotcmd() */
+    if (dotcalled)	// stop recursive calling of dotcmd (void)
 	return;
     do_dot = 1;
     doti = 0;
@@ -743,6 +724,7 @@ dotcmd()
     else
 	dotarg = arg;
     while (dotb[doti] != '\0') {
+	int c;
 	if ((c = dotb[doti++]) < 4)
 	    c = c * 256 + dotb[doti++];
 	dotcalled = 1;
@@ -753,11 +735,8 @@ dotcmd()
     dotcalled = 0;
 }
 
-int
-vigetch()
+int vigetch (void)
 {
-    int c;
-
     if (do_dot) {
 	if (dotb[doti] != '\0') {
 	    return (dotb[doti++]);
@@ -768,16 +747,13 @@ vigetch()
 	}
     }
     update(1);
-    c = nmgetch();
-    return (c);
+    return (nmgetch());
 }
 
-/* saves the current line for possible use by an undo cmd */
-static void
-u_save(int c)
+// saves the current line for possible use by an undo cmd
+static void u_save (int c)
 {
     static unsigned	undolen = 0;
-
     if (strlen(line)+1 > undolen) {
     	undolen = strlen(line)+40;
 
@@ -785,18 +761,15 @@ u_save(int c)
     }
     strcpy(undo_line, line);
     undo_lim = linelim;
-
-    /* reset dot command if not processing it. */
-
+    // reset dot command if not processing it.
     if (!do_dot) {
         doti = 0;
 	savedot(c);
     }
 }
 
-/* Restores the current line saved by u_save() */
-static void
-restore_it()
+// Restores the current line saved by u_save (void)
+static void restore_it (void)
 {
     static char		*tempc = NULL;
     static unsigned	templen = 0;
@@ -818,9 +791,8 @@ restore_it()
     undo_lim = tempi;
 }
 
-/* This command stops the editing process. */
-static void
-stop_edit()
+// This command stops the editing process.
+static void stop_edit (void)
 {
     if (search_ind != ' ') {
 	search_ind = ' ';
@@ -835,42 +807,32 @@ stop_edit()
     }
 }
 
-/*
- * Motion commands.  Forward motion commands take an argument
- * which, when set, cause the forward motion to continue onto
- * the null at the end of the line instead of stopping at the
- * the last character of the line.
- */
-static int
-for_line(int arg, int stop_null)
+// Motion commands.  Forward motion commands take an argument
+// which, when set, cause the forward motion to continue onto
+// the null at the end of the line instead of stopping at the
+// the last character of the line.
+static int for_line (int arg, int stop_null)
 {
     int cpos = linelim;
-
     if (linelim < 0)
 	return (linelim);
     else if (linelim + arg <= (int) strlen(line))
 	cpos += arg;
     else
 	cpos = strlen(line);
-
     if (cpos == (int) strlen(line) && cpos > 0 && !stop_null)
 	return (cpos - 1);
     else
 	return (cpos);
 }
 
-/* If end_word is non-zero, go to next end-of-word.  Otherwise, go to next
- * beginning-of-word.
- */
+// If end_word is non-zero, go to next end-of-word.  Otherwise, go to next
+// beginning-of-word.
 
-static int
-for_word(int arg, int end_word, int big_word, int stop_null)
+static int for_word (int arg, int end_word, int big_word, int stop_null)
 {
-    register int c;
-    register int cpos;
-
-    cpos = linelim;
-
+    int c;
+    int cpos = linelim;
     while (cpos < (int) strlen(line) && arg--) {
 	if (end_word)
 	    cpos++;
@@ -907,8 +869,7 @@ for_word(int arg, int end_word, int big_word, int stop_null)
     return (cpos);
 }
 
-static int
-back_line(int arg)
+static int back_line (int arg)
 {
     if (linelim > arg)
         return (linelim - arg);
@@ -916,29 +877,25 @@ back_line(int arg)
 	return (0);
 }
 
-static int
-back_word(int arg, int big_word)
+static int back_word (int arg, int big_word)
 {
-    register int c;
-    register int cpos;
-
-    cpos = linelim;
-
+    int c;
+    int cpos = linelim;
     while (cpos > 0 && arg--) {
 	if (line[cpos] == ' ') {
-	    /* Skip white space */
+	    // Skip white space
 	    while (cpos > 0 && line[cpos] == ' ')
 		--cpos;
 	} else if (cpos > 0 && (line[cpos-1] == ' ' 
 			|| ( istext(line[cpos]) && !istext(line[cpos-1]))
 			|| (!istext(line[cpos]) &&  istext(line[cpos-1])))) {
-	    /* Started on the first char of a word - back up to prev. word */
+	    // Started on the first char of a word - back up to prev. word
 	    --cpos;
 	    while (cpos > 0 && line[cpos] == ' ')
 		--cpos;
 	}
 
-	/* Skip across the word - goes 1 too far */
+	// Skip across the word - goes 1 too far
 	if (big_word)
 	    while (cpos > 0 && (c = line[cpos]) && c != ' ')
 		--cpos;
@@ -950,7 +907,7 @@ back_word(int arg, int big_word)
 		--cpos;
 	}
 
-	/* We are done - fix up the one too far */
+	// We are done - fix up the one too far
 	if (cpos > 0 && line[cpos] && line[cpos+1]) 
 	    cpos++;
     }
@@ -958,16 +915,12 @@ back_word(int arg, int big_word)
     return(cpos);
 }
 
-/* Text manipulation commands */
-
-/* If back_null is set, back up if the deletion leaves you at the null
- * line terminator.  Otherwise, don't.
- */
-static void
-del_in_line(int arg, int back_null)
+// Text manipulation commands
+// If back_null is set, back up if the deletion leaves you at the null
+// line terminator.  Otherwise, don't.
+static void del_in_line (int arg, int back_null)
 {
-    register int len, i;
-
+    int len, i;
     if (linelim >= 0) {
 	len = strlen(line);
 	if (arg > len - linelim)
@@ -983,8 +936,7 @@ del_in_line(int arg, int back_null)
 	--linelim;
 }
 
-void
-ins_in_line(int c)
+void ins_in_line (int c)
 {
     int i, len;
     static int inabbr;
@@ -1009,15 +961,13 @@ ins_in_line(int c)
     }
 }
 
-void
-ins_string(char *s)
+void ins_string (char *s)
 {
     while (*s)
 	ins_in_line(*s++);
 }
 
-void
-doabbrev()
+void doabbrev (void)
 {
     int len, pos;
     struct abbrev *a;
@@ -1132,9 +1082,8 @@ static void back_space (void)
 	istart = linelim;
 }
 
-/* Setting change to 1 makes `w' act like `e' so that `cw' will act like
- * `ce', just as in vi.  Setting change to 0 causes `w' to act as usual.
- */
+// Setting change to 1 makes `w' act like `e' so that `cw' will act like
+// `ce', just as in vi.  Setting change to 0 causes `w' to act as usual.
 
 int get_motion (int change)
 {
@@ -1177,8 +1126,7 @@ int get_motion (int change)
     }
 }
 
-static void
-yank_cmd(int delete, int change)
+static void yank_cmd (int delete, int change)
 {
     int cpos;
 
@@ -1189,8 +1137,7 @@ yank_cmd(int delete, int change)
     yank_chars(cpos, linelim, delete);
 }
 
-static void
-yank_chars(register int first, register int last, int delete)
+static void yank_chars (int first, int last, int delete)
 {
     int temp;
 
@@ -1208,8 +1155,7 @@ yank_chars(register int first, register int last, int delete)
 	memmove(line + first, line + last, strlen(line + last) + 1);
 }
 
-static void
-del_to_end()
+static void del_to_end (void)
 {
     if (linelim < 0)
 	return;
@@ -1218,16 +1164,15 @@ del_to_end()
     linelim = back_line(1);
 }
 
-static void
-cr_line()
+static void cr_line (void)
 {
     struct frange *fr;
 
     ins_in_line(0);
     insert_mode();
     numeric_field = 0;
-    if (linelim == -1) {	/* '\n' alone will put you into insert mode */
-    	*line = '\0';		/* unless numeric and craction are both	set */
+    if (linelim == -1) {	// '\n' alone will put you into insert mode
+    	*line = '\0';		// unless numeric and craction are both	set
 	linelim = 0;
 	if (numeric && craction)
 	    cellassign = 1;
@@ -1313,11 +1258,9 @@ cr_line()
 
 void doshell (void)
 {
-    /*
-    *  "! command"  executes command
-    *  "!"	forks a shell
-    *  "!!" repeats last command
-    */
+    //  "! command"  executes command
+    //  "!"	forks a shell
+    //  "!!" repeats last command
     char *shl;
     int pid, temp;
     char cmd[MAXCMD];
@@ -1330,8 +1273,8 @@ void doshell (void)
     fputs("! ", stdout);
     fflush(stdout);
     fgets(cmd, MAXCMD, stdin);
-    cmd[strlen(cmd) - 1] = '\0';	/* clobber \n */
-    if (strcmp(cmd,"!") == 0)		/* repeat? */
+    cmd[strlen(cmd) - 1] = '\0';	// clobber \n
+    if (strcmp(cmd,"!") == 0)		// repeat?
 	strcpy(cmd, lastcmd);
     else
 	strcpy(lastcmd, cmd);
@@ -1342,7 +1285,7 @@ void doshell (void)
     }
 
     if (!(pid = fork())) {
-	signal(SIGINT, SIG_DFL);  /* reset */
+	signal(SIGINT, SIG_DFL);  // reset
 	if (strlen(cmd))
 	    execl(shl, shl, "-c", cmd, NULL);
 	else
@@ -1360,10 +1303,8 @@ void doshell (void)
     clear();
 }
 
-/* History functions */
-
-static void
-save_hist()
+// History functions
+static void save_hist (void)
 {
     if (!lasthist || strcmp(history[lasthist].histline, line)) {
 	if (lasthist < 0)
@@ -1390,8 +1331,7 @@ save_hist()
     histp = 0;
 }
 
-static void
-for_hist()
+static void for_hist (void)
 {
     if (histp == 0) {
 	last_col();
@@ -1413,8 +1353,7 @@ for_hist()
 	error(" ");
 }
 
-static void
-back_hist()
+static void back_hist (void)
 {
     if (histp == 0) {
 	if (history[0].len < strlen(line) + 1) {
@@ -1467,8 +1406,7 @@ static void search_hist (void)
     search_ind = ' ';
 }
 
-static void
-search_again(bool reverse)
+static void search_again (bool reverse)
 {
     int prev_match;
     int found_it;
@@ -1522,15 +1460,14 @@ search_again(bool reverse)
 }
 
 #if !defined(MSDOS) && defined HISTORY_FILE
-void
-write_hist()
+void write_hist (void)
 {
     int i;
     FILE *fp, *tmpfp = NULL;
     char histfile[PATHLEN];
 
     if (histsessionnew < HISTLEN) {
-	/* write the new history for this session to a tmp file */
+	// write the new history for this session to a tmp file
 	tmpfp = tmpfile();
 	for (i = 1; i <= histsessionnew; i++) {
 	    histsessionstart = histsessionstart % endhist + 1;
@@ -1539,7 +1476,7 @@ write_hist()
 	}
 	fseek(tmpfp, 0, SEEK_SET);
 
-	/* re-read the main history, then read back in the saved session hist*/
+	// re-read the main history, then read back in the saved session hist
 	histp = 0;
 	lasthist = 0;
 	endhist = -1;
@@ -1547,7 +1484,7 @@ write_hist()
 	readhistfile(tmpfp);
     }
 
-    /* now write to whole lot out to the proper save file */
+    // now write to whole lot out to the proper save file
     snprintf (histfile, sizeof(histfile), HISTORY_FILE, getlogin());
     if (findhome(histfile) && (fp = fopen(histfile, "w")) != NULL) {
 	for (i = 1; i <= endhist; i++) {
@@ -1559,18 +1496,16 @@ write_hist()
     }
 }
 
-static void
-readhistfile(FILE *fp)
+static void readhistfile (FILE *fp)
 {
     while (fgets(line, FBUFLEN, fp)) {
-	line[strlen(line)-1] = '\0'; /* chop the \n */
+	line[strlen(line)-1] = '\0'; // chop the \n
 	save_hist();
     }
     fclose(fp);
 }
 
-void
-read_hist()
+void read_hist (void)
 {
     FILE *fp;
     char histfile[PATHLEN];
@@ -1583,24 +1518,21 @@ read_hist()
 }
 #endif
 
-static void
-col_0()
+static void col_0 (void)
 {
     linelim = 0;
 }
 
-static void
-last_col()
+static void last_col (void)
 {
     linelim = strlen(line);
     if (linelim > 0 && mode_ind == 'e')
 	--linelim;
 }
 
-static int
-find_char(int arg, int n)
+static int find_char (int arg, int n)
 {
-    register int i;
+    int i;
 
     if (findchar)
 	finddir = n;
@@ -1625,10 +1557,9 @@ find_char(int arg, int n)
     return (i);
 }
 
-static int
-to_char(int arg, int n)
+static int to_char (int arg, int n)
 {
-    register int i;
+    int i;
     int tmp = linelim;
 
     if (linelim + n >= 0 && linelim + n < (int) strlen(line))
@@ -1642,8 +1573,7 @@ to_char(int arg, int n)
     return (i);
 }
 
-static void
-match_paren()
+static void match_paren (void)
 {
     int nest = 1;
     int tmp = linelim;
@@ -1670,12 +1600,10 @@ match_paren()
     }
 }
 
-/* If save is 0, remember the current position.  Otherwise, if the current
- * cell has changed since the last remember(0), save the remembered location
- * for the `, ', and c comands.
- */
-void
-remember(int save)
+// If save is 0, remember the current position.  Otherwise, if the current
+// cell has changed since the last remember(0), save the remembered location
+// for the `, ', and c comands.
+void remember (int save)
 {
     static int remrow, remcol, remstrow, remstcol;
 
@@ -1693,8 +1621,7 @@ remember(int save)
     }
 }
 
-void
-gohome()
+void gohome (void)
 {
     struct frange *fr;
 
@@ -1726,8 +1653,7 @@ gohome()
     FullUpdate++;
 }
 
-void
-leftlimit()
+void leftlimit (void)
 {
     struct frange *fr;
 
@@ -1750,10 +1676,9 @@ leftlimit()
     remember(1);
 }
 
-void
-rightlimit()
+void rightlimit (void)
 {
-    register struct ent *p;
+    struct ent *p;
     struct frange *fr;
 
     remember(0);
@@ -1786,8 +1711,7 @@ rightlimit()
     remember(1);
 }
 
-void
-gototop()
+void gototop (void)
 {
     struct frange *fr;
 
@@ -1810,10 +1734,9 @@ gototop()
     remember(1);
 }
 
-void
-gotobottom()
+void gotobottom (void)
 {
-    register struct ent *p;
+    struct ent *p;
     struct frange *fr;
 
     remember(0);
@@ -1846,8 +1769,7 @@ gotobottom()
     remember(1);
 }
 
-static void
-dogoto()
+static void dogoto (void)
 {
     static char		*tempc = NULL;
     static unsigned	templen = 0;
@@ -1861,14 +1783,12 @@ dogoto()
     strcpy(tempc, line);
     tempi = linelim;
 
-    /* Can't switch back to navigate mode if insert_mode() is used here
-     * instead of toggle_navigate_mode(), which is what we want when doing
-     * a goto from within navigate mode.
-     */
+    // Can't switch back to navigate mode if insert_mode() is used here
+    // instead of toggle_navigate_mode(), which is what we want when doing
+    // a goto from within navigate mode.
     insert_mode();
-    /* Tempted as I was, I had to resist making this "Where would you like
-     * to go today?" - CRM :)
-     */
+    // Tempted as I was, I had to resist making this "Where would you like
+    // to go today?" - CRM :)
     query("goto where?", NULL);
     if (linelim >= 0) {
 	memmove(line + 5, line, strlen(line) + 1);
@@ -1879,17 +1799,15 @@ dogoto()
 
     strcpy(line, tempc);
     linelim = tempi;
-    /* Now we need to change back to navigate mode ourselves so that
-     * toggle_navigate_mode() will work properly again.
-     */
+    // Now we need to change back to navigate mode ourselves so that
+    // toggle_navigate_mode() will work properly again.
     mode_ind = 'v';
     mode = NAVIGATE_MODE;
     if (!showrange)
 	toggle_navigate_mode();
 }
 
-void
-query(char *s, char *data)
+void query (char *s, char *data)
 {
     int c;
 
