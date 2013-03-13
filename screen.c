@@ -458,18 +458,18 @@ void update (int anychanged)	// did any cell really change in value?
 	    pp = ATBL(tbl, lastrow, lastcol);
 	    if (color && has_colors()) {
 		if ((cr = find_crange(lastrow, lastcol)))
-		    color_set(cr->r_color, NULL);
+		    attron(COLOR_PAIR(cr->r_color));
 		else
-		    color_set(1, NULL);
+		    attron(COLOR_PAIR(1));
 		if (*pp) {
 		    if (colorneg && (*pp)->flags & is_valid && (*pp)->v < 0) {
 			if (cr)
-			    color_set(((cr->r_color) % CPAIRS) + 1, NULL);
+			    attron(COLOR_PAIR(((cr->r_color) % CPAIRS) + 1));
 			else
-			    color_set(2, NULL);
+			    attron(COLOR_PAIR(2));
 		    }
 		    else if (colorerr && (*pp)->cellerror)
-			color_set(3, NULL);
+			attron(COLOR_PAIR(3));
 		}
 	    }
 	    repaint(lastmx, lastmy, fwidth[lastcol], 0, A_STANDOUT);
@@ -483,7 +483,7 @@ void update (int anychanged)	// did any cell really change in value?
 	repaint(lastmx, RESROW - 1, fwidth[lastcol], A_STANDOUT, 0);
 	repaint(0, lastmy, rescol - 1, A_STANDOUT, 0);
 	if (color && has_colors())
-	    color_set(1, NULL);
+	    attron(COLOR_PAIR(1));
     }
     lastrow = currow;
     lastcol = curcol;
@@ -519,7 +519,7 @@ void update (int anychanged)	// did any cell really change in value?
 	    lastmx += fwidth[col];
 
     if (color && has_colors())
-	color_set(1, NULL);
+	attron(COLOR_PAIR(1));
 
     if (FullUpdate || standlast) {
 	move(2, 0);
@@ -676,13 +676,13 @@ void update (int anychanged)	// did any cell really change in value?
 		    move(r, c);
 		    standout();
 		    if (color && has_colors() && (cr = find_crange(row, col)))
-			color_set(cr->r_color, NULL);
+			attron(COLOR_PAIR(cr->r_color));
 		    standlast++;
 		    if (!*pp) {	// no cell, but standing out
 			printw("%*s", fwidth[col], " ");
 			standend();
 			if (color && has_colors())
-			    color_set(1, NULL);
+			    attron(COLOR_PAIR(1));
 			continue;
 		    } else
 			do_stand = 1;
@@ -690,7 +690,7 @@ void update (int anychanged)	// did any cell really change in value?
 		    do_stand = 0;
 
 		if ((cr = find_crange(row, col)) && color && has_colors())
-		    color_set(cr->r_color, NULL);
+		    attron(COLOR_PAIR(cr->r_color));
 
 		if ((*pp) && (((*pp)->flags & is_changed || FullUpdate) ||
 			    do_stand)) {
@@ -704,7 +704,7 @@ void update (int anychanged)	// did any cell really change in value?
 		    // Show expression; takes priority over other displays:
 		    if ((*pp)->cellerror) {
 			if (color && colorerr && has_colors())
-			    color_set(3, NULL);
+			    attron(COLOR_PAIR(3));
 			printw("%*.*s", fwidth[col], fwidth[col], (*pp)->cellerror == CELLERROR ? "ERROR" : "INVALID");
 		    } else if (showexpr && ((*pp)->expr)) {
 			linelim = 0;
@@ -728,9 +728,9 @@ void update (int anychanged)	// did any cell really change in value?
 				colformat[realfmt[col]] : NULL;
 			    if (color && has_colors() && colorneg && (*pp)->v < 0) {
 				if (cr)
-				    color_set(((cr->r_color) % CPAIRS) + 1, NULL);
+				    attron(COLOR_PAIR(((cr->r_color) % CPAIRS) + 1));
 				else
-				    color_set(2, NULL);
+				    attron(COLOR_PAIR(2));
 			    }
 			    if (cfmt) {
 				if (*cfmt == ctl('d')) {
@@ -752,11 +752,11 @@ void update (int anychanged)	// did any cell really change in value?
 					short curcolor = 0;
 					if (!i && color && has_colors()) {
 					    attr_get(&attr, &curcolor, NULL);
-					    color_set(4, NULL);
+					    attron(COLOR_PAIR(4));
 					}
 					addch('*');
 					if (!i && color && has_colors())
-					    color_set(curcolor, NULL);
+					    attron(COLOR_PAIR(curcolor));
 					i++;
 				    }
 				    addch('*');
@@ -770,11 +770,11 @@ void update (int anychanged)	// did any cell really change in value?
 				    short curcolor = 0;
 				    if (color && has_colors()) {
 					attr_get(&attr, &curcolor, NULL);
-					color_set(4, NULL);
+					attron(COLOR_PAIR(4));
 				    }
 				    addch('*');
 				    if (color && has_colors())
-					color_set(curcolor, NULL);
+					attron(COLOR_PAIR(curcolor));
 				}
 				addstr(field);
 				if (cfmt && *cfmt == ctl('d'))
@@ -800,11 +800,11 @@ void update (int anychanged)	// did any cell really change in value?
 		    } // else
 		} else if (!*pp && color && has_colors() && cr && cr->r_color != 1) {
 		    move(r, c);
-		    color_set(cr->r_color, NULL);
+		    attron(COLOR_PAIR(cr->r_color));
 		    printw("%*s", fwidth[col], " ");
 		}
 		if (color && has_colors())
-		    color_set(1, NULL);
+		    attron(COLOR_PAIR(1));
 		if (do_stand) {
 		    standend();
 		    do_stand = 0;
@@ -820,22 +820,22 @@ void update (int anychanged)	// did any cell really change in value?
 	pp = ATBL(tbl, currow, curcol);
 	if (color && has_colors()) {
 	    if ((cr = find_crange(currow, curcol)))
-		color_set(cr->r_color, NULL);
+		attron(COLOR_PAIR(cr->r_color));
 	    else
-		color_set(1, NULL);
+		attron(COLOR_PAIR(1));
 	    if (*pp) {
 		if (colorneg && (*pp)->flags & is_valid && (*pp)->v < 0) {
 		    if (cr)
-			color_set(((cr->r_color) % CPAIRS) + 1, NULL);
+			attron(COLOR_PAIR(((cr->r_color) % CPAIRS) + 1));
 		    else
-			color_set(2, NULL);
+			attron(COLOR_PAIR(2));
 		} else if (colorerr && (*pp)->cellerror)
-		    color_set(3, NULL);
+		    attron(COLOR_PAIR(3));
 	    }
 	}
         repaint(lastmx, lastmy, fwidth[lastcol], A_STANDOUT, 0);
 	if (color && has_colors())
-	    color_set(1, NULL);
+	    attron(COLOR_PAIR(1));
     }
 
     repaint(lastmx, RESROW - 1, fwidth[lastcol], 0, A_STANDOUT);
@@ -944,7 +944,7 @@ void update (int anychanged)	// did any cell really change in value?
     }
 
     if (color && has_colors())
-	color_set(1, NULL);
+	attron(COLOR_PAIR(1));
 
     if (revmsg[0]) {
 	move(0, 0);
@@ -965,7 +965,7 @@ void update (int anychanged)	// did any cell really change in value?
     }
 
     if (color && has_colors())
-	color_set(1, NULL);
+	attron(COLOR_PAIR(1));
 
     if (revmsg[0]) {
 	move(0, 0);

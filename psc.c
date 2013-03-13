@@ -18,12 +18,10 @@
 //
 //  Author: Robert Bond
 //  Adjustments: Jeff Buhrt, Eric Putz and Chuck Martin
-static const char rev[] = "$Revision: 7.16 $";
 
 #include "sc.h"
 
-#undef NUM
-enum { END, NUM, ALPHA, SPACE, EOL };
+enum { END, NUMBER, ALPHA, SPACE, EOL };
 
 extern int psc_growtbl (int rowcol, int topcol);
 static int scan (void);
@@ -79,7 +77,7 @@ int main (int argc, char** argv)
 	    case 'f': drop_format = TRUE; break;
 	    case 'S': strnums = TRUE; break;
 	    case 'P': plainnums = TRUE; break;
-	    case 'v': fprintf(stderr,"%s: %s\n", argv[0], rev);
+	    case 'v': fprintf(stderr,"%s: " SC_VERSTRING "\n", argv[0]);
 	    default:
 		fprintf(stderr,"Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", argv[0]);
 		exit(1);
@@ -109,7 +107,7 @@ int main (int argc, char** argv)
 		    printf("format %s %d %d %d\n", pcoltoa(i), fwidth[i]+1, precision[i], REFMTFIX);
 	    }
 	    exit(0);
-	case NUM:
+	case NUMBER:
 	    first = FALSE;
 	    printf("let %s%d = %s\n", pcoltoa(effc), effr, token);
 	    if (effc >= maxcols - 1) {
@@ -254,7 +252,7 @@ static int scan (void)
 	    c = *p++;
 	}
 	if (c == '\0' && founddigit && lastprtnum)
-	    return (NUM);
+	    return (NUMBER);
 	else
 	    return (ALPHA);
     }

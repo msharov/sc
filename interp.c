@@ -1,9 +1,6 @@
 // SC is free software distributed under the MIT license
 
 #include "sc.h"
-#ifdef IEEE_MATH
-#include <ieeefp.h>
-#endif // IEEE_MATH
 #include <math.h>
 #include <signal.h>
 #include <setjmp.h>
@@ -11,18 +8,18 @@
 #include <time.h>
 #include <regex.h>
 
-void doquit();
-
 // Use this structure to save the last 'g' command
 struct go_save gs;
 
 // g_type can be:
-#define G_NONE 0	// Starting value - must be 0
-#define G_NUM 1
-#define G_STR 2
-#define G_NSTR 3
-#define G_XSTR 4
-#define G_CELL 5
+enum {
+    G_NONE,	// Starting value - must be 0
+    G_NUM,
+    G_STR,
+    G_NSTR,
+    G_XSTR,
+    G_CELL
+};
 
 #define ISVALID(r,c)	((r)>=0 && (r)<maxrows && (c)>=0 && (c)<maxcols)
 
@@ -861,17 +858,8 @@ double eval (struct enode *e)
 
 static void eval_fpe (int i UNUSED) // Trap for FPE errors in eval
 {
-#if defined(i386) && !defined(M_XENIX)
-    asm("	fnclex");
-    asm("	fwait");
-#else
-#ifdef IEEE_MATH
-    // Clear exception
-    fpsetsticky((fp_except)0);
-#endif // IEEE_MATH
-#ifdef PC
-    _fpreset();
-#endif
+#if __i386__ || __x86_64__
+    __asm__ volatile ("fnclex\n\tfwait");
 #endif
     // re-establish signal handler for next time
     signal(SIGFPE, eval_fpe);
@@ -946,21 +934,6 @@ static char* dofmt (char* fmtstr, double v)
 // allocated string in all cases, even if null, insures cell expressions are
 // written to files, etc.
 
-#if defined(VMS) || defined(MSDOS)
-static char* doext (struct enode* se)
-{
-    char* command = seval(se->e.o.left);
-    double value = eval(se->e.o.right);
-
-    error("Warning: External functions unavailable on VMS");
-    cellerror = CELLERROR;	// not sure if this should be a cellerror
-    if (command)
-	scxfree(command);
-    return (strcpy(scxmalloc((size_t) 1), "\0"));
-}
-
-#else // VMS
-
 static char* doext (struct enode *se)
 {
     char buff[FBUFLEN];		// command line/return, not permanently alloc
@@ -970,56 +943,45 @@ static char* doext (struct enode *se)
     command = seval(se->e.o.left);
     value = eval(se->e.o.right);
     if (!extfunc) {
-	error("Warning: external functions disabled; using %s value",
-		(se->e.o.s && *se->e.o.s) ? "previous" : "null");
-
-	if (command) scxfree(command);
-    } else {
-	if ((! command) || (! *command)) {
-	    error ("Warning: external function given null command name");
-	    cellerror = CELLERROR;
-	    if (command) scxfree(command);
-	} else {
-	    FILE *pp;
-
-	    sprintf(buff, "%s %g", command, value); // build cmd line
+	error("Warning: external functions disabled; using %s value", (se->e.o.s && *se->e.o.s) ? "previous" : "null");
+	if (command)
 	    scxfree(command);
+    } else if (!command || !*command) {
+	error ("Warning: external function given null command name");
+	cellerror = CELLERROR;
+	if (command)
+	    scxfree(command);
+    } else {
+	FILE *pp;
 
-	    error("Running external function...");
-	    refresh();
+	sprintf(buff, "%s %g", command, value); // build cmd line
+	scxfree(command);
 
-	    if ((pp = popen(buff, "r")) == (FILE *) NULL) {	// run it
-		error("Warning: running \"%s\" failed", buff);
-		cellerror = CELLERROR;
-	    } else {
-		if (fgets(buff, sizeof(buff)-1, pp) == NULL)	// one line
-		    error("Warning: external function returned nothing");
-		else {
-		    char *cp;
+	error("Running external function...");
+	refresh();
 
-		    error(" ");				// erase notice
-		    buff[sizeof(buff)-1] = '\0';
-
-		    if ((cp = strchr(buff, '\n')))	// contains newline
-			*cp = '\0';			// end string there
-
-		    if (!se->e.o.s || strlen(buff) != strlen(se->e.o.s))
-			se->e.o.s = scxrealloc(se->e.o.s, strlen(buff));
-		    strcpy (se->e.o.s, buff);
-			 // save alloc'd copy
-		}
-		pclose(pp);
-
-	    } // else
-	} // else
+	if ((pp = popen(buff, "r")) == (FILE *) NULL) {	// run it
+	    error("Warning: running \"%s\" failed", buff);
+	    cellerror = CELLERROR;
+	} else if (fgets(buff, sizeof(buff)-1, pp) == NULL)	// one line
+	    error("Warning: external function returned nothing");
+	else {
+	    char *cp;
+	    error(" ");				// erase notice
+	    buff[sizeof(buff)-1] = '\0';
+	    if ((cp = strchr(buff, '\n')))	// contains newline
+		*cp = '\0';			// end string there
+	    if (!se->e.o.s || strlen(buff) != strlen(se->e.o.s))
+		se->e.o.s = scxrealloc(se->e.o.s, strlen(buff));
+	    strcpy (se->e.o.s, buff); // save alloc'd copy
+	}
+	pclose(pp);
     } // else
     if (se->e.o.s)
 	return (strcpy(scxmalloc((size_t) (strlen(se->e.o.s)+1)), se->e.o.s));
     else
 	return (strcpy(scxmalloc((size_t)1), ""));
 }
-
-#endif // VMS
 
 // Given a string representing a column name and a value which is a column
 // number, return the selected cell's string value, if any.  Even if none,
@@ -1236,7 +1198,6 @@ void EvalAll (void)
 	    if (pair == 0 && cellerror) {
 		color = 0;
 		attron(COLOR_PAIR(0));
-		color_set(0, NULL);
 		error("Error in color 1: color turned off");
 	    }
 	}
@@ -2621,22 +2582,3 @@ void edits (int row, int col)
         linelim += 1;
     }
 }
-
-#ifdef RINT
-// round-to-even, also known as ``banker's rounding''.
-// With round-to-even, a number exactly halfway between two values is
-// rounded to whichever is even; e.g. rnd(0.5)=0, rnd(1.5)=2,
-// rnd(2.5)=2, rnd(3.5)=4.  This is the default rounding mode for
-// IEEE floating point, for good reason: it has better numeric
-// properties.  For example, if X+Y is an integer,
-// then X+Y = rnd(X)+rnd(Y) with round-to-even,
-// but not always with sc's rounding (which is
-// round-to-positive-infinity).  I ran into this problem when trying to
-// split interest in an account to two people fairly.
-double rint (double d)
-{
-    // as sent
-    double fl = floor(d), fr = d-fl;
-    return (fr<0.5 || fr==0.5 && fl==floor(fl/2)*2 ? fl : ceil(d));
-}
-#endif

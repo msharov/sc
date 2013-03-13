@@ -14,76 +14,124 @@
 #include <assert.h>
 #include <time.h>
 
-#define	ATBL(tbl, row, col)	(*(tbl + row) + (col))
+//----------------------------------------------------------------------
 
-#define MINROWS		100 	// minimum size at startup
-#define MINCOLS		30 
-#define	ABSMAXCOLS	702	// absolute cols: ZZ (base 26)
-
-#define CRROWS		1
-#define CRCOLS		2
-#define RESROW		3	// rows reserved for prompt, error, and column numbers
+enum {
+    CRROWS = 1,
+    CRCOLS,
+    RESROW		// rows reserved for prompt, error, and column numbers
+};
 
 // formats for engformat()
-#define REFMTFIX	0
-#define REFMTFLT	1
-#define REFMTENG	2
-#define REFMTDATE	3
-#define REFMTLDATE	4
+enum {
+    REFMTFIX,
+    REFMTFLT,
+    REFMTENG,
+    REFMTDATE,
+    REFMTLDATE
+};
 
-#define DEFWIDTH	10	// Default column width and precision
-#define DEFPREC		2
-#define DEFREFMT	REFMTFIX// Make default format fixed point  THA 10/14/90
+enum {
+    MINROWS	= 100,	 	// minimum size at startup
+    MINCOLS	= 30, 
+    ABSMAXCOLS	= 702,		// absolute cols: ZZ (base 26)
+    GROWAMT	= 30,		// default minimum amount to grow
+    DEFWIDTH	= 10,		// Default column width and precision
+    DEFPREC	= 2,
+    DEFREFMT	= REFMTFIX,	// Make default format fixed point  THA 10/14/90
+    FKEYS	= 24,		// Number of function keys available
+    HISTLEN	= 100,		// Number of history entries for vi emulation
+    CPAIRS	= 8,		// Number of color pairs available
+    COLFORMATS	= 10,		// Number of custom column formats
+    DELBUFSIZE	= 40,		// Number of named buffers + 4
+    FBUFLEN	= 1024,		// buffer size for a single field
+    PATHLEN	= 1024,		// maximum path length
+    MAXCMD	= 160,		// for ! command and commands that use the pager
+    KEY_ESC	= 033,
+    KEY_DEL	= 0177,
+    COLOR_DEFAULT = -1,
+    EOS		= '\0',
+    MAXBUF	= 256,
+    DEFCOLDELIM	= ':'
+};
 
-#define FKEYS		24	// Number of function keys available
-#define HISTLEN		100	// Number of history entries for vi emulation
-#define CPAIRS		8	// Number of color pairs available
-#define COLFORMATS	10	// Number of custom column formats
-#define DELBUFSIZE	40	// Number of named buffers + 4
+enum { FIX_ROW = 1, FIX_COL };
+
+// op values
+enum {
+    O_VAR	= 'v',
+    O_CONST	= 'k',
+    O_ECONST	= 'E',	// constant cell w/ an error
+    O_SCONST	= '$',
+    REDUCE	= 0200	// Or'ed into OP if operand is a range
+};
+
+enum {
+    OP_BASE = 256,
+    ACOS, ASIN, ATAN, CEIL, COS, EXP, FABS, FLOOR, HYPOT, LOG,
+    LOG10, POW, SIN, SQRT, TAN, DTR, RTD, SUM, PROD, AVG,
+    COUNT, STDDEV, MAX, MIN, RND, HOUR, MINUTE, SECOND, MONTH, DAY,
+    YEAR, NOW, DATE, FMT, SUBSTR, STON, EQS, EXT, ELIST, LMAX,
+    LMIN, NVAL, SVAL, PV, FV, PMT, STINDEX, LOOKUP, ATAN2, INDEX,
+    DTS, TTS, ABS, HLOOKUP, VLOOKUP, ROUND, IF, FILENAME, MYROW, MYCOL,
+    LASTROW, LASTCOL, COLTOA, UPPER, LOWER, CAPITAL, NUMITER, ERR_, PI_, BLACK,
+    RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
+};
+
+// flag values
+enum {
+    is_valid		= 0001,
+    is_changed		= 0002,
+    is_strexpr		= 0004,
+    is_leftflush	= 0010,
+    is_deleted		= 0020,
+    is_locked		= 0040,
+    is_label		= 0100,
+    is_cell_cleared	= 0200,
+    may_sync		= 0400
+};
+
+// cell error (1st generation (ERROR) or 2nd+ (INVALID))
+enum { CELLOK, CELLERROR, CELLINVALID };
+
+// calculation order
+enum { BYCOLS = 1, BYROWS };
+
+// values for showrange for ranges of rows or columns
+enum { SHOWROWS = 2, SHOWCOLS };
+
+// tblprint style output for:
+enum {
+    TBL = 1,	// 'tbl'
+    LATEX,	// 'LaTeX'
+    TEX,	// 'TeX'
+    SLATEX,	// 'SLaTeX' (Scandinavian LaTeX)
+    FRAME	// tblprint style output for FrameMaker
+};
+
+// Types for etype()
+enum { NUM = 1, STR };
+
+enum {
+    GROWNEW = 1,// first time table
+    GROWROW,	// add rows
+    GROWCOL,	// add columns
+    GROWBOTH	// grow both
+};
+
+//----------------------------------------------------------------------
+
+#define ctl(c)			((c)&037)
+#define	ATBL(tbl, row, col)	(*(tbl + row) + (col))
+#define VALID_CELL(p, r, c)	((p = *ATBL(tbl, r, c)) && ((p->flags & is_valid) || p->label))
 #ifdef PSC
-# define error(msg)	fprintf(stderr, msg);
+    #define error(msg)	fprintf(stderr, msg);
 #else
-# define error(...)	do { if (isatty(STDOUT_FILENO)) { move(1,0); clrtoeol(); printw(__VA_ARGS__); } else fprintf (stderr, __VA_ARGS__); } while (0)
-#endif
-#define	FBUFLEN		1024	// buffer size for a single field
-#define	PATHLEN		1024	// maximum path length
-
-#ifndef DFLT_PAGER
-#define	DFLT_PAGER	"more"	// more is probably more widespread than less
+    #define error(...)	do { if (isatty(STDOUT_FILENO)) { move(1,0); clrtoeol(); printw(__VA_ARGS__); } else fprintf (stderr, __VA_ARGS__); } while (0)
 #endif
 
-#define MAXCMD		160	// for ! command and commands that use the pager
+//----------------------------------------------------------------------
 
-
-#ifndef A_CHARTEXT		// Should be defined in curses.h
-#define A_CHARTEXT	0xff
-#endif
-
-#ifndef color_set
-#define color_set(c, o)		attron(COLOR_PAIR(c))
-#endif
-
-#if !defined(attr_get) || defined(NCURSES_VERSION) && NCURSES_VERSION_MAJOR < 5
-#undef attr_get
-#define attr_get(a, p, o)	(((a) != 0 && (*(a) = stdscr->_attrs)), \
-				((p) != 0 && \
-				(*(p) = PAIR_NUMBER(stdscr->_attrs))), OK)
-#endif
-
-#if (defined(BSD42) || defined(BSD43)) && !defined(strrchr)
-#define strrchr rindex
-#endif
-
-#if (defined(BSD42) || defined(BSD43)) && !defined(strchr)
-#define strchr index
-#endif
-
-#ifndef FALSE
-# define	FALSE	0
-# define	TRUE	1
-#endif // !FALSE
-
-//
 // ent_ptr holds the row/col # and address type of a cell
 //
 // vf is the type of cell address, 0 non-fixed, or bitwise OR of FIX_ROW or
@@ -100,7 +148,6 @@ struct range_s {
     struct ent_ptr left, right;
 };
 
-//
 // Some not too obvious things about the flags:
 //    is_valid means there is a valid number in v.
 //    is_locked means that the cell cannot be edited.
@@ -110,9 +157,6 @@ struct range_s {
 //        expression yields a numeric expression.
 //    So, either v or label can be set to a constant. 
 //        Either (but not both at the same time) can be set from an expression.
-
-#define VALID_CELL(p, r, c) ((p = *ATBL(tbl, r, c)) && \
-			     ((p->flags & is_valid) || p->label))
 
 // info for each cell, only alloc'd when something is stored in a cell
 struct ent {
@@ -127,9 +171,6 @@ struct ent {
     char *format;		// printf format for this cell
     char cellerror;		// error in a cell?
 };
-
-#define FIX_ROW 1
-#define FIX_COL 2
 
 // stores type of operation this cell will perform
 struct enode {
@@ -203,138 +244,6 @@ struct go_save {
     int		stflag;
     int		errsearch;
 };
-
-// op values
-#define O_VAR		'v'
-#define O_CONST		'k'
-#define O_ECONST	'E'	// constant cell w/ an error
-#define O_SCONST	'$'
-#define REDUCE		0200	// Or'ed into OP if operand is a range
-
-#define OP_BASE		256
-#define ACOS		(OP_BASE + 0)
-#define ASIN		(OP_BASE + 1)
-#define ATAN		(OP_BASE + 2)
-#define CEIL		(OP_BASE + 3)
-#define COS		(OP_BASE + 4)
-#define EXP		(OP_BASE + 5)
-#define FABS		(OP_BASE + 6)
-#define FLOOR		(OP_BASE + 7)
-#define HYPOT		(OP_BASE + 8)
-#define LOG		(OP_BASE + 9)
-#define LOG10		(OP_BASE + 10)
-#define POW		(OP_BASE + 11)
-#define SIN		(OP_BASE + 12)
-#define SQRT		(OP_BASE + 13)
-#define TAN		(OP_BASE + 14)
-#define DTR		(OP_BASE + 15)
-#define RTD		(OP_BASE + 16)
-#define SUM		(OP_BASE + 17)
-#define PROD		(OP_BASE + 18)
-#define AVG		(OP_BASE + 19)
-#define COUNT		(OP_BASE + 20)
-#define STDDEV		(OP_BASE + 21)
-#define MAX		(OP_BASE + 22)
-#define MIN		(OP_BASE + 23)
-#define RND		(OP_BASE + 24)
-#define HOUR		(OP_BASE + 25)
-#define MINUTE		(OP_BASE + 26)
-#define SECOND		(OP_BASE + 27)
-#define MONTH		(OP_BASE + 28)
-#define DAY		(OP_BASE + 29)
-#define YEAR		(OP_BASE + 30)
-#define NOW		(OP_BASE + 31)
-#define DATE		(OP_BASE + 32)
-#define FMT		(OP_BASE + 33)
-#define SUBSTR		(OP_BASE + 34)
-#define STON		(OP_BASE + 35)
-#define EQS		(OP_BASE + 36)
-#define EXT		(OP_BASE + 37)
-#define ELIST		(OP_BASE + 38)	// List of expressions
-#define LMAX 		(OP_BASE + 39)
-#define LMIN 		(OP_BASE + 40)
-#define NVAL		(OP_BASE + 41)
-#define SVAL		(OP_BASE + 42)
-#define PV		(OP_BASE + 43)
-#define FV		(OP_BASE + 44)
-#define PMT		(OP_BASE + 45)
-#define STINDEX		(OP_BASE + 46)
-#define LOOKUP		(OP_BASE + 47)
-#define ATAN2		(OP_BASE + 48)
-#define INDEX		(OP_BASE + 49)
-#define DTS		(OP_BASE + 50)
-#define TTS		(OP_BASE + 51)
-#define ABS		(OP_BASE + 52)
-#define HLOOKUP		(OP_BASE + 53)
-#define VLOOKUP		(OP_BASE + 54)
-#define ROUND		(OP_BASE + 55)
-#define IF		(OP_BASE + 56)
-#define FILENAME	(OP_BASE + 57)
-#define MYROW		(OP_BASE + 58)
-#define MYCOL		(OP_BASE + 59)
-#define LASTROW		(OP_BASE + 60)
-#define LASTCOL		(OP_BASE + 61)
-#define COLTOA		(OP_BASE + 62)
-#define UPPER		(OP_BASE + 63)
-#define LOWER		(OP_BASE + 64)
-#define CAPITAL		(OP_BASE + 65)
-#define NUMITER		(OP_BASE + 66)
-#define ERR_		(OP_BASE + 67)
-#define PI_		(OP_BASE + 68)
-#define BLACK		(OP_BASE + 69)
-#define RED		(OP_BASE + 70)
-#define GREEN		(OP_BASE + 71)
-#define YELLOW		(OP_BASE + 72)
-#define BLUE		(OP_BASE + 73)
-#define MAGENTA		(OP_BASE + 74)
-#define CYAN		(OP_BASE + 75)
-#define WHITE		(OP_BASE + 76)
-
-// flag values
-#define is_valid    	0001
-#define is_changed  	0002
-#define is_strexpr  	0004
-#define is_leftflush	0010
-#define is_deleted  	0020
-#define is_locked   	0040
-#define is_label    	0100
-#define is_cell_cleared 0200
-#define may_sync	0400
-
-// cell error (1st generation (ERROR) or 2nd+ (INVALID))
-#define	CELLOK		0
-#define	CELLERROR	1
-#define	CELLINVALID	2
-
-#define ctl(c)		((c)&037)
-#define ESC		033
-#define DEL		0177
-
-// calculation order
-#define BYCOLS		1
-#define BYROWS		2
-
-// values for showrange for ranges of rows or columns
-#define SHOWROWS	2
-#define SHOWCOLS	3
-
-// tblprint style output for:
-#define	TBL		1		// 'tbl'
-#define	LATEX		2		// 'LaTeX'
-#define	TEX		3		// 'TeX'
-#define	SLATEX		4		// 'SLaTeX' (Scandinavian LaTeX)
-#define	FRAME		5		// tblprint style output for FrameMaker
-
-// Types for etype()
-#define NUM		1
-#define STR		2
-
-#define	GROWAMT		30	// default minimum amount to grow
-
-#define	GROWNEW		1	// first time table
-#define	GROWROW		2	// add rows
-#define	GROWCOL		3	// add columns
-#define	GROWBOTH	4	// grow both
 
 extern struct ent*** tbl;	// data table ref. in vmtbl.c and ATBL()
 extern char curfile[];
@@ -435,6 +344,7 @@ void del_range (struct ent *left, struct ent *right);
 void del_abbr (char *abbrev);
 void deraw (int ClearLastLine);
 void doend (int rowinc, int colinc);
+void doquit (int i);
 void doformat (int c1, int c2, int w, int p, int r);
 void dupcol (void);
 void duprow (void);
@@ -594,19 +504,3 @@ extern int craction;
 extern int pagesize;	// If nonzero, use instead of 1/2 screen height
 extern int rowlimit;
 extern int collimit;
-
-#if BSD42 || SYSIII
-
-#ifndef cbreak
-#define	cbreak		crmode
-#define	nocbreak	nocrmode
-#endif
-
-#endif
-
-#if defined(BSD42) || defined(BSD43) && !defined(ultrix)
-#define	memcpy(dest, source, len)	bcopy(source, dest, (unsigned int)len);
-#define	memset(dest, zero, len)		bzero((dest), (unsigned int)(len));
-#else
-#include <memory.h>
-#endif

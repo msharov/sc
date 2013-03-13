@@ -44,9 +44,6 @@ int scrc = 0;
 int showsc, showsr;	// Starting cell for highlighted range
 int usecurses = TRUE;	// Use curses unless piping/redirection or using -q
 int brokenpipe = FALSE;	// Set to true if SIGPIPE is received
-#ifdef RIGHT_CBUG
-int	wasforw	= FALSE;
-#endif
 
 extern void	doshell();
 extern void	gohome();
@@ -111,10 +108,6 @@ struct ent *freeents = NULL;
 
 extern	int	seenerr;
 extern	char	*rev;
-
-#ifdef VMS
-int VMS_read_raw = 0;
-#endif
 
 // return a pointer to a cell's [struct ent *], creating if needed
 struct ent* lookat (int row, int col)
@@ -214,15 +207,7 @@ int main (int argc, char** argv)
 
     Vopt = 0;
 
-#ifdef MSDOS
-    if ((revi = strrchr(argv[0], '\\')) != NULL)
-#else
-#ifdef VMS
-    if ((revi = strrchr(argv[0], ']')) != NULL)
-#else
     if ((revi = strrchr(argv[0], '/')) != NULL)
-#endif
-#endif
 	progname = revi+1;
     else
 	progname = argv[0];
@@ -266,14 +251,9 @@ int main (int argc, char** argv)
     else
 	snprintf (revmsg, sizeof(revmsg), "%s " SC_VERSTRING ":  Type '?' for help.", progname);
 
-#ifdef MSDOS
-    if (optind < argc)
-#else 
     if (optind < argc && !strcmp(argv[optind], "--"))
-	optind++;
-    if (optind < argc && argv[optind][0] != '|' &&
-	    strcmp(argv[optind], "-"))
-#endif // MSDOS
+	++optind;
+    if (optind < argc && argv[optind][0] != '|' && strcmp(argv[optind], "-"))
 	strcpy(curfile, argv[optind]);
     for (dbidx = DELBUFSIZE - 1; dbidx >= 0; ) {
 	delbuf[dbidx] = NULL;
@@ -286,13 +266,13 @@ int main (int argc, char** argv)
 	if (!readfile(argv[optind], 1) && (optind == argc - 1))
 	    error("New file: \"%s\"", curfile);
 	EvalAll();
-	optind++;
+	++optind;
     } else
 	erasedb();
 
     while (optind < argc) {
 	readfile(argv[optind], 0);
-	optind++;
+	++optind;
     }
 
     savedrow[0] = currow;
@@ -332,9 +312,6 @@ int main (int argc, char** argv)
 	char *redraw = NULL;
 	int o;
 
-#ifdef BSD43
-	optreset = 1;
-#endif
 	optind = 1;
 	stopdisp();
 	while ((o = getopt(argc, argv, "axmoncrCReP:W:vq")) != EOF) {
@@ -383,7 +360,7 @@ int main (int argc, char** argv)
 					write_line('.');
 				    strcat(line, optarg);
 				    break;
-				case ESC:
+				case KEY_ESC:
 				case ctl('g'):
 				case 'q':
 				    linelim = -1;
@@ -557,7 +534,7 @@ int main (int argc, char** argv)
 				ungetch(c);
 				break;
 
-			    case ESC:
+			    case KEY_ESC:
 			    case ctl('g'):
 				break;
 
@@ -615,8 +592,8 @@ int main (int argc, char** argv)
 		    clrtoeol();
 		    break;
 
-		case ESC:	// ctl('[')
-		    write_line(ESC);
+		case KEY_ESC:	// ctl('[')
+		    write_line(KEY_ESC);
 		    break;
 
 		case ctl('d'):
@@ -624,7 +601,7 @@ int main (int argc, char** argv)
 		    break;
 
 		case KEY_BACKSPACE:
-		case DEL:
+		case KEY_DEL:
 		case ctl('h'):
 		    if (linelim < 0) {	// not editing line
 			backcol(arg);	// treat like ^B
@@ -768,7 +745,7 @@ int main (int argc, char** argv)
 			    error("External functions %sabled.",
 				    extfunc? "en" : "dis");
 			    break;
-			case ESC:
+			case KEY_ESC:
 			case ctl('g'):
 			    error(" ");
 			    --modflg;	// negate the modflg++
@@ -792,7 +769,7 @@ int main (int argc, char** argv)
 				    craction = CRCOLS;
 				    error("Right column after new line");
 				    break;
-				case ESC:
+				case KEY_ESC:
 				case ctl('g'):
 				    error(" ");
 				    break;
@@ -1125,7 +1102,7 @@ int main (int argc, char** argv)
 			    case 'u':
 				sprintf(line, "unframe [<range>] ");
 				break;
-			    case ESC:
+			    case KEY_ESC:
 			    case ctl('g'):
 				linelim = -1;
 				break;
@@ -1208,7 +1185,7 @@ int main (int argc, char** argv)
 			insert_mode();
 			startshow();
 			break;
-		    case ESC:
+		    case KEY_ESC:
 		    case ctl('g'):
 			break;
 		    default:
@@ -1225,7 +1202,7 @@ int main (int argc, char** argv)
 
 		case '"':
 		    error("Select buffer (a-z or 0-9):");
-		    if ((c=nmgetch()) == ESC || c == ctl('g')) {
+		    if ((c=nmgetch()) == KEY_ESC || c == ctl('g')) {
 			error(" ");
 		    } else if (c >= '0' && c <= '9') {
 			qbuf = c - '0' + (DELBUFSIZE - 10);
@@ -1261,7 +1238,7 @@ int main (int argc, char** argv)
 
 			error(" ");	// clear line
 
-			if (rcqual == ESC || rcqual == ctl('g'))
+			if (rcqual == KEY_ESC || rcqual == ctl('g'))
 			    break;
 
 			switch (c) {
@@ -1539,7 +1516,7 @@ int main (int argc, char** argv)
 			break;
 		    }
 		    error("Color number to set (1-8)?");
-		    if ((c=nmgetch()) == ESC || c == ctl('g')) {
+		    if ((c=nmgetch()) == KEY_ESC || c == ctl('g')) {
 			error(" ");
 			break;
 		    }
@@ -1775,7 +1752,7 @@ int main (int argc, char** argv)
 		    break;
 		case 'c':
 		    error("Copy marked cell:");
-		    if ((c = nmgetch()) == ESC || c == ctl('g')) {
+		    if ((c = nmgetch()) == KEY_ESC || c == ctl('g')) {
 			error(" ");
 			break;
 		    }
@@ -1834,7 +1811,7 @@ int main (int argc, char** argv)
 			struct ent *p;
 
 			error("Note: Add/Delete/Show/*(go to note)?");
-			if ((c = nmgetch()) == ESC || c == ctl('g')) {
+			if ((c = nmgetch()) == KEY_ESC || c == ctl('g')) {
 			    error(" ");
 			    break;
 			}

@@ -109,7 +109,7 @@ void write_line (int c)
 				    cr_line();				break;
 	case 'v':
 	case (ctl('v')):	toggle_navigate_mode();			break;
-	case ESC:	stop_edit();					break;
+	case KEY_ESC:	stop_edit();					break;
 	case '+':	for_hist();					break;
 	case '-':	back_hist();					break;
 	case KEY_END:
@@ -139,9 +139,7 @@ void write_line (int c)
 									break;
 	case '~':	u_save(c); change_case(g_arg);			break;
 	case '%':	match_paren();					break;
-#ifdef KEY_FIND
 	case KEY_FIND:
-#endif
 	case '?':
 	case '/':	search_mode(c);					break;
 	case KEY_HOME:
@@ -201,7 +199,7 @@ void write_line (int c)
 	}
     } else if (mode == INSERT_MODE) { 
 	if (c == (ctl('m')))
-	    savedot(ESC);
+	    savedot(KEY_ESC);
 	else
 	    savedot(c);
 	switch (c) {
@@ -278,7 +276,7 @@ void write_line (int c)
 	case (ctl('a')):	col_0();				break;
 	case KEY_END:
 	case (ctl('e')):	last_col();				break;
-	case ESC:		ins_in_line(0);
+	case KEY_ESC:		ins_in_line(0);
 				edit_mode();				break;
 	// '\035' is ^], which expands abbreviations without inserting another
 	// character in the line
@@ -290,7 +288,7 @@ void write_line (int c)
 	case KEY_BACKSPACE:
 	case (ctl('h')):	back_space();				break;
 	case (ctl('m')):	search_hist();				break;
-	case ESC:		ins_in_line(0);
+	case KEY_ESC:		ins_in_line(0);
 				edit_mode();				break;
 	// '\035' is ^], which expands abbreviations without inserting another
 	// character in the line
@@ -308,7 +306,7 @@ void write_line (int c)
 				    *(line+linelim) = *(undo_line+linelim);
 				}					break;
 	case (ctl('m')):	cr_line();				break;
-	case ESC:		edit_mode();				break;
+	case KEY_ESC:		edit_mode();				break;
 	default:		replace_in_line(c);			break;
 	}
     } else if (mode == NAVIGATE_MODE) {
@@ -413,7 +411,7 @@ void write_line (int c)
 	case 'q':
 	case ctl('g'):
 	case (ctl('v')):
-	case ESC:		toggle_navigate_mode();
+	case KEY_ESC:		toggle_navigate_mode();
 				showrange = 0;				break;
 	case 'H':		backcol(curcol - stcol + 2);
 									break;
@@ -1037,7 +1035,7 @@ static void rep_char (void)
     }
     int c = vigetch();
     savedot(c);
-    if (c < 256 && c!= ESC && c != ctl('g')) {
+    if (c < 256 && c!= KEY_ESC && c != ctl('g')) {
 	if (line[linelim] == '\0')
 	    line[linelim+1] = '\0';
 	line[linelim] = c;
@@ -1453,7 +1451,6 @@ static void search_again (bool reverse)
     linelim = strlen(line) - 1;
 }
 
-#if !defined(MSDOS) && defined HISTORY_FILE
 void write_hist (void)
 {
     int i;
@@ -1510,7 +1507,6 @@ void read_hist (void)
     histsessionstart = lasthist;
     histsessionnew = 0;
 }
-#endif
 
 static void col_0 (void)
 {

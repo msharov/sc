@@ -24,8 +24,6 @@ extern struct ent *freeents;
 // a linked list of free [struct enodes]'s, uses .e.o.left as the pointer
 extern struct enode *freeenodes;
 
-#define DEFCOLDELIM ':'
-
 extern char *scext;
 extern char *ascext;
 extern char *tbl0ext;
@@ -932,10 +930,7 @@ int get_rcqual (int ch)
     int c;
 
     error("%sow/column:  r: row  c: column%s",
-
-#ifdef KEY_IC
 	(ch == KEY_IC)		? "Insert r" :
-#endif
 	(ch == 'i')		? "Insert r" :
 	(ch == 'o')		? "Open r" :
 	(ch == 'a')		? "Append r" :
@@ -945,10 +940,8 @@ int get_rcqual (int ch)
 	(ch == 'v')		? "Values r" :
 	(ch == 'Z')		? "Zap r" :
 	(ch == 's')		? "Show r" : "R",
-
 	(ch == 'p')		? "  p: paste  m: merge  x: xchg  <MORE>" :
 	(ch == 'Z')		? "  Z: save/exit" : "");
-
     refresh();
 
     switch (c = nmgetch()) {
@@ -962,23 +955,23 @@ int get_rcqual (int ch)
 	case 'C':	return ((ch == 'p') ? 'C' : 0);
 	case '.':	return ((ch == 'p') ? '.' : 0);
 	case 'Z':	return ((ch == 'Z') ? 'Z' : 0);
-	case ESC:
-	case ctl('g'):	return (ESC);
+	case KEY_ESC:
+	case ctl('g'):	return (KEY_ESC);
 	case 'd':	if (ch == 'd') {
 			    ungetch('x');
-			    return (ESC);
+			    return (KEY_ESC);
 			} else
 			    return (0);
 	case 'y':	if (ch == 'y') {
 			    yankr(lookat(currow, curcol),
 				    lookat(currow, curcol));
-			    return (ESC);
+			    return (KEY_ESC);
 			} else
 			    return (0);
 	case 'v':	if (ch == 'v') {
 			    valueize_area(currow, curcol, currow, curcol);
 			    modflg++;
-			    return (ESC);
+			    return (KEY_ESC);
 			} else
 			    return (0);
 	case KEY_UP:
@@ -1006,7 +999,7 @@ int get_rcqual (int ch)
 			showrange = SHOWROWS;
 			showsr = currow;
 			ungetch(c);
-			return (ESC);
+			return (KEY_ESC);
 
 	case KEY_BACKSPACE:
 	case KEY_LEFT:
@@ -1029,7 +1022,7 @@ int get_rcqual (int ch)
 			showrange = SHOWCOLS;
 			showsc = curcol;
 			ungetch(c);
-			return (ESC);
+			return (KEY_ESC);
 
 	default:	return (0);
     }
@@ -1404,7 +1397,7 @@ void formatcol (int arg)
 	oldformat[i * 3 + 2] = realfmt[i + curcol];
     }
     c = nmgetch();
-    while (c >= 0 && c != ctl('m') && c != 'q' && c != ESC &&
+    while (c >= 0 && c != ctl('m') && c != 'q' && c != KEY_ESC &&
 	    c != ctl('g') && linelim < 0) {
 	if (c >= '0' && c <= '9') {
 	    for (i = curcol; i < curcol + arg; i++)
@@ -1497,7 +1490,7 @@ void formatcol (int arg)
 	update(1);
 	refresh();
 	if (linelim < 0) {
-	    if ((c = nmgetch()) == ESC || c == ctl('g') || c == 'q') {
+	    if ((c = nmgetch()) == KEY_ESC || c == ctl('g') || c == 'q') {
 		for (i = 0; i < arg; i++) {
 		    fwidth[i + curcol] = oldformat[i * 3 + 0];
 		    precision[i + curcol] = oldformat[i * 3 + 1];
@@ -2889,7 +2882,7 @@ void erasedb (void)
     autoinsert=autowrap=optimize=numeric=extfunc=color=colorneg=colorerr=cslop=0;
     currow=curcol=strow=stcol=0;
     if (usecurses && has_colors())
-	color_set(0, NULL);
+	attron(COLOR_PAIR(0));
     // unset all marks
     for (c = 1; c < 37; c++)
 	savedrow[c] = savedcol[c] = savedstrow[c] = savedstcol[c] = -1;
@@ -3001,7 +2994,7 @@ void markcell (void)
 {
     int c;
     error("Mark cell:");
-    if ((c=nmgetch()) == ESC || c == ctl('g')) {
+    if ((c=nmgetch()) == KEY_ESC || c == ctl('g')) {
 	error(" ");
 	return;
     }
@@ -3022,7 +3015,7 @@ void dotick (int tick)
     remember(0);
 
     error("Go to marked cell:");
-    if ((c = nmgetch()) == ESC || c == ctl('g')) {
+    if ((c = nmgetch()) == KEY_ESC || c == ctl('g')) {
 	error(" ");
 	return;
     }
@@ -3206,7 +3199,7 @@ int yn_ask (char *msg)
     refresh();
     char ch;
     while ((ch = nmgetch()) != 'y' && ch != 'Y' && ch != 'n' && ch != 'N')
-	if (ch == ctl('g') || ch == ESC)
+	if (ch == ctl('g') || ch == KEY_ESC)
 	    return (-1);
     if (ch == 'y' || ch == 'Y')
 	return (1);

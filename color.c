@@ -5,8 +5,6 @@
 struct colorpair* cpairs[8];
 static struct crange* color_base;
 
-#define COLOR_DEFAULT -1
-
 void initcolor (int colornum)
 {
     if (!colornum) {
@@ -76,7 +74,7 @@ void initcolor (int colornum)
     }
 
     if (color && has_colors())
-	color_set(1, NULL);
+	attron(COLOR_PAIR(1));
 }
 
 void change_color (int pair, struct enode *e)

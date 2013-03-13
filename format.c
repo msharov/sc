@@ -86,9 +86,6 @@
 #include "sc.h"
 #include <time.h>
 
-#define EOS	'\0'
-#define MAXBUF	256
-
 static char* fmt_int (char *val, char *fmt, bool comma, bool negative);
 static char* fmt_frac (char *val, char *fmt, int lprecision);
 static char* fmt_exp (int val, char *fmt);
@@ -437,15 +434,6 @@ static void reverse (char *buf)
 // may be missing, and the default will be fixed point (format 0).
 //
 // When an old style sheet is saved, the third value will be stored.
-
-// defined in sc.h
-#ifndef REFMTFIX
-#define REFMTFIX	0
-#define REFMTFLT	1
-#define REFMTENG	2
-#define REFMTDATE	3
-#define REFMTLDATE	4
-#endif
 
 bool engformat (int fmt, int width, int lprecision, double val, char *buf, int buflen)
 {
