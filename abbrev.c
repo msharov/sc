@@ -25,7 +25,6 @@ void add_abbr (char *string)
 	    int pid;
 	    char px[MAXCMD];
 	    char *pager;
-	    struct abbrev *a;
 	    struct abbrev *nexta;
 
 	    strcpy(px, "| ");
@@ -142,16 +141,4 @@ struct abbrev* find_abbr (char* abbrev, int len, struct abbrev** prev)
 		return (a);
     }
     return NULL;
-}
-
-void write_abbrevs (FILE *f)
-{
-    struct abbrev *a;
-    struct abbrev *nexta;
-
-    for (a = nexta = abbr_base; nexta; a = nexta, nexta = a->a_next) {}
-    while (a) {
-	fprintf(f, "abbrev \"%s\" \"%s\"\n", a->abbr, a->exp);
-	a = a->a_prev;
-    }
 }

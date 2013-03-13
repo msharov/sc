@@ -18,23 +18,18 @@
 //
 //  Author: Robert Bond
 //  Adjustments: Jeff Buhrt, Eric Putz and Chuck Martin
-char *rev = "$Revision: 7.16 $";
+static const char rev[] = "$Revision: 7.16 $";
 
 #include "sc.h"
 
-#define END	0
-#define NUM	1
-#define ALPHA	2
-#define SPACE	3
-#define EOL	4
-
-char	*coltoa (int col);
-char	*progname;
-int	getrow (char *p);
-int	getcol (char *p);
-int	scan (void);
+#undef NUM
+enum { END, NUM, ALPHA, SPACE, EOL };
 
 extern int psc_growtbl (int rowcol, int topcol);
+static int scan (void);
+static int getcol (char *p);
+static int getrow (char *p);
+static char* pcoltoa (int col);
 
 int *fwidth;
 int *precision;
@@ -71,7 +66,6 @@ int main (int argc, char** argv)
     int i, j;
     char *p;
 
-    progname = argv[0];
     while ((c = getopt(argc, argv, "rfLks:R:C:n:d:SPv")) != EOF) {
 	switch (c) {
 	    case 'r': colfirst = TRUE; break;
@@ -85,14 +79,14 @@ int main (int argc, char** argv)
 	    case 'f': drop_format = TRUE; break;
 	    case 'S': strnums = TRUE; break;
 	    case 'P': plainnums = TRUE; break;
-	    case 'v': fprintf(stderr,"%s: %s\n", progname, rev);
+	    case 'v': fprintf(stderr,"%s: %s\n", argv[0], rev);
 	    default:
-		fprintf(stderr,"Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
+		fprintf(stderr,"Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", argv[0]);
 		exit(1);
         }
     }
     if (optind < argc) {
-	fprintf(stderr,"Usage: %s [-rL] [-s v] [-R i] [-C i] [-n i] [-d c]\n", progname);
+	fprintf(stderr,"Usage: %s [-rL] [-s v] [-R i] [-C i] [-n i] [-d c]\n", argv[0]);
 	exit(1);
     }
     // setup the spreadsheet arrays
@@ -112,15 +106,15 @@ int main (int argc, char** argv)
 	    if (drop_format) exit(0);
 	    for (i = 0; i<maxcols; i++) {
 		if (fwidth[i])
-		    printf("format %s %d %d %d\n", coltoa(i), fwidth[i]+1, precision[i], REFMTFIX);
+		    printf("format %s %d %d %d\n", pcoltoa(i), fwidth[i]+1, precision[i], REFMTFIX);
 	    }
 	    exit(0);
 	case NUM:
 	    first = FALSE;
-	    printf("let %s%d = %s\n", coltoa(effc), effr, token);
+	    printf("let %s%d = %s\n", pcoltoa(effc), effr, token);
 	    if (effc >= maxcols - 1) {
 		if (!psc_growtbl(GROWCOL, effc)) {
-		    fprintf(stderr, "Invalid column used: %s\n", coltoa(effc));
+		    fprintf(stderr, "Invalid column used: %s\n", pcoltoa(effc));
 		    continue;
 		}
 	    }
@@ -157,12 +151,12 @@ int main (int argc, char** argv)
 	case ALPHA:
 	    first = FALSE;
 	    if (leftadj)
-		printf("leftstring %s%d = \"%s\"\n", coltoa(effc),effr,token); 
+		printf("leftstring %s%d = \"%s\"\n", pcoltoa(effc),effr,token); 
 	    else
-		printf("rightstring %s%d = \"%s\"\n",coltoa(effc),effr,token); 
+		printf("rightstring %s%d = \"%s\"\n",pcoltoa(effc),effr,token); 
 	    if (effc >= maxcols - 1) {
 		if (!psc_growtbl(GROWCOL, effc)) {
-		    fprintf(stderr, "Invalid column used: %s\n", coltoa(effc));
+		    fprintf(stderr, "Invalid column used: %s\n", pcoltoa(effc));
 		    continue;
 		}
 	    }
@@ -205,7 +199,7 @@ int main (int argc, char** argv)
     }
 }
 
-int scan (void)
+static int scan (void)
 {
     int c;
     char *p;
@@ -268,7 +262,7 @@ int scan (void)
 }
     
 // turns [A-Z][A-Z] into a number
-int getcol (char *p)
+static int getcol (char *p)
 {
     int col = 0;
     if (!p)
@@ -284,7 +278,7 @@ int getcol (char *p)
 }
 
 // given a string turn it into a row number
-int getrow (char *p)
+static int getrow (char *p)
 {
     int row = 0;
     if (!p)
@@ -301,7 +295,7 @@ int getrow (char *p)
 }
 
 // turns a column number into [A-Z][A-Z]
-char* coltoa (int col)
+static char* pcoltoa (int col)
 {
     static char rname[3];
     char *p = rname;

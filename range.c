@@ -2,9 +2,9 @@
 
 #include "sc.h"
 
-static	struct range *rng_base;
-void	sync_enode(struct enode *e);
-void	fix_enode(struct enode *e, int row1, int col1, int row2, int col2, int delta1, int delta2);
+static struct range *rng_base;
+static void sync_enode(struct enode *e);
+static void fix_enode(struct enode *e, int row1, int col1, int row2, int col2, int delta1, int delta2);
 
 void add_range (char *name, struct ent_ptr left, struct ent_ptr right, int is_range)
 {
@@ -191,7 +191,7 @@ void sync_ranges (void)
     sync_cranges();
 }
 
-void sync_enode (struct enode *e)
+static void sync_enode (struct enode *e)
 {
     if (e) {
 	if ((e->op & REDUCE)) {
@@ -342,7 +342,7 @@ void fix_ranges (int row1, int col1, int row2, int col2, int delta1, int delta2)
     fix_colors(row1, col1, row2, col2, delta1, delta2);
 }
 
-void fix_enode (struct enode *e, int row1, int col1, int row2, int col2, int delta1, int delta2)
+static void fix_enode (struct enode *e, int row1, int col1, int row2, int col2, int delta1, int delta2)
 {
     if (e) {
 	if ((e->op & REDUCE)) {

@@ -6,12 +6,11 @@
 #include <setjmp.h>
 #include "gram.h"
 
-jmp_buf wakeup;
 jmp_buf fpe_buf;
 
 bool decimal = FALSE;
 
-void fpe_trap (int signo UNUSED)
+static void fpe_trap (int signo UNUSED)
 {
 #if __i386__ || __x86_64__
     __asm__ volatile ("fnclex\n\tfwait");
@@ -20,16 +19,16 @@ void fpe_trap (int signo UNUSED)
 }
 
 struct key {
-    char *key;
+    const char* key;
     int val;
 };
 
-struct key experres[] = {
+static const struct key experres[] = {
 #include "experres.h"
     { 0, 0 }
 };
 
-struct key statres[] = {
+static const struct key statres[] = {
 #include "statres.h"
     { 0, 0 }
 };
@@ -51,8 +50,6 @@ int yylex (void)
 	ret = -1;
     } else if (isalpha(*p) || (*p == '_')) {
 	char *la;	// lookahead pointer
-	struct key *tblp;
-
 	if (!tokenst) {
 	    tokenst = p;
 	    tokenl = 0;
@@ -81,7 +78,7 @@ int yylex (void)
 	    ret = WORD;
 	    if (!linelim || isfunc) {
 		if (isfunc) isfunc--;
-		for (tblp = linelim ? experres : statres; tblp->key; tblp++)
+		for (const struct key* tblp = linelim ? experres : statres; tblp->key; tblp++)
 		    if (((tblp->key[0]^tokenst[0])&0137)==0
 			    && tblp->key[tokenl]==0) {
 			int i = 1;
@@ -292,9 +289,4 @@ int nmgetch (void)
     if (c == KEY_SELECT)
 	c = 'm';
     return (c);
-}
-
-void time_out (int signo UNUSED)
-{
-    longjmp(wakeup, 1);
 }

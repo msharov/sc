@@ -7,8 +7,16 @@
 #include <signal.h>
 #include <errno.h>
 
-void syncref (struct enode *e);
-void unspecial (FILE *f, char *str, int delim);
+//----------------------------------------------------------------------
+
+static void syncref (struct enode *e);
+static void unspecial (FILE *f, char *str, int delim);
+static void closerow (int rs, int numrow);
+static void print_options (FILE *f);
+static struct enode* copye (struct enode *e, int Rdelta, int Cdelta, int r1, int c1, int r2, int c2, int transpose);
+static char* findplugin (char *ext, char type);
+
+//----------------------------------------------------------------------
 
 // a linked list of free [struct ent]'s, uses .next as the pointer
 extern struct ent *freeents;
@@ -1029,7 +1037,7 @@ int get_rcqual (int ch)
 }
 
 // delete numrow rows, starting with rs
-void closerow (int rs, int numrow)
+static void closerow (int rs, int numrow)
 {
     struct ent** pp;
     int r, c, i;
@@ -1590,7 +1598,7 @@ void center (int sr, int sc, int er, int ec)
     }
 }
 
-void print_options (FILE *f)
+static void print_options (FILE *f)
 {
     if (autocalc &&
 	!autoinsert &&
@@ -2060,7 +2068,7 @@ void tblprintfile (char *fname, int r0, int c0, int rn, int cn)
 }
 
 // unspecial (backquote) things that are special chars in a table
-void unspecial (FILE *f, char *str, int delim)
+static void unspecial (FILE *f, char *str, int delim)
 {
     if (*str == '\\') str++; // delete wheeling string operator, OK?
     while (*str) {
@@ -2075,7 +2083,7 @@ void unspecial (FILE *f, char *str, int delim)
     }
 }
 
-struct enode* copye (struct enode *e, int Rdelta, int Cdelta, int r1, int c1, int r2, int c2, int transpose)
+static struct enode* copye (struct enode *e, int Rdelta, int Cdelta, int r1, int c1, int r2, int c2, int transpose)
 {
     struct enode *ret;
     static struct enode *range = NULL;
@@ -2230,7 +2238,7 @@ void sync_refs (void)
     }
 }
 
-void syncref (struct enode *e)
+static void syncref (struct enode *e)
 {
     if (e == (struct enode *)0)
 	return;
@@ -2505,7 +2513,7 @@ void addplugin (char *ext, char *plugin, char type)
     fp->next = NULL;
 }
 
-char* findplugin (char *ext, char type)
+static char* findplugin (char *ext, char type)
 {
     struct impexfilt *fp;
 
@@ -3151,11 +3159,7 @@ void showstring (char *string,	// to display
     for (fp = field; *fp != '\0'; fp++)
 	if (*fp == '\\' && *(fp + 1) == '"')
 	    memmove(fp, fp + 1, strlen(fp));
-#ifdef VMS
-    mvaddstr(r, c, field);	// this is a macro
-#else
     mvaddstr(r, c, field);
-#endif
 
     *nextcolp  = nextcol;
     *fieldlenp = fieldlen;

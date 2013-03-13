@@ -48,14 +48,15 @@ int brokenpipe = FALSE;	// Set to true if SIGPIPE is received
 int	wasforw	= FALSE;
 #endif
 
-void		update();
-void		repaint();
 extern void	doshell();
 extern void	gohome();
 extern void	leftlimit();
 extern void	rightlimit();
 extern void	gototop();
 extern void	gotobottom();
+
+static void signals (void);
+static void diesave (void);
 
 char    curfile[PATHLEN];
 char    revmsg[80];
@@ -262,13 +263,8 @@ int main (int argc, char** argv)
     // Build revision message for later use:
     if (popt)
 	*revmsg = '\0';
-    else {
-	strcpy(revmsg, progname);
-	for (revi = rev; (*revi++) != ':'; );	// copy after colon
-	strcat(revmsg, revi);
-	revmsg[strlen(revmsg) - 2] = 0;		// erase last character
-	strcat(revmsg, ":  Type '?' for help.");
-    }
+    else
+	snprintf (revmsg, sizeof(revmsg), "%s " SC_VERSTRING ":  Type '?' for help.", progname);
 
 #ifdef MSDOS
     if (optind < argc)
@@ -369,14 +365,13 @@ int main (int argc, char** argv)
 			error("Select range:");
 			update(1);
 			while (!linelim) {
-			    int c;
-
-			    switch (c = nmgetch()) {
+			    int k;
+			    switch ((k = nmgetch())) {
 				case '.':
 				case ':':
 				case ctl('i'):
 				    if (!showrange) {
-					write_line(c);
+					write_line(k);
 					break;
 				    }
 		    		    // else drop through
@@ -398,7 +393,7 @@ int main (int argc, char** argv)
 				    clearok(stdscr, 1);
 				    break;
 				default:
-				    write_line(c);
+				    write_line(k);
 				    break;
 			    }
 			    // goto switches to insert mode when done, so we
@@ -715,7 +710,7 @@ int main (int argc, char** argv)
 			    break;
 			case 'c':
 			    showcell = (!showcell);
-			    repaint(lastmx, lastmy, fwidth[lastcol]);
+			    repaint(lastmx, lastmy, fwidth[lastcol], 0, 0);
 			    error("Cell highlighting %sabled.",
 				    showcell ? "en" : "dis");
 			    --modflg;	// negate the modflg++
@@ -1937,12 +1932,12 @@ void setauto (int i)
     autocalc = i;
 }
 
-void nopipe (int i UNUSED)
+static void nopipe (int i UNUSED)
 {
     brokenpipe = TRUE;
 }
 
-void winchg (int i UNUSED)
+static void winchg (int i UNUSED)
 {
     stopdisp();
     startdisp();
@@ -1951,10 +1946,10 @@ void winchg (int i UNUSED)
     // (or window) that grows bigger will leave the added space blank. - CRM
     refresh();
     FullUpdate++;
-    clearok(stdscr, TRUE);
+    clearok (stdscr, TRUE);
     update(1);
     refresh();
-    signal(SIGWINCH, winchg);
+    signal (SIGWINCH, winchg);
 }
 
 void doquit (int i UNUSED)
@@ -1964,36 +1959,37 @@ void doquit (int i UNUSED)
 	stopdisp();
     }
     write_hist();
-    exit (1);
+    exit (EXIT_FAILURE);
 }
 
-void dump_me (int i UNUSED)
+static void dump_me (int i)
 {
     if (usecurses)
 	diesave();
     deraw(1);
-    abort();
+    fprintf (stderr, "Fatal error: %s\n", strsignal(i));
+    exit (EXIT_FAILURE);
 }
 
 // try to save the current spreadsheet if we can
-void diesave (void)
+static void diesave (void)
 {
     if (modcheck(" before Spreadsheet dies") == 1)
 	if (writefile (DIESAVEPATH, 0, 0, maxrow, maxcol) < 0)
 	    error("Couldn't save current spreadsheet, Sorry");
 }
 
-void signals (void)
+static void signals (void)
 {
     signal(SIGINT, doquit);
     signal(SIGQUIT, doquit);
+    signal(SIGTERM, doquit);
     signal(SIGABRT, dump_me);
     signal(SIGSEGV, dump_me);
+    signal(SIGALRM, dump_me);
     signal(SIGBUS, dump_me);
+    signal(SIGFPE, dump_me);
     signal(SIGPIPE, nopipe);
-    signal(SIGALRM, time_out);
-    signal(SIGTERM, doquit);
-    signal(SIGFPE, doquit);
     signal(SIGWINCH, winchg);
 }
 

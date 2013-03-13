@@ -2,11 +2,10 @@
 
 #include "sc.h"
 
-// a linked list of free [struct ent]'s, uses .next as the pointer
-extern struct ent *freeents;
-
 struct colorpair* cpairs[8];
 static struct crange* color_base;
+
+#define COLOR_DEFAULT -1
 
 void initcolor (int colornum)
 {
@@ -63,15 +62,15 @@ void initcolor (int colornum)
     }
 
     if (!colornum || colornum == 7) {
-	cpairs[6]->fg = COLOR_WHITE;
-	cpairs[6]->bg = COLOR_BLACK;
+	cpairs[6]->fg = COLOR_DEFAULT;
+	cpairs[6]->bg = COLOR_DEFAULT;
 	cpairs[6]->expr = NULL;
 	init_pair(7, cpairs[6]->fg, cpairs[6]->bg);
     }
 
     if (!colornum || colornum == 8) {
 	cpairs[7]->fg = COLOR_RED;
-	cpairs[7]->bg = COLOR_BLACK;
+	cpairs[7]->bg = COLOR_DEFAULT;
 	cpairs[7]->expr = NULL;
 	init_pair(8, cpairs[7]->fg, cpairs[7]->bg);
     }

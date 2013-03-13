@@ -119,7 +119,7 @@ struct ent {
     double v;			// v && label are set in EvalAll()
     char *label;
     struct enode *expr;		// cell's contents
-    short flags;	
+    short flags;
     short row, col;
     short nrow, ncol;		// link to note
     short nlastrow, nlastcol;
@@ -338,7 +338,6 @@ struct go_save {
 
 extern struct ent*** tbl;	// data table ref. in vmtbl.c and ATBL()
 extern char curfile[];
-extern int arg;
 extern int strow, stcol;
 extern int currow, curcol;
 extern int gmyrow, gmycol;	// globals used for @myrow, @mycol cmds
@@ -376,12 +375,11 @@ extern char thsep;	// country-dependent thousands separator from locale
 void add_abbr (char *string);
 FILE *openfile (char *fname, int *rpid, int *rfd);
 char *coltoa (int col);
-char *findplugin (char *ext, char type);
 char *findhome (char *path);
 char *r_name (int r1, int c1, int r2, int c2);
 char *scxmalloc (unsigned n);
 char *scxrealloc (char *ptr, unsigned n);
-char *seval (struct enode *se);
+char* seval (struct enode *se);
 char *v_name (int row, int col);
 double eval (struct enode *e);
 int any_locked_cells (int r1, int c1, int r2, int c2);
@@ -405,7 +403,6 @@ int writefile (char *fname, int r0, int c0, int rn, int cn);
 int yn_ask (char *msg);
 struct abbrev *find_abbr (char *abbrev, int len, struct abbrev **prev);
 struct colorpair *cpairs[8];
-struct enode *copye (struct enode *e, int Rdelta, int Cdelta, int r1, int c1, int r2, int c2, int transpose);
 struct enode *new (int op, struct enode *a1, struct enode *a2);
 struct enode *new_const (int op, double a1);
 struct enode *new_range (int op, struct range_s a1);
@@ -429,7 +426,6 @@ void clean_frange (void);
 void clean_range (void);
 void closecol (int arg);
 void closefile (FILE *f, int pid, int rfd);
-void closerow (int r, int numrow);
 void colshow_op (void);
 void copy (struct ent *dv1, struct ent *dv2, struct ent *v1, struct ent *v2);
 void copyent (struct ent *n, struct ent *p, int dr, int dc, int r1, int c1, int r2, int c2, int transpose);
@@ -438,7 +434,6 @@ void deleterow (int arg);
 void del_range (struct ent *left, struct ent *right);
 void del_abbr (char *abbrev);
 void deraw (int ClearLastLine);
-void diesave (void);
 void doend (int rowinc, int colinc);
 void doformat (int c1, int c2, int w, int p, int r);
 void dupcol (void);
@@ -449,6 +444,12 @@ void dotick (int tick);
 void doeval (struct enode *e, char *fmt, int row, int col, int fd);
 void doseval (struct enode *e, int row, int col, int fd);
 void dogetkey (void);
+void doshell (void);
+void gohome (void);
+void leftlimit (void);
+void rightlimit (void);
+void gototop (void);
+void gotobottom (void);
 void editexp (int row, int col);
 void editfmt (int row, int col);
 void edit_mode (void);
@@ -511,6 +512,7 @@ void pullcells (int to_insert);
 void query (char *s, char *data);
 void read_hist (void);
 void remember (int save);
+void repaint (int x, int y, int len, int attron, int attroff);
 void resetkbd (void);
 void rowshow_op (void);
 void scxfree (char *p);
@@ -521,7 +523,6 @@ void showcol (int c1, int c2);
 void showdr (void);
 void showrow (int r1, int r2);
 void showstring (char *string, int dirflush, int hasvalue, int row, int col, int *nextcolp, int mxcol, int *fieldlenp, int r, int c, struct frange *fr, int frightcols, int flcols, int frcols);
-void signals (void);
 void slet (struct ent *v, struct enode *se, int flushdir);
 void sortrange (struct ent *left, struct ent *right, char *criteria);
 void startshow (void);
@@ -533,7 +534,6 @@ void sync_franges (void);
 void sync_ranges (void);
 void sync_refs (void);
 void tblprintfile (char *fname, int r0, int c0, int rn, int cn);
-void time_out (int signo);
 void unlock_cells (struct ent *v1, struct ent *v2);
 void update (int anychanged);
 void valueize_area (int sr, int sc, int er, int ec);
@@ -549,7 +549,7 @@ void yank_area (int sr, int sc, int er, int ec);
 void yankr (struct ent *v1, struct ent *v2);
 void yankcol (int arg);
 void yankrow (int arg);
-void yyerror (char *err);
+void yyerror (const char *err);
 int yylex (void);
 int yyparse (void);
 

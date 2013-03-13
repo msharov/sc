@@ -39,21 +39,20 @@ extern bool decimal;	// Set if there was a decimal point in the number
 // a linked list of free [struct enodes]'s, uses .e.o.left as the pointer
 struct enode *freeenodes = NULL;
 
-double	dolookup(struct enode * val, int minr, int minc, int maxr, int maxc, int offr, int offc);
-double	fn1_eval(double (*fn)(), double arg);
-double	fn2_eval(double (*fn)(), double arg1, double arg2);
-int	RealEvalAll();
-int	constant(struct enode *e);
-void	RealEvalOne(struct ent *p, int i, int j, int *chgct);
-void	copydbuf(int deltar, int deltac);
-void	decompile(struct enode *e, int	priority);
-void	index_arg(char *s, struct enode *e);
-void	list_arg(char *s, struct enode *e);
-void	one_arg(char *s, struct enode *e);
-void	range_arg(char *s, struct enode *e);
-void	three_arg(char *s, struct enode *e);
-void	two_arg(char *s, struct enode *e);
-void	two_arg_index(char *s, struct enode *e);
+static double	dolookup(struct enode * val, int minr, int minc, int maxr, int maxc, int offr, int offc);
+static double	fn1_eval(double (*fn)(), double arg);
+static double	fn2_eval(double (*fn)(), double arg1, double arg2);
+static int	RealEvalAll();
+static int	constant(struct enode *e);
+static void	RealEvalOne(struct ent *p, int i, int j, int *chgct);
+static void	copydbuf(int deltar, int deltac);
+static void	index_arg(char *s, struct enode *e);
+static void	list_arg(char *s, struct enode *e);
+static void	one_arg(char *s, struct enode *e);
+static void	range_arg(char *s, struct enode *e);
+static void	three_arg(char *s, struct enode *e);
+static void	two_arg(char *s, struct enode *e);
+static void	two_arg_index(char *s, struct enode *e);
 
 double	rint(double d);
 int	cellerror = CELLOK;	// is there an error in this cell
@@ -61,7 +60,7 @@ int	cellerror = CELLOK;	// is there an error in this cell
 #define dtr(x) ((x)*(M_PI/(double)180.0))
 #define rtd(x) ((x)*(180.0/(double)M_PI))
 
-double finfunc (int fun, double v1, double v2, double v3)
+static double finfunc (int fun, double v1, double v2, double v3)
 {
     double answer,p;
     p = fn2_eval(pow, 1 + v2, v3);
@@ -100,7 +99,7 @@ double finfunc (int fun, double v1, double v2, double v3)
     return (answer);
 }
 
-char* dostindex(int minr, int minc, int maxr, int maxc, struct enode *val)
+static char* dostindex(int minr, int minc, int maxr, int maxc, struct enode *val)
 {
     int r, c;
     struct ent *p;
@@ -130,7 +129,7 @@ char* dostindex(int minr, int minc, int maxr, int maxc, struct enode *val)
 	return ((char *)0);
 }
 
-double doindex (int minr, int minc, int maxr, int maxc, struct enode *val)
+static double doindex (int minr, int minc, int maxr, int maxc, struct enode *val)
 {
     int r, c;
     struct ent *p;
@@ -158,7 +157,7 @@ double doindex (int minr, int minc, int maxr, int maxc, struct enode *val)
 	return (double) 0;
 }
 
-double dolookup (struct enode * val, int minr, int minc, int maxr, int maxc, int offset, int vflag)
+static double dolookup (struct enode * val, int minr, int minc, int maxr, int maxc, int offset, int vflag)
 {
     double v, ret = (double)0;
     int r, c;
@@ -216,7 +215,7 @@ double dolookup (struct enode * val, int minr, int minc, int maxr, int maxc, int
     return ret;
 }
 
-double docount (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double docount (int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     int v;
     int r, c;
@@ -242,7 +241,7 @@ double docount (int minr, int minc, int maxr, int maxc, struct enode *e)
     return v;
 }
 
-double dosum (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double dosum (int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double v;
     int r, c;
@@ -268,7 +267,7 @@ double dosum (int minr, int minc, int maxr, int maxc, struct enode *e)
     return v;
 }
 
-double doprod (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double doprod (int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double v;
     int r, c;
@@ -294,7 +293,7 @@ double doprod (int minr, int minc, int maxr, int maxc, struct enode *e)
     return v;
 }
 
-double doavg (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double doavg (int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double v;
     int r, c;
@@ -330,7 +329,7 @@ double doavg (int minr, int minc, int maxr, int maxc, struct enode *e)
     return (v / (double)count);
 }
 
-double dostddev (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double dostddev (int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double lp, rp, v, nd;
     int r, c;
@@ -367,7 +366,7 @@ double dostddev (int minr, int minc, int maxr, int maxc, struct enode *e)
     return (sqrt((nd*lp-rp*rp)/(nd*(nd-1))));
 }
 
-double domax (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double domax (int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double v = (double)0;
     int r, c;
@@ -403,7 +402,7 @@ double domax (int minr, int minc, int maxr, int maxc, struct enode *e)
     return (v);
 }
 
-double domin (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double domin (int minr, int minc, int maxr, int maxc, struct enode *e)
 {
     double v = (double)0;
     int r, c;
@@ -441,7 +440,7 @@ double domin (int minr, int minc, int maxr, int maxc, struct enode *e)
 
 static int mdays[12]={ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
-double dodts (int e1, int e2, int e3)
+static double dodts (int e1, int e2, int e3)
 {
     int		yr, mo, day;
     time_t	secs;
@@ -474,7 +473,7 @@ double dodts (int e1, int e2, int e3)
     return ((double)secs);
 }
 
-double dotts (int hr, int min, int sec)
+static double dotts (int hr, int min, int sec)
 {
     if (hr < 0 || hr > 23 || min < 0 || min > 59 || sec < 0 || sec > 59) {
 	error ("@tts: Invalid argument");
@@ -484,7 +483,7 @@ double dotts (int hr, int min, int sec)
     return ((double)(sec+min*60+hr*3600));
 }
 
-double dotime (int which, double when)
+static double dotime (int which, double when)
 {
 	static time_t t_cache;
 	static struct tm tm_cache;
@@ -517,7 +516,7 @@ double dotime (int which, double when)
 	return ((double)0);
 }
 
-double doston (char *s)
+static double doston (char *s)
 {
     if (!s)
 	return (0.0);
@@ -526,7 +525,7 @@ double doston (char *s)
     return(v);
 }
 
-double doeqs (char *s1, char *s2)
+static double doeqs (char *s1, char *s2)
 {
     double v;
     if (!s1 && !s2)
@@ -549,7 +548,7 @@ double doeqs (char *s1, char *s2)
 // Given a string representing a column name and a value which is a row
 // number, return a pointer to the selected cell's entry, if any, else NULL.
 // Use only the integer part of the column number.  Always free the string.
-struct ent* getent (char *colstr, double rowdoub)
+static struct ent* getent (char *colstr, double rowdoub)
 {
     int collen;			// length of string
     int row, col;		// integer values
@@ -575,7 +574,7 @@ struct ent* getent (char *colstr, double rowdoub)
 
 // Given a string representing a column name and a value which is a column
 // number, return the selected cell's numeric value, if any.
-double donval (char *colstr, double rowdoub)
+static double donval (char *colstr, double rowdoub)
 {
     struct ent *ep;
     return (((ep = getent(colstr, rowdoub)) && ((ep->flags) & is_valid)) ?  (ep->v) : (double)0);
@@ -584,7 +583,7 @@ double donval (char *colstr, double rowdoub)
 //	The list routines (e.g. dolmax) are called with an LMAX enode.
 //	The left pointer is a chain of ELIST nodes, the right pointer
 //	is a value.
-double dolmax (struct enode *ep)
+static double dolmax (struct enode *ep)
 {
     int count = 0;
     double maxval = 0;
@@ -598,7 +597,7 @@ double dolmax (struct enode *ep)
     return (count ? maxval : 0.0);
 }
 
-double dolmin (struct enode *ep)
+static double dolmin (struct enode *ep)
 {
     int count = 0;
     double minval = 0;
@@ -798,12 +797,12 @@ double eval (struct enode *e)
 		return (temp - floor(temp) < 0.5 ? floor(temp) : ceil(temp));
 	    }
  	case ROUND:
-	    {	int precision = (int) eval(e->e.o.right);
+	    {	int precis = (int) eval(e->e.o.right);
 		double scale = 1;
-		if (0 < precision)
-		    do scale *= 10; while (0 < --precision);
-		else if (precision < 0)
-		    do scale /= 10; while (++precision < 0);
+		if (0 < precis)
+		    do scale *= 10; while (0 < --precis);
+		else if (precis < 0)
+		    do scale /= 10; while (++precis < 0);
 
 		if (rndtoeven)
 		    return (rint(eval(e->e.o.left) * scale) / scale);
@@ -860,7 +859,7 @@ double eval (struct enode *e)
     return (0.0);
 }
 
-void eval_fpe (int i UNUSED) // Trap for FPE errors in eval
+static void eval_fpe (int i UNUSED) // Trap for FPE errors in eval
 {
 #if defined(i386) && !defined(M_XENIX)
     asm("	fnclex");
@@ -879,7 +878,7 @@ void eval_fpe (int i UNUSED) // Trap for FPE errors in eval
     longjmp(fpe_save, 1);
 }
 
-double fn1_eval (double (*fn)(), double arg)
+static double fn1_eval (double (*fn)(), double arg)
 {
     errno = 0;
     double res = (*fn)(arg);
@@ -888,7 +887,7 @@ double fn1_eval (double (*fn)(), double arg)
     return res;
 }
 
-double fn2_eval (double (*fn)(), double arg1, double arg2)
+static double fn2_eval (double (*fn)(), double arg1, double arg2)
 {
     errno = 0;
     double res = (*fn)(arg1, arg2);
@@ -900,7 +899,7 @@ double fn2_eval (double (*fn)(), double arg1, double arg2)
 // Rules for string functions:
 // Take string arguments which they scxfree.
 // All returned strings are assumed to be xalloced.
-char* docat (char *s1, char *s2)
+static char* docat (char *s1, char *s2)
 {
     if (!s1 && !s2)
 	return (NULL);
@@ -916,7 +915,7 @@ char* docat (char *s1, char *s2)
     return (p);
 }
 
-char* dodate (time_t tloc, const char* fmtstr)
+static char* dodate (time_t tloc, const char* fmtstr)
 {
     if (!fmtstr)
 	fmtstr = "%a %b %d %H:%M:%S %Y";
@@ -927,7 +926,7 @@ char* dodate (time_t tloc, const char* fmtstr)
     return (p);
 }
 
-char* dofmt (char* fmtstr, double v)
+static char* dofmt (char* fmtstr, double v)
 {
     if (!fmtstr)
 	return (NULL);
@@ -948,7 +947,7 @@ char* dofmt (char* fmtstr, double v)
 // written to files, etc.
 
 #if defined(VMS) || defined(MSDOS)
-char* doext (struct enode* se)
+static char* doext (struct enode* se)
 {
     char* command = seval(se->e.o.left);
     double value = eval(se->e.o.right);
@@ -962,7 +961,7 @@ char* doext (struct enode* se)
 
 #else // VMS
 
-char* doext (struct enode *se)
+static char* doext (struct enode *se)
 {
     char buff[FBUFLEN];		// command line/return, not permanently alloc
     char *command;
@@ -1026,7 +1025,7 @@ char* doext (struct enode *se)
 // number, return the selected cell's string value, if any.  Even if none,
 // still allocate and return a null string so the cell has a label value so
 // the expression is saved in a file, etc.
-char* dosval (char *colstr, double rowdoub)
+static char* dosval (char *colstr, double rowdoub)
 {
     struct ent *ep;
     char* llabel = (ep = getent(colstr, rowdoub)) ? (ep -> label) : "";
@@ -1035,7 +1034,7 @@ char* dosval (char *colstr, double rowdoub)
 
 // Substring:  Note that v1 and v2 are one-based to users, but zero-based
 // when calling this routine.
-char* dosubstr (char *s, int v1, int v2)
+static char* dosubstr (char *s, int v1, int v2)
 {
     if (!s)
 	return (NULL);
@@ -1060,7 +1059,7 @@ char* dosubstr (char *s, int v1, int v2)
 }
 
 // character casing: make upper case, make lower case
-char* docase (int acase, char *s)
+static char* docase (int acase, char *s)
 {
     char *p = s;
     if (s == NULL)
@@ -1086,7 +1085,7 @@ char* docase (int acase, char *s)
 // if the string has mixed case we say the string is lower
 //	and we will upcase only first letters of words
 // if the string is all upper we will lower rest of words.
-char* docapital (char *s)
+static char* docapital (char *s)
 {
     char *p;
     int skip = 1;
@@ -1248,7 +1247,7 @@ void EvalAll (void)
 
 // Evaluate all cells which have expressions and alter their numeric or string
 // values.  Return the number of cells which changed.
-int RealEvalAll (void)
+static int RealEvalAll (void)
 {
     int i,j;
     int chgct = 0;
@@ -1272,7 +1271,7 @@ int RealEvalAll (void)
     return (chgct);
 }
 
-void RealEvalOne (struct ent *p, int i, int j, int *chgct)
+static void RealEvalOne (struct ent *p, int i, int j, int *chgct)
 {
     gmyrow=i; gmycol=j;
 
@@ -1505,7 +1504,7 @@ void copy (struct ent *dv1, struct ent *dv2, struct ent *v1, struct ent *v2)
     error("Copy done.");
 }
 
-void copydbuf (int deltar, int deltac)
+static void copydbuf (int deltar, int deltac)
 {
     int vr, vc;
     struct ent *p = delbuf[dbidx];
@@ -1615,7 +1614,7 @@ void mover (struct ent *d, struct ent *v1, struct ent *v2)
 
 // Goto subroutines
 
-void g_free (void)
+static void g_free (void)
 {
     switch (gs.g_type) {
 	case G_STR:
@@ -2198,7 +2197,7 @@ void clearent (struct ent *v)
 }
 
 // Say if an expression is a constant (return 1) or not.
-int constant (struct enode *e)
+static int constant (struct enode *e)
 {
     return (
 	 e == NULL
@@ -2267,7 +2266,7 @@ void label (struct ent *v, char *s, int flushdir)
     }
 }
 
-void decodev (struct ent_ptr v)
+static void decodev (struct ent_ptr v)
 {
     struct range *r;
 
@@ -2475,7 +2474,7 @@ void decompile (struct enode *e, int priority)
     } else line[linelim++] = '?';
 }
 
-void index_arg (char *s, struct enode *e)
+static void index_arg (char *s, struct enode *e)
 {
     if (e->e.o.right && e->e.o.right->op == ',') {
 	two_arg_index(s, e);
@@ -2492,7 +2491,7 @@ void index_arg (char *s, struct enode *e)
     line[linelim++] = ')';
 }
 
-void two_arg_index (char *s, struct enode *e)
+static void two_arg_index (char *s, struct enode *e)
 {
     for (; (line[linelim++] = *s++); );
     linelim--;
@@ -2505,7 +2504,7 @@ void two_arg_index (char *s, struct enode *e)
     line[linelim++] = ')';
 }
 
-void list_arg (char *s, struct enode *e)
+static void list_arg (char *s, struct enode *e)
 {
     for (; (line[linelim++] = *s++); );
     linelim--;
@@ -2516,7 +2515,7 @@ void list_arg (char *s, struct enode *e)
     line[linelim - 1] = ')';
 }
 
-void one_arg (char *s, struct enode *e)
+static void one_arg (char *s, struct enode *e)
 {
     for (; (line[linelim++] = *s++); );
     linelim--;
@@ -2524,7 +2523,7 @@ void one_arg (char *s, struct enode *e)
     line[linelim++] = ')';
 }
 
-void two_arg (char *s, struct enode *e)
+static void two_arg (char *s, struct enode *e)
 {
     for (; (line[linelim++] = *s++); );
     linelim--;
@@ -2534,7 +2533,7 @@ void two_arg (char *s, struct enode *e)
     line[linelim++] = ')';
 }
 
-void three_arg (char *s, struct enode *e)
+static void three_arg (char *s, struct enode *e)
 {
     for (; (line[linelim++] = *s++); );
     linelim--;
@@ -2546,7 +2545,7 @@ void three_arg (char *s, struct enode *e)
     line[linelim++] = ')';
 }
 
-void range_arg (char *s, struct enode *e)
+static void range_arg (char *s, struct enode *e)
 {
     struct range *r;
 

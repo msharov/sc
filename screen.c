@@ -4,41 +4,42 @@
 
 #pragma GCC diagnostic ignored "-Waddress"	// curses addr_get has a superfluous NULL comparison
 
-void	repaint (int x, int y, int len, int attron, int attroff);
+static char	under_cursor = ' ';	// Data under the < cursor
+static int	lines, cols;
+static int	rows;
+static int	lastrow = -1;		// Spreadsheet Row the cursor was in last
+static int	lastftoprows = 0;	// Rows in top of frame cursor was in last
+static int	lastfbottomrows = 0;	// Rows in bottom of frame cursor was in last
+static int	lastfleftcols = 0;	// Columns in left side of frame cursor was in last
+static int	lastfrightcols = 0;
+static bool	frTooLarge = 0;		// If set, either too many rows or too many columns
+					// exist in frame to allow room for the scrolling
+					// portion of the framed range
+static int	framecols = 0;		// Columns in current frame
 
-char	under_cursor = ' '; // Data under the < cursor
 char	mode_ind = 'i';
 char	search_ind = ' ';
-extern	char    revmsg[];
-
-int	lines, cols;
-int	rows, lcols;
-int	lastmx, lastmy;	// Screen address of the cursor
-int	lastrow = -1;	// Spreadsheet Row the cursor was in last
-int	lastcol = -1;	// Spreadsheet Column the cursor was in last
+int	lcols;
+int	lastmx, lastmy;		// Screen address of the cursor
+int	lastcol = -1;		// Spreadsheet Column the cursor was in last
 int	lastendrow = -1;	// Last bottom row of screen
-int	lastftoprows = 0;	// Rows in top of frame cursor was in last
-int	lastfbottomrows = 0;	// Rows in bottom of frame cursor was in last
-int	lastfleftcols = 0;	// Columns in left side of frame cursor was in last
-int	lastfrightcols = 0;
 struct	frange *lastfr = 0;	// Last framed range we were in
-bool	frTooLarge = 0;	// If set, either too many rows or too many columns
-			// exist in frame to allow room for the scrolling
-			// portion of the framed range
-int	framerows;	// Rows in current frame
-int	framecols;	// Columns in current frame
-int	rescol = 4;	// Columns reserved for row numbers
+int	framerows = 0;		// Rows in current frame
+int	rescol = 4;		// Columns reserved for row numbers
+int	seenerr = 0;
+
+extern	char    revmsg[];
 extern	int *fwidth;
-extern	int showneed;	// Causes cells needing values to be highlighted
-extern	int showexpr;	// Causes cell exprs to be displayed, highlighted
-extern	int shownote;	// Causes cells with attached notes to be highlighted
+extern	int showneed;		// Causes cells needing values to be highlighted
+extern	int showexpr;		// Causes cell exprs to be displayed, highlighted
+extern	int shownote;		// Causes cells with attached notes to be highlighted
 extern struct go_save gs;
 
 // update() does general screen update
 //
 // standout last time in update()?
 //	At this point we will let curses do work
-int	standlast	= FALSE;
+static int	standlast	= FALSE;
 
 void update (int anychanged)	// did any cell really change in value?
 {
@@ -587,13 +588,12 @@ void update (int anychanged)	// did any cell really change in value?
 	    maxsc = showsc > curcol ? showsc : curcol;
 
 	    if (showtop && !message) {
-		char r[6];
-
-		strcpy(r, coltoa(minsc));
-		strcat(r, ":");
-		strcat(r, coltoa(maxsc));
+		char rbuf[6];
+		strcpy(rbuf, coltoa(minsc));
+		strcat(rbuf, ":");
+		strcat(rbuf, coltoa(maxsc));
 		clrtoeol();
-		printw("Default range:  %s", r);
+		printw("Default range:  %s", rbuf);
 	    }
 	} else {
 	    minsr = showsr < currow ? showsr : currow;
@@ -996,10 +996,8 @@ void repaint(int x, int y, int len, int attron, int attroff)
     }
 }
 
-int seenerr;
-
 // error routine for yacc (gram.y)
-void yyerror(char *err)
+void yyerror (const char *err)
 {
     if (usecurses) {
 	if (seenerr) return;
@@ -1018,6 +1016,7 @@ void startdisp (void)
     int i;
     initscr();
     start_color();
+    use_default_colors();
     for (i = 0; i < 8; i++)
 	if (cpairs[i])
 	    init_pair(i + 1, cpairs[i]->fg, cpairs[i]->bg);

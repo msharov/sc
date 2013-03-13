@@ -14,7 +14,9 @@ INSTALLMAN	:= @INSTALL@ -D -p -m 644
 YACC		:= bison -y
 LN		:= ln
 CC		:= @CC@
-CFLAGS		:= -Wall -Wextra -Os -ffloat-store -std=c11 -ffunction-sections -fdata-sections
+CFLAGS		:= -Wall -Wextra -Wshadow \
+		   -Os -ffloat-store -std=c11 \
+		   -ffunction-sections -fdata-sections
 LDFLAGS		:= -Wl,-gc-sections
 SCLIBS		:= @libm@ @libncurses@
 PSCLIBS		:=

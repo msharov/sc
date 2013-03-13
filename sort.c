@@ -2,13 +2,13 @@
 
 #include "sc.h"
 
-int compare (const void *row1, const void *row2);
+static int compare (const void *row1, const void *row2);
 
 struct sortcrit {
     int direction, type, column;
 } *sort;
 
-int howmany;
+static int howmany;
 
 void sortrange (struct ent *left, struct ent *right, char *criteria)
 {
@@ -107,7 +107,7 @@ void sortrange (struct ent *left, struct ent *right, char *criteria)
     curcol = c;
 }
 
-int compare (const void* row1, const void* row2)
+static int compare (const void* row1, const void* row2)
 {
     struct ent *p1;
     struct ent *p2;
