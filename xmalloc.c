@@ -19,7 +19,7 @@ char* scxrealloc (char *ptr, unsigned n)
     return (p);
 }
 
-void scxfree (char *p)
+void scxfree (void *p)
 {
     assert (p && "scxfree: NULL");
     free(p);

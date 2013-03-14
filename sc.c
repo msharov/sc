@@ -309,7 +309,7 @@ int main (int argc, char** argv)
     if (eopt)
 	rndtoeven = 1;
     if (popt) {
-	char *redraw = NULL;
+	const char* redraw = NULL;
 	int o;
 
 	optind = 1;
@@ -1139,7 +1139,7 @@ int main (int argc, char** argv)
 			    FILE *f;
 			    int pid;
 			    char px[MAXCMD];
-			    char *pager;
+			    const char *pager;
 
 			    strcpy(px, "| ");
 			    if (!(pager = getenv("PAGER")))
@@ -1527,8 +1527,8 @@ int main (int argc, char** argv)
 		    error(" ");
 		    sprintf(line, "color %d = ", c);
 		    linelim = strlen(line);
-		    if (cpairs[c-1] && cpairs[c-1]->expr) {
-			decompile(cpairs[c-1]->expr, 0);
+		    if (cpairs[c-1].expr) {
+			decompile(cpairs[c-1].expr, 0);
 			line[linelim] = '\0';
 			edit_mode();
 		    } else {
@@ -1971,27 +1971,23 @@ static void signals (void)
 }
 
 // check if tbl was modified and ask to save
-int modcheck (char *endstr)
+int modcheck (const char* endstr)
 {
+    int yn_ans;
     if (modflg && curfile[0]) {
-	int	yn_ans;
-	char	lin[100];
-
-	sprintf(lin,"File \"%s\" is modified, save%s? ",curfile,endstr);
+	char lin[100];
+	snprintf (lin, sizeof(lin), "File \"%s\" is modified, save%s? ", curfile, endstr);
 	if ((yn_ans = yn_ask(lin)) < 0)
-		return(1);
-	else if (yn_ans == 1) {
-	    if (writefile(curfile, 0, 0, maxrow, maxcol) < 0)
- 		return (1);
-	}
+	    return (1);
+	else if (yn_ans == 1 && writefile(curfile, 0, 0, maxrow, maxcol) < 0)
+	    return (1);
     } else if (modflg) {
-	int	yn_ans;
 	if ((yn_ans = yn_ask("Do you want a chance to save the data? ")) < 0)
-		return(1);
+	    return (1);
 	else
-		return(yn_ans);
+	    return (yn_ans);
     }
-    return(0);
+    return (0);
 }
 
 // Returns 1 if cell is locked, 0 otherwise

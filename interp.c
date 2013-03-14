@@ -34,22 +34,22 @@ int	rowoffset = 0, coloffset = 0;	// row & col offsets for range functions
 extern bool decimal;	// Set if there was a decimal point in the number
 
 // a linked list of free [struct enodes]'s, uses .e.o.left as the pointer
-struct enode *freeenodes = NULL;
+struct enode* freeenodes = NULL;
 
-static double	dolookup(struct enode * val, int minr, int minc, int maxr, int maxc, int offr, int offc);
-static double	fn1_eval(double (*fn)(), double arg);
-static double	fn2_eval(double (*fn)(), double arg1, double arg2);
-static int	RealEvalAll();
-static int	constant(struct enode *e);
-static void	RealEvalOne(struct ent *p, int i, int j, int *chgct);
-static void	copydbuf(int deltar, int deltac);
-static void	index_arg(char *s, struct enode *e);
-static void	list_arg(char *s, struct enode *e);
-static void	one_arg(char *s, struct enode *e);
-static void	range_arg(char *s, struct enode *e);
-static void	three_arg(char *s, struct enode *e);
-static void	two_arg(char *s, struct enode *e);
-static void	two_arg_index(char *s, struct enode *e);
+static double	dolookup (struct enode* val, int minr, int minc, int maxr, int maxc, int offr, int offc);
+static double	fn1_eval (double (*fn)(), double arg);
+static double	fn2_eval (double (*fn)(), double arg1, double arg2);
+static int	RealEvalAll (void);
+static int	constant (struct enode* e);
+static void	RealEvalOne (struct ent* p, int i, int j, int* chgct);
+static void	copydbuf (int deltar, int deltac);
+static void	index_arg (const char* s, struct enode* e);
+static void	list_arg (const char* s, struct enode* e);
+static void	one_arg (const char* s, struct enode* e);
+static void	range_arg (const char* s, struct enode* e);
+static void	three_arg (const char* s, struct enode* e);
+static void	two_arg (const char* s, struct enode* e);
+static void	two_arg_index (const char* s, struct enode* e);
 
 double	rint(double d);
 int	cellerror = CELLOK;	// is there an error in this cell
@@ -64,7 +64,7 @@ static double finfunc (int fun, double v1, double v2, double v3)
     switch (fun) {
 	case PV:
 	    if (v2)
-		answer = v1 * (1 - 1/p) / v2;
+		answer = v1*(1 - 1/p) / v2;
 	    else {
 		cellerror = CELLERROR;
 		answer = (double)0;
@@ -72,7 +72,7 @@ static double finfunc (int fun, double v1, double v2, double v3)
 	    break;
 	case FV:
 	    if (v2)
-		answer = v1 * (p - 1) / v2;
+		answer = v1*(p - 1) / v2;
 	    else {
 		cellerror = CELLERROR;
 		answer = (double)0;
@@ -81,7 +81,7 @@ static double finfunc (int fun, double v1, double v2, double v3)
 	case PMT:
 	    // CHECK IF ~= 1 - 1/1
 	    if (p && p != (double)1)
-		answer = v1 * v2 / (1 - 1/p);
+		answer = v1*v2 / (1 - 1/p);
 	    else {
 		cellerror = CELLERROR;
 		answer = (double)0;
@@ -96,11 +96,11 @@ static double finfunc (int fun, double v1, double v2, double v3)
     return (answer);
 }
 
-static char* dostindex(int minr, int minc, int maxr, int maxc, struct enode *val)
+static char* dostindex(int minr, int minc, int maxr, int maxc, struct enode* val)
 {
     int r, c;
-    struct ent *p;
-    char *pr;
+    struct ent* p;
+    char* pr;
 
     p = NULL;
     if (minr == maxr) {			// look along the row
@@ -123,13 +123,13 @@ static char* dostindex(int minr, int minc, int maxr, int maxc, struct enode *val
 	    cellerror = CELLINVALID;
 	return (pr);
     } else
-	return ((char *)0);
+	return ((char* )0);
 }
 
-static double doindex (int minr, int minc, int maxr, int maxc, struct enode *val)
+static double doindex (int minr, int minc, int maxr, int maxc, struct enode* val)
 {
     int r, c;
-    struct ent *p;
+    struct ent* p;
 
     if (val->op == ',') {		// index by both row and column
 	r = minr + (int) eval(val->e.o.left) - 1;
@@ -154,13 +154,13 @@ static double doindex (int minr, int minc, int maxr, int maxc, struct enode *val
 	return (double) 0;
 }
 
-static double dolookup (struct enode * val, int minr, int minc, int maxr, int maxc, int offset, int vflag)
+static double dolookup (struct enode*val, int minr, int minc, int maxr, int maxc, int offset, int vflag)
 {
     double v, ret = (double)0;
     int r, c;
-    struct ent *p = (struct ent *)0;
+    struct ent* p = (struct ent *)0;
     int incr, incc, fndr, fndc;
-    char *s;
+    char* s;
 
     incr = vflag; incc = 1 - vflag;
     if (etype(val) == NUM) {
@@ -194,7 +194,7 @@ static double dolookup (struct enode * val, int minr, int minc, int maxr, int ma
 		    fndr = incc ? (minr + offset) : r;
 		    fndc = incr ? (minc + offset) : c;
 		    if (ISVALID(fndr,fndc)) {
-		    	p = *ATBL(tbl, fndr, fndc);
+			p = *ATBL(tbl, fndr, fndc);
 			if (p->cellerror)
 				cellerror = CELLINVALID;
 		    } else {
@@ -212,12 +212,12 @@ static double dolookup (struct enode * val, int minr, int minc, int maxr, int ma
     return ret;
 }
 
-static double docount (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double docount (int minr, int minc, int maxr, int maxc, struct enode* e)
 {
     int v;
     int r, c;
     int cellerr = CELLOK;
-    struct ent *p;
+    struct ent* p;
 
     v = 0;
     for (r = minr; r<=maxr; r++)
@@ -238,12 +238,12 @@ static double docount (int minr, int minc, int maxr, int maxc, struct enode *e)
     return v;
 }
 
-static double dosum (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double dosum (int minr, int minc, int maxr, int maxc, struct enode* e)
 {
     double v;
     int r, c;
     int cellerr = CELLOK;
-    struct ent *p;
+    struct ent* p;
 
     v = (double)0;
     for (r = minr; r<=maxr; r++)
@@ -264,12 +264,12 @@ static double dosum (int minr, int minc, int maxr, int maxc, struct enode *e)
     return v;
 }
 
-static double doprod (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double doprod (int minr, int minc, int maxr, int maxc, struct enode* e)
 {
     double v;
     int r, c;
     int cellerr = CELLOK;
-    struct ent *p;
+    struct ent* p;
 
     v = 1;
     for (r = minr; r<=maxr; r++)
@@ -290,13 +290,13 @@ static double doprod (int minr, int minc, int maxr, int maxc, struct enode *e)
     return v;
 }
 
-static double doavg (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double doavg (int minr, int minc, int maxr, int maxc, struct enode* e)
 {
     double v;
     int r, c;
     int count;
     int cellerr = CELLOK;
-    struct ent *p;
+    struct ent* p;
 
     v = (double)0;
     count = 0;
@@ -326,13 +326,13 @@ static double doavg (int minr, int minc, int maxr, int maxc, struct enode *e)
     return (v / (double)count);
 }
 
-static double dostddev (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double dostddev (int minr, int minc, int maxr, int maxc, struct enode* e)
 {
     double lp, rp, v, nd;
     int r, c;
     int n;
     int cellerr = CELLOK;
-    struct ent *p;
+    struct ent* p;
 
     n = 0;
     lp = 0;
@@ -363,13 +363,13 @@ static double dostddev (int minr, int minc, int maxr, int maxc, struct enode *e)
     return (sqrt((nd*lp-rp*rp)/(nd*(nd-1))));
 }
 
-static double domax (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double domax (int minr, int minc, int maxr, int maxc, struct enode* e)
 {
     double v = (double)0;
     int r, c;
     int count;
     int cellerr = CELLOK;
-    struct ent *p;
+    struct ent* p;
 
     count = 0;
     for (r = minr; r<=maxr; r++)
@@ -399,13 +399,13 @@ static double domax (int minr, int minc, int maxr, int maxc, struct enode *e)
     return (v);
 }
 
-static double domin (int minr, int minc, int maxr, int maxc, struct enode *e)
+static double domin (int minr, int minc, int maxr, int maxc, struct enode* e)
 {
     double v = (double)0;
     int r, c;
     int count;
     int cellerr = CELLOK;
-    struct ent *p;
+    struct ent* p;
 
     count = 0;
     for (r = minr; r<=maxr; r++)
@@ -484,7 +484,7 @@ static double dotime (int which, double when)
 {
 	static time_t t_cache;
 	static struct tm tm_cache;
-	struct tm *tp;
+	struct tm* tp;
 	time_t tloc;
 
 	if (which == NOW) 
@@ -513,7 +513,7 @@ static double dotime (int which, double when)
 	return ((double)0);
 }
 
-static double doston (char *s)
+static double doston (char* s)
 {
     if (!s)
 	return (0.0);
@@ -522,7 +522,7 @@ static double doston (char *s)
     return(v);
 }
 
-static double doeqs (char *s1, char *s2)
+static double doeqs (char* s1, char *s2)
 {
     double v;
     if (!s1 && !s2)
@@ -545,7 +545,7 @@ static double doeqs (char *s1, char *s2)
 // Given a string representing a column name and a value which is a row
 // number, return a pointer to the selected cell's entry, if any, else NULL.
 // Use only the integer part of the column number.  Always free the string.
-static struct ent* getent (char *colstr, double rowdoub)
+static struct ent* getent (char* colstr, double rowdoub)
 {
     int collen;			// length of string
     int row, col;		// integer values
@@ -553,7 +553,7 @@ static struct ent* getent (char *colstr, double rowdoub)
 
     if (!colstr) {
     	cellerror = CELLERROR;
-	return ((struct ent *)0);
+	return ((struct ent* )0);
     }
 
     if (((row = (int) floor(rowdoub)) >= 0)
@@ -571,16 +571,16 @@ static struct ent* getent (char *colstr, double rowdoub)
 
 // Given a string representing a column name and a value which is a column
 // number, return the selected cell's numeric value, if any.
-static double donval (char *colstr, double rowdoub)
+static double donval (char* colstr, double rowdoub)
 {
-    struct ent *ep;
+    struct ent* ep;
     return (((ep = getent(colstr, rowdoub)) && ((ep->flags) & is_valid)) ?  (ep->v) : (double)0);
 }
 
 //	The list routines (e.g. dolmax) are called with an LMAX enode.
 //	The left pointer is a chain of ELIST nodes, the right pointer
 //	is a value.
-static double dolmax (struct enode *ep)
+static double dolmax (struct enode* ep)
 {
     int count = 0;
     double maxval = 0;
@@ -594,7 +594,7 @@ static double dolmax (struct enode *ep)
     return (count ? maxval : 0.0);
 }
 
-static double dolmin (struct enode *ep)
+static double dolmin (struct enode* ep)
 {
     int count = 0;
     double minval = 0;
@@ -608,7 +608,7 @@ static double dolmin (struct enode *ep)
     return (count ? minval : 0.0);
 }
 
-double eval (struct enode *e)
+double eval (struct enode* e)
 {
     if (!e) {
     	cellerror = CELLINVALID;
@@ -622,7 +622,7 @@ double eval (struct enode *e)
 			r = eval(e->e.o.right);
 			return l - r;
 			}
-	case '*':	return (eval(e->e.o.left) * eval(e->e.o.right));
+	case '*':	return (eval(e->e.o.left)*eval(e->e.o.right));
 	case '/':	{
 			double num, denom;
 			num = eval(e->e.o.left);
@@ -685,7 +685,7 @@ double eval (struct enode *e)
 			}
 			return (e->e.k);
 	case O_VAR:	{
-			struct ent *vp = e->e.v.vp;
+			struct ent* vp = e->e.v.vp;
 			int row, col;
 			if (vp && (rowoffset || coloffset)) {
 			    row = e->e.v.vf & FIX_ROW ? vp->row
@@ -802,7 +802,7 @@ double eval (struct enode *e)
 		    do scale /= 10; while (++precis < 0);
 
 		if (rndtoeven)
-		    return (rint(eval(e->e.o.left) * scale) / scale);
+		    return (rint(eval(e->e.o.left)*scale) / scale);
 		else {
 		    double temp = eval(e->e.o.left);
 		    temp *= scale;
@@ -887,7 +887,7 @@ static double fn2_eval (double (*fn)(), double arg1, double arg2)
 // Rules for string functions:
 // Take string arguments which they scxfree.
 // All returned strings are assumed to be xalloced.
-static char* docat (char *s1, char *s2)
+static char* docat (char* s1, char *s2)
 {
     if (!s1 && !s2)
 	return (NULL);
@@ -934,16 +934,16 @@ static char* dofmt (char* fmtstr, double v)
 // allocated string in all cases, even if null, insures cell expressions are
 // written to files, etc.
 
-static char* doext (struct enode *se)
+static char* doext (struct enode* se)
 {
     char buff[FBUFLEN];		// command line/return, not permanently alloc
-    char *command;
+    char* command;
     double value;
 
     command = seval(se->e.o.left);
     value = eval(se->e.o.right);
     if (!extfunc) {
-	error("Warning: external functions disabled; using %s value", (se->e.o.s && *se->e.o.s) ? "previous" : "null");
+	error("Warning: external functions disabled; using %s value", (se->e.o.s &&* se->e.o.s) ? "previous" : "null");
 	if (command)
 	    scxfree(command);
     } else if (!command || !*command) {
@@ -952,7 +952,7 @@ static char* doext (struct enode *se)
 	if (command)
 	    scxfree(command);
     } else {
-	FILE *pp;
+	FILE* pp;
 
 	sprintf(buff, "%s %g", command, value); // build cmd line
 	scxfree(command);
@@ -960,13 +960,13 @@ static char* doext (struct enode *se)
 	error("Running external function...");
 	refresh();
 
-	if ((pp = popen(buff, "r")) == (FILE *) NULL) {	// run it
+	if ((pp = popen(buff, "r")) == (FILE* ) NULL) {	// run it
 	    error("Warning: running \"%s\" failed", buff);
 	    cellerror = CELLERROR;
 	} else if (fgets(buff, sizeof(buff)-1, pp) == NULL)	// one line
 	    error("Warning: external function returned nothing");
 	else {
-	    char *cp;
+	    char* cp;
 	    error(" ");				// erase notice
 	    buff[sizeof(buff)-1] = '\0';
 	    if ((cp = strchr(buff, '\n')))	// contains newline
@@ -978,25 +978,25 @@ static char* doext (struct enode *se)
 	pclose(pp);
     } // else
     if (se->e.o.s)
-	return (strcpy(scxmalloc((size_t) (strlen(se->e.o.s)+1)), se->e.o.s));
+	return (strdup (se->e.o.s));
     else
-	return (strcpy(scxmalloc((size_t)1), ""));
+	return (strdup (""));
 }
 
 // Given a string representing a column name and a value which is a column
 // number, return the selected cell's string value, if any.  Even if none,
 // still allocate and return a null string so the cell has a label value so
 // the expression is saved in a file, etc.
-static char* dosval (char *colstr, double rowdoub)
+static char* dosval (char* colstr, double rowdoub)
 {
-    struct ent *ep;
-    char* llabel = (ep = getent(colstr, rowdoub)) ? (ep -> label) : "";
-    return (strcpy(scxmalloc((size_t) (strlen(llabel) + 1)), llabel));
+    struct ent* ep;
+    const char* llabel = (ep = getent(colstr, rowdoub)) ? (ep -> label) : "";
+    return (strdup(llabel));
 }
 
 // Substring:  Note that v1 and v2 are one-based to users, but zero-based
 // when calling this routine.
-static char* dosubstr (char *s, int v1, int v2)
+static char* dosubstr (char* s, int v1, int v2)
 {
     if (!s)
 	return (NULL);
@@ -1015,19 +1015,19 @@ static char* dosubstr (char *s, int v1, int v2)
     char* s1 = &s[v1];
     for (; v1 <= v2; s1++, s2++, v1++)
 	*s2 = *s1;
-    *s2 = '\0';
+   * s2 = '\0';
     scxfree(s);
     return(p);
 }
 
 // character casing: make upper case, make lower case
-static char* docase (int acase, char *s)
+static char* docase (int acase, char* s)
 {
-    char *p = s;
+    char* p = s;
     if (s == NULL)
 	return(NULL);
     if (acase == UPPER) {
-        while( *p != '\0' ) {
+        while(* p != '\0' ) {
            if( islower(*p) )
 		*p = toupper(*p);
 	   p++;
@@ -1047,24 +1047,24 @@ static char* docase (int acase, char *s)
 // if the string has mixed case we say the string is lower
 //	and we will upcase only first letters of words
 // if the string is all upper we will lower rest of words.
-static char* docapital (char *s)
+static char* docapital (char* s)
 {
-    char *p;
+    char* p;
     int skip = 1;
     int AllUpper = 1;
 
     if (s == NULL)
 	return (NULL);
-    for (p = s; *p != '\0' && AllUpper != 0; p++)
+    for (p = s;* p != '\0' && AllUpper != 0; p++)
 	if (isalpha(*p) && islower(*p))  AllUpper = 0;
-    for (p = s; *p != '\0'; p++) {
+    for (p = s;* p != '\0'; p++) {
 	if (!isalnum(*p))
 	    skip = 1;
 	else {
 	    if (skip == 1) {
 		skip = 0;
 		if (islower(*p))
-		    *p = toupper(*p);
+		   * p = toupper(*p);
 	    } else if (isupper(*p) && AllUpper != 0) // if the string was all upper before
 		*p = tolower(*p);
 	}
@@ -1072,16 +1072,16 @@ static char* docapital (char *s)
     return (s);
 }
 
-char* seval (struct enode *se)
+char* seval (struct enode* se)
 {
-    char *p;
-    if (se == (struct enode *)0) return (char *)0;
+    char* p;
+    if (se == (struct enode* )0) return (char *)0;
     switch (se->op) {
 	case O_SCONST: p = scxmalloc((size_t)(strlen(se->e.s)+1));
 		     strcpy(p, se->e.s);
 		     return (p);
 	case O_VAR:    {
-			struct ent *vp = se->e.v.vp;
+			struct ent* vp = se->e.v.vp;
 			int row, col;
 			if (vp && (rowoffset || coloffset)) {
 			    row = se->e.v.vf & FIX_ROW ? vp->row
@@ -1101,7 +1101,7 @@ char* seval (struct enode *se)
 	case 'f':    {
 		     int rtmp = rowoffset;
 		     int ctmp = coloffset;
-		     char *ret;
+		     char* ret;
 		     rowoffset = coloffset = 0;
 		     ret = seval(se->e.o.left);
 		     rowoffset = rtmp;
@@ -1139,7 +1139,7 @@ char* seval (struct enode *se)
 				   coltoa((int)eval(se->e.o.left))));
 	case FILENAME: {
 		     int n = eval(se->e.o.left);
-		     char *s = strrchr(curfile, '/');
+		     char* s = strrchr(curfile, '/');
 
 		     if (n || s++ == NULL) s = curfile;
 		     p = scxmalloc((size_t)(strlen(s)+1));
@@ -1175,7 +1175,7 @@ void setiterations (int i)
 
 void EvalAll (void)
 {
-    int lastcnt, pair, v;
+    int lastcnt, v;
   
     repct = 1;
     signal(SIGFPE, eval_fpe);
@@ -1185,13 +1185,13 @@ void EvalAll (void)
  	error("Still changing after %d iterations", repct - 1);
 
     if (usecurses && color && has_colors()) {
-	for (pair = 0; pair < 8; pair++) {
+	for (unsigned pair = 0; pair < ArraySize(cpairs); pair++) {
 	    cellerror = CELLOK;
-	    if (cpairs[pair] && cpairs[pair]->expr) {
-		v = (int) eval(cpairs[pair]->expr);
-		cpairs[pair]->fg = v & 7;
-		cpairs[pair]->bg = (v >> 3) & 7;
-		init_pair(pair + 1, cpairs[pair]->fg, cpairs[pair]->bg);
+	    if (cpairs[pair].expr) {
+		v = (int) eval(cpairs[pair].expr);
+		cpairs[pair].fg = v & 7;
+		cpairs[pair].bg = (v >> 3) & 7;
+		init_pair(pair+1, cpairs[pair].fg, cpairs[pair].bg);
 	    }
 	    // Can't see to fix the problem if color 1 has an error, so
 	    // turn off color in that case.
@@ -1212,7 +1212,7 @@ static int RealEvalAll (void)
 {
     int i,j;
     int chgct = 0;
-    struct ent *p;
+    struct ent* p;
 
     if (calc_order == BYROWS) {
 	for (i=0; i<=maxrow; i++)
@@ -1232,16 +1232,16 @@ static int RealEvalAll (void)
     return (chgct);
 }
 
-static void RealEvalOne (struct ent *p, int i, int j, int *chgct)
+static void RealEvalOne (struct ent* p, int i, int j, int *chgct)
 {
     gmyrow=i; gmycol=j;
 
     if (p->flags & is_strexpr) {
-	char *v;
+	char* v;
 	if (setjmp(fpe_save)) {
 	    error("Floating point exception %s", v_name(i, j));
 	    cellerror = CELLERROR;
-	    v = "";
+	    v = strdup("");
 	} else {
 	    cellerror = CELLOK;
 	    v = seval(p->expr);
@@ -1280,9 +1280,9 @@ static void RealEvalOne (struct ent *p, int i, int j, int *chgct)
     }
 }
 
-struct enode* new (int op, struct enode *a1, struct enode *a2)
+struct enode* new (int op, struct enode* a1, struct enode *a2)
 {
-    struct enode *p;
+    struct enode* p;
     if (freeenodes) {
     	p = freeenodes;
 	freeenodes = p->e.o.left;
@@ -1297,7 +1297,7 @@ struct enode* new (int op, struct enode *a1, struct enode *a2)
 
 struct enode* new_var (int op, struct ent_ptr a1)
 {
-    struct enode *p;
+    struct enode* p;
     if (freeenodes) {
     	p = freeenodes;
 	freeenodes = p->e.o.left;
@@ -1310,7 +1310,7 @@ struct enode* new_var (int op, struct ent_ptr a1)
 
 struct enode* new_range (int op, struct range_s a1)
 {
-    struct enode *p;
+    struct enode* p;
     if (freeenodes) {
 	p = freeenodes;
 	freeenodes = p->e.o.left;
@@ -1323,12 +1323,12 @@ struct enode* new_range (int op, struct range_s a1)
 
 struct enode* new_const (int op, double a1)
 {
-    struct enode *p;
+    struct enode* p;
     if (freeenodes) {	// reuse an already free'd enode
 	p = freeenodes;
 	freeenodes = p->e.o.left;
     } else
-	p = (struct enode *) scxmalloc((size_t)sizeof(struct enode));
+	p = (struct enode* ) scxmalloc((size_t)sizeof(struct enode));
     p->op = op;
     p->e.k = a1;
     return p;
@@ -1336,20 +1336,20 @@ struct enode* new_const (int op, double a1)
 
 struct enode* new_str (char* s)
 {
-    struct enode *p;
+    struct enode* p;
     if (freeenodes) {	// reuse an already free'd enode
     	p = freeenodes;
 	freeenodes = p->e.o.left;
     } else
-	p = (struct enode *) scxmalloc (sizeof(struct enode));
+	p = (struct enode* ) scxmalloc (sizeof(struct enode));
     p->op = O_SCONST;
     p->e.s = s;
     return (p);
 }
 
-void copy (struct ent *dv1, struct ent *dv2, struct ent *v1, struct ent *v2)
+void copy (struct ent* dv1, struct ent *dv2, struct ent *v1, struct ent *v2)
 {
-    struct ent *p;
+    struct ent* p;
     static int minsr = -1, minsc = -1;
     static int maxsr = -1, maxsc = -1;
     int mindr, mindc;
@@ -1468,8 +1468,8 @@ void copy (struct ent *dv1, struct ent *dv2, struct ent *v1, struct ent *v2)
 static void copydbuf (int deltar, int deltac)
 {
     int vr, vc;
-    struct ent *p = delbuf[dbidx];
-    struct ent *n;
+    struct ent* p = delbuf[dbidx];
+    struct ent* n;
 
     while (p) {
 	vr = p->row + deltar;
@@ -1482,10 +1482,10 @@ static void copydbuf (int deltar, int deltac)
 }
 
 // ERASE a Range of cells
-void eraser (struct ent *v1, struct ent *v2)
+void eraser (struct ent* v1, struct ent *v2)
 {
     int i;
-    struct ent *obuf = NULL;
+    struct ent* obuf = NULL;
 
     if (dbidx < 0) dbidx++;
     delbuf[dbidx] = delbuf[DELBUFSIZE - 1];
@@ -1526,10 +1526,10 @@ void eraser (struct ent *v1, struct ent *v2)
 }
 
 // YANK a Range of cells
-void yankr (struct ent *v1, struct ent *v2)
+void yankr (struct ent* v1, struct ent *v2)
 {
     int i, qtmp;
-    struct ent *obuf = NULL;
+    struct ent* obuf = NULL;
 
     if (dbidx < 0) dbidx++;
     delbuf[dbidx] = delbuf[DELBUFSIZE - 10];
@@ -1566,7 +1566,7 @@ void yankr (struct ent *v1, struct ent *v2)
 }
 
 // MOVE a Range of cells
-void mover (struct ent *d, struct ent *v1, struct ent *v2)
+void mover (struct ent* d, struct ent *v1, struct ent *v2)
 {
     move_area(d->row, d->col, v1->row, v1->col, v2->row, v2->col);
     sync_refs();
@@ -1663,7 +1663,7 @@ void moveto (int row, int col, int lastrow, int lastcol, int cornerrow, int corn
 // 'goto' either a given number,'error', or 'invalid' starting at currow,curcol
 void num_search (double n, int firstrow, int firstcol, int lastrow, int lastcol, int errsearch)
 {
-    struct ent *p;
+    struct ent* p;
     int r,c;
     int	endr, endc;
 
@@ -1725,7 +1725,7 @@ void num_search (double n, int firstrow, int firstcol, int lastrow, int lastcol,
 }
 
 // 'goto' a cell containing a matching string
-void str_search (char *s, int firstrow, int firstcol, int lastrow, int lastcol, int num)
+void str_search (char* s, int firstrow, int firstcol, int lastrow, int lastcol, int num)
 {
     struct ent	*p;
     int		r, c;
@@ -1767,7 +1767,7 @@ void str_search (char *s, int firstrow, int firstcol, int lastrow, int lastcol, 
 	    c++;
 	} else {
 	    if (r < lastrow) {
-		while (++r < lastrow && row_hidden[r]) // */;
+		while (++r < lastrow && row_hidden[r]) //* /;
 		c = firstcol;
 	    } else {
 		r = firstrow;
@@ -1776,7 +1776,7 @@ void str_search (char *s, int firstrow, int firstcol, int lastrow, int lastcol, 
 	}
 	p = *ATBL(tbl, r, c);
 	if (gs.g_type == G_NSTR) {
-	    *line = '\0';
+	   * line = '\0';
 	    if (p) {
 		if (p->cellerror)
 		    sprintf(line, "%s", p->cellerror == CELLERROR ?
@@ -1796,13 +1796,13 @@ void str_search (char *s, int firstrow, int firstcol, int lastrow, int lastcol, 
 		}
 	    }
 	} else if (gs.g_type == G_XSTR) {
-	    *line = '\0';
+	   * line = '\0';
 	    if (p && p->expr) {
 		linelim = 0;
 		decompile(p->expr, 0);	// set line to expr
 		line[linelim] = '\0';
 		if (*line == '?')
-		    *line = '\0';
+		   * line = '\0';
 	    }
 	}
 	if (!col_hidden[c]) {
@@ -1833,10 +1833,10 @@ void str_search (char *s, int firstrow, int firstcol, int lastrow, int lastcol, 
 }
 
 // fill a range with constants
-void fill (struct ent *v1, struct ent *v2, double start, double inc)
+void fill (struct ent* v1, struct ent *v2, double start, double inc)
 {
     int r, c;
-    struct ent *n;
+    struct ent* n;
     int maxr, maxc;
     int minr, minc;
 
@@ -1880,10 +1880,10 @@ void fill (struct ent *v1, struct ent *v2, double start, double inc)
 }
 
 // lock a range of cells
-void lock_cells (struct ent *v1, struct ent *v2)
+void lock_cells (struct ent* v1, struct ent *v2)
 {
     int r, c;
-    struct ent *n;
+    struct ent* n;
     int maxr, maxc;
     int minr, minc;
 
@@ -1906,10 +1906,10 @@ void lock_cells (struct ent *v1, struct ent *v2)
 }
 
 // unlock a range of cells
-void unlock_cells (struct ent *v1, struct ent *v2)
+void unlock_cells (struct ent* v1, struct ent *v2)
 {
     int r, c;
-    struct ent *n;
+    struct ent* n;
     int maxr, maxc;
     int minr, minc;
 
@@ -1932,7 +1932,7 @@ void unlock_cells (struct ent *v1, struct ent *v2)
 }
 
 // set the numeric part of a cell
-void let (struct ent *v, struct enode *e)
+void let (struct ent* v, struct enode *e)
 {
     double val;
     unsigned isconstant = constant(e);
@@ -1978,7 +1978,7 @@ void let (struct ent *v, struct enode *e)
 
 	if (!(v->flags & is_strexpr)) {
             efree(v->expr);
-	    v->expr = (struct enode *)0;
+	    v->expr = (struct enode* )0;
 	}
 	efree(e);
     } else {
@@ -2004,9 +2004,9 @@ void let (struct ent *v, struct enode *e)
     }
 }
 
-void slet (struct ent *v, struct enode *se, int flushdir)
+void slet (struct ent* v, struct enode *se, int flushdir)
 {
-    char *p;
+    char* p;
     if (locked_cell(v->row, v->col))
 	return;
     if (v->row == currow && v->col == curcol)
@@ -2016,7 +2016,7 @@ void slet (struct ent *v, struct enode *se, int flushdir)
     if (setjmp(fpe_save)) {
 	error ("Floating point exception in cell %s", v_name(v->row, v->col));
 	cellerror = CELLERROR;
-	p = "";
+	p = strdup("");
     } else {
 	cellerror = CELLOK;
 	p = seval(se);
@@ -2054,7 +2054,7 @@ void slet (struct ent *v, struct enode *se, int flushdir)
 	efree(se);
 	if (v->flags & is_strexpr) {
             efree(v->expr);
-	    v->expr = (struct enode *)0;
+	    v->expr = (struct enode* )0;
 	    v->flags &= ~is_strexpr;
 	}
 	return;
@@ -2073,10 +2073,10 @@ void slet (struct ent *v, struct enode *se, int flushdir)
     modflg++;
 }
 
-void format_cell (struct ent *v1, struct ent *v2, char *s)
+void format_cell (struct ent* v1, struct ent *v2, char *s)
 {
     int r, c;
-    struct ent *n;
+    struct ent* n;
     int maxr, maxc;
     int minr, minc;
 
@@ -2101,7 +2101,7 @@ void format_cell (struct ent *v1, struct ent *v2, char *s)
 	    if (n->format)
 		scxfree(n->format);
 	    n->format = 0;
-	    if (s && *s != '\0')
+	    if (s &&* s != '\0')
 		n->format = strcpy(scxmalloc((unsigned)(strlen(s)+1)), s);
 	    n->flags |= is_changed;
 	}
@@ -2140,7 +2140,7 @@ void hide_col (int arg)
     col_hidden[arg] = TRUE;
 }
 
-void clearent (struct ent *v)
+void clearent (struct ent* v)
 {
     if (!v)
 	return;
@@ -2158,7 +2158,7 @@ void clearent (struct ent *v)
 }
 
 // Say if an expression is a constant (return 1) or not.
-static int constant (struct enode *e)
+static int constant (struct enode* e)
 {
     return (
 	 e == NULL
@@ -2185,7 +2185,7 @@ static int constant (struct enode *e)
     );
 }
 
-void efree (struct enode *e)
+void efree (struct enode* e)
 {
     if (e) {
 	if (e->op != O_VAR && e->op != O_CONST && e->op != O_SCONST && !(e->op & REDUCE)) {
@@ -2201,23 +2201,23 @@ void efree (struct enode *e)
     }
 }
 
-void label (struct ent *v, char *s, int flushdir)
+void label (struct ent* v, const char* s, int flushdir)
 {
     if (v) {
 	if (flushdir==0 && v->flags&is_valid) {
-	    struct ent *tv;
+	    struct ent* tv;
 	    if (v->col>0 && ((tv=lookat(v->row,v->col-1))->flags&is_valid)==0)
 		v = tv, flushdir = 1;
 	    else if (((tv=lookat(v->row,v->col+1))->flags&is_valid)==0)
 		v = tv, flushdir = -1;
 	    else flushdir = -1;
 	}
-	if (v->label) scxfree((char *)(v->label));
+	if (v->label) scxfree((char* )(v->label));
 	if (s && s[0]) {
 	    v->label = scxmalloc((unsigned)(strlen(s)+1));
 	    strcpy (v->label, s);
 	} else
-	    v->label = (char *)0;
+	    v->label = (char* )0;
 	if (flushdir<0) v->flags |= is_leftflush;
 	else v->flags &= ~is_leftflush;
 	if (flushdir==0) v->flags |= is_label;
@@ -2229,11 +2229,11 @@ void label (struct ent *v, char *s, int flushdir)
 
 static void decodev (struct ent_ptr v)
 {
-    struct range *r;
+    struct range* r;
 
     if (!v.vp || v.vp->flags & is_deleted)
 	sprintf(line + linelim, "@ERR");
-    else if (!find_range((char *)0, 0, v.vp, v.vp, &r) && !r->r_is_range)
+    else if (!find_range((char* )0, 0, v.vp, v.vp, &r) && !r->r_is_range)
 	sprintf(line+linelim, "%s", r->r_name);
     else {
 	sprintf(line+linelim, "%s%s%s%d",
@@ -2248,20 +2248,20 @@ static void decodev (struct ent_ptr v)
 char* coltoa (int col)
 {
     static char rname[3];
-    char *p = rname;
+    char* p = rname;
     if (col > 25) {
 	*p++ = col/26 + 'A' - 1;
 	col %= 26;
     }
-    *p++ = col+'A';
-    *p = '\0';
+   * p++ = col+'A';
+   * p = '\0';
     return (rname);
 }
 
 // To make list elements come out in the same order
 // they were entered, we must do a depth-first eval
 // of the ELIST tree
-static void decompile_list (struct enode *p)
+static void decompile_list (struct enode* p)
 {
     if (!p) return;
     decompile_list(p->e.o.left);	// depth first
@@ -2269,9 +2269,9 @@ static void decompile_list (struct enode *p)
     line[linelim++] = ',';
 }
 
-void decompile (struct enode *e, int priority)
+void decompile (struct enode* e, int priority)
 {
-    char *s;
+    const char* s;
     if (e) {
 	int mypriority;
 	switch (e->op) {
@@ -2435,7 +2435,7 @@ void decompile (struct enode *e, int priority)
     } else line[linelim++] = '?';
 }
 
-static void index_arg (char *s, struct enode *e)
+static void index_arg (const char* s, struct enode* e)
 {
     if (e->e.o.right && e->e.o.right->op == ',') {
 	two_arg_index(s, e);
@@ -2452,7 +2452,7 @@ static void index_arg (char *s, struct enode *e)
     line[linelim++] = ')';
 }
 
-static void two_arg_index (char *s, struct enode *e)
+static void two_arg_index (const char* s, struct enode* e)
 {
     for (; (line[linelim++] = *s++); );
     linelim--;
@@ -2465,7 +2465,7 @@ static void two_arg_index (char *s, struct enode *e)
     line[linelim++] = ')';
 }
 
-static void list_arg (char *s, struct enode *e)
+static void list_arg (const char* s, struct enode* e)
 {
     for (; (line[linelim++] = *s++); );
     linelim--;
@@ -2476,7 +2476,7 @@ static void list_arg (char *s, struct enode *e)
     line[linelim - 1] = ')';
 }
 
-static void one_arg (char *s, struct enode *e)
+static void one_arg (const char* s, struct enode* e)
 {
     for (; (line[linelim++] = *s++); );
     linelim--;
@@ -2484,7 +2484,7 @@ static void one_arg (char *s, struct enode *e)
     line[linelim++] = ')';
 }
 
-static void two_arg (char *s, struct enode *e)
+static void two_arg (const char* s, struct enode* e)
 {
     for (; (line[linelim++] = *s++); );
     linelim--;
@@ -2494,7 +2494,7 @@ static void two_arg (char *s, struct enode *e)
     line[linelim++] = ')';
 }
 
-static void three_arg (char *s, struct enode *e)
+static void three_arg (const char* s, struct enode* e)
 {
     for (; (line[linelim++] = *s++); );
     linelim--;
@@ -2506,13 +2506,13 @@ static void three_arg (char *s, struct enode *e)
     line[linelim++] = ')';
 }
 
-static void range_arg (char *s, struct enode *e)
+static void range_arg (const char* s, struct enode* e)
 {
-    struct range *r;
+    struct range* r;
 
     for (; (line[linelim++] = *s++); );
     linelim--;
-    if (!find_range((char *)0, 0, e->e.r.left.vp,
+    if (!find_range((char* )0, 0, e->e.r.left.vp,
 	    e->e.r.right.vp, &r) && r->r_is_range) {
 	sprintf(line+linelim, "%s", r->r_name);
 	linelim += strlen(line+linelim);
@@ -2526,7 +2526,7 @@ static void range_arg (char *s, struct enode *e)
 
 void editfmt (int row, int col)
 {
-    struct ent *p;
+    struct ent* p;
 
     p = lookat(row, col);
     if (p->format) {
@@ -2537,7 +2537,7 @@ void editfmt (int row, int col)
 
 void editv (int row, int col)
 {
-    struct ent *p;
+    struct ent* p;
 
     p = lookat(row, col);
     sprintf(line, "let %s = ", v_name(row, col));
@@ -2553,7 +2553,7 @@ void editv (int row, int col)
 
 void editexp (int row, int col)
 {
-    struct ent *p;
+    struct ent* p;
 
     p = lookat(row, col);
     decompile(p->expr, 0);
@@ -2562,7 +2562,7 @@ void editexp (int row, int col)
 
 void edits (int row, int col)
 {
-    struct ent *p;
+    struct ent* p;
 
     p = lookat(row, col);
     if (p->flags & is_label)

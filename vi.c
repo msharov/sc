@@ -953,7 +953,7 @@ void ins_in_line (int c)
     }
 }
 
-void ins_string (char *s)
+void ins_string (const char* s)
 {
     while (*s)
 	ins_in_line(*s++);
@@ -1253,7 +1253,7 @@ void doshell (void)
     //  "! command"  executes command
     //  "!"	forks a shell
     //  "!!" repeats last command
-    char *shl;
+    const char* shl;
     int pid, temp;
     char cmd[MAXCMD];
     static char lastcmd[MAXCMD];
@@ -1797,7 +1797,7 @@ static void dogoto (void)
 	toggle_navigate_mode();
 }
 
-void query (char *s, char *data)
+void query (const char* s, const char* data)
 {
     int c;
 

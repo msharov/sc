@@ -1204,12 +1204,12 @@ num:		NUMBER		{ $$ = (double) $1; }
 
 strarg:		STRING		{ $$ = $1; }
 	|	var		{
-				    char *s, *s1;
+				    char* s;
+				    const char* s1;
 				    s1 = $1.vp->label;
 				    if (!s1)
 					s1 = "NULL_STRING";
-				    s = scxmalloc((unsigned)strlen(s1)+1);
-				    (void) strcpy(s, s1);
+				    s = strdup(s1);
 				    $$ = s;
 				}
   	;

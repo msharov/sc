@@ -1013,13 +1013,11 @@ void startdisp (void)
 {
     if (!usecurses)
 	return;
-    int i;
     initscr();
     start_color();
     use_default_colors();
-    for (i = 0; i < 8; i++)
-	if (cpairs[i])
-	    init_pair(i + 1, cpairs[i]->fg, cpairs[i]->bg);
+    for (unsigned i = 0; i < ArraySize(cpairs); i++)
+	init_pair(i+1, cpairs[i].fg, cpairs[i].bg);
     if (color && has_colors())
 	bkgdset(COLOR_PAIR(1) | ' ');
     clear();

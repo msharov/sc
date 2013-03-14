@@ -2,104 +2,48 @@
 
 #include "sc.h"
 
-struct colorpair* cpairs[8];
+struct colorpair cpairs [CPAIRS];
 static struct crange* color_base;
 
-void initcolor (int colornum)
+void initcolor (unsigned colornum)
 {
-    if (!colornum) {
-	int i;
-	for (i = 0; i < 8; i++)
-	    cpairs[i] = (struct colorpair*) scxmalloc (sizeof(struct colorpair));
+    static const unsigned char c_DefaultColors [2*ArraySize(cpairs)] = {
+	COLOR_WHITE,	COLOR_BLUE,
+	COLOR_RED,	COLOR_WHITE,	// default for negative numbers
+	COLOR_WHITE,	COLOR_RED,	// default for cells with errors
+	COLOR_BLACK,	COLOR_YELLOW,	// default for '*' marking cells with attached notes
+	COLOR_BLACK,	COLOR_CYAN,
+	COLOR_RED,	COLOR_CYAN,
+	COLOR_DEFAULT,	COLOR_DEFAULT,	// default colors
+	COLOR_RED,	COLOR_DEFAULT
+    };
+    for (unsigned i = 0; i < ArraySize(cpairs); ++i) {
+	if (!colornum || colornum == i+1) {
+	    cpairs[i].fg = c_DefaultColors[2*i+0];
+	    cpairs[i].bg = c_DefaultColors[2*i+1];
+	    cpairs[i].expr = NULL;
+	    init_pair(i+1, cpairs[i].fg, cpairs[i].bg);
+	}
     }
-
-    // default colors
-    if (!colornum || colornum == 1) {
-	cpairs[0]->fg = COLOR_WHITE;
-	cpairs[0]->bg = COLOR_BLUE;
-	cpairs[0]->expr = NULL;
-	init_pair(1, cpairs[0]->fg, cpairs[0]->bg);
-    }
-
-    // default for negative numbers
-    if (!colornum || colornum == 2) {
-	cpairs[1]->fg = COLOR_RED;
-	cpairs[1]->bg = COLOR_WHITE;
-	cpairs[1]->expr = NULL;
-	init_pair(2, cpairs[1]->fg, cpairs[1]->bg);
-    }
-
-    // default for cells with errors
-    if (!colornum || colornum == 3) {
-	cpairs[2]->fg = COLOR_WHITE;
-	cpairs[2]->bg = COLOR_RED;
-	cpairs[2]->expr = NULL;
-	init_pair(3, cpairs[2]->fg, cpairs[2]->bg);
-    }
-
-    // default for '*' marking cells with attached notes
-    if (!colornum || colornum == 4) {
-	cpairs[3]->fg = COLOR_BLACK;
-	cpairs[3]->bg = COLOR_YELLOW;
-	cpairs[3]->expr = NULL;
-	init_pair(4, cpairs[3]->fg, cpairs[3]->bg);
-    }
-
-    if (!colornum || colornum == 5) {
-	cpairs[4]->fg = COLOR_BLACK;
-	cpairs[4]->bg = COLOR_CYAN;
-	cpairs[4]->expr = NULL;
-	init_pair(5, cpairs[4]->fg, cpairs[4]->bg);
-    }
-
-    if (!colornum || colornum == 6) {
-	cpairs[5]->fg = COLOR_RED;
-	cpairs[5]->bg = COLOR_CYAN;
-	cpairs[5]->expr = NULL;
-	init_pair(6, cpairs[5]->fg, cpairs[5]->bg);
-    }
-
-    if (!colornum || colornum == 7) {
-	cpairs[6]->fg = COLOR_DEFAULT;
-	cpairs[6]->bg = COLOR_DEFAULT;
-	cpairs[6]->expr = NULL;
-	init_pair(7, cpairs[6]->fg, cpairs[6]->bg);
-    }
-
-    if (!colornum || colornum == 8) {
-	cpairs[7]->fg = COLOR_RED;
-	cpairs[7]->bg = COLOR_DEFAULT;
-	cpairs[7]->expr = NULL;
-	init_pair(8, cpairs[7]->fg, cpairs[7]->bg);
-    }
-
-    if (color && has_colors())
-	attron(COLOR_PAIR(1));
 }
 
-void change_color (int pair, struct enode *e)
+void change_color (unsigned pair, struct enode *e)
 {
-    if ((--pair) < 0 || pair > 7) {
+    if (--pair >= ArraySize(cpairs)) {
 	error("Invalid color number");
 	return;
     }
-
-    int v = (int) eval(e);
-
-    if (!cpairs[pair])
-	cpairs[pair] =
-	    (struct colorpair *)scxmalloc((unsigned)sizeof(struct colorpair));
-    cpairs[pair]->fg = v & 7;
-    cpairs[pair]->bg = (v >> 3) & 7;
-    cpairs[pair]->expr = e;
+    unsigned v = (int) eval(e);
+    cpairs[pair].fg = v & 7;
+    cpairs[pair].bg = (v >> 3) & 7;
+    cpairs[pair].expr = e;
     if (color && has_colors())
-	init_pair(pair + 1, cpairs[pair]->fg, cpairs[pair]->bg);
-
-    modflg++;
-    FullUpdate++;
+	init_pair (pair+1, cpairs[pair].fg, cpairs[pair].bg);
+    ++modflg;
+    ++FullUpdate;
 }
 
-void add_crange (struct ent *r_left, struct ent *r_right, int pair)
+void add_crange (struct ent *r_left, struct ent *r_right, unsigned pair)
 {
     struct crange *r;
     int minr, minc, maxr, maxc;
@@ -191,12 +135,12 @@ void write_cranges (FILE *f)
 
 void write_colors (FILE *f, int indent)
 {
-    int i, c = 0;
-    for (i = 0; i < 8; i++) {
-	if (cpairs[i] && cpairs[i]->expr) {
+    int c = 0;
+    for (unsigned i = 0; i < ArraySize(cpairs); i++) {
+	if (cpairs[i].expr) {
 	    sprintf(line, "color %d = ", i + 1);
 	    linelim = strlen(line);
-	    decompile(cpairs[i]->expr, 0);
+	    decompile(cpairs[i].expr, 0);
 	    line[linelim] = '\0';
 	    fprintf(f, "%*s%s\n", indent, "", line);
 	    if (brokenpipe) return;

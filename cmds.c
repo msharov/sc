@@ -6,6 +6,7 @@
 #include <utime.h>
 #include <signal.h>
 #include <errno.h>
+#include <pwd.h>
 
 //----------------------------------------------------------------------
 
@@ -2631,7 +2632,7 @@ void write_cells (FILE *f, int r0, int c0, int rn, int cn, int dr, int dc)
     modflg = mf;
 }
 
-int writefile (char *fname, int r0, int c0, int rn, int cn)
+int writefile (const char* fname, int r0, int c0, int rn, int cn)
 {
     FILE *f;
     char save[PATHLEN];
@@ -2729,7 +2730,7 @@ int writefile (char *fname, int r0, int c0, int rn, int cn)
     return (0);
 }
 
-int readfile (char *fname, int eraseflg)
+int readfile (const char* fname, int eraseflg)
 {
     FILE *f;
     char save[PATHLEN];
@@ -3191,11 +3192,11 @@ int etype (struct enode *e)
 }
 
 // return 1 if yes given, 0 otherwise
-int yn_ask (char *msg)
+int yn_ask (const char *msg)
 {
     move(0, 0);
-    clrtoeol();
     addstr(msg);
+    clrtoeol();
     refresh();
     char ch;
     while ((ch = nmgetch()) != 'y' && ch != 'Y' && ch != 'n' && ch != 'N')
@@ -3208,19 +3209,15 @@ int yn_ask (char *msg)
 }
 
 // expand a ~ in a path to your home directory
-#include <pwd.h>
 char* findhome (char *path)
 {
-    static char* HomeDir = NULL;
+    static const char* HomeDir = NULL;
     if (*path == '~') {
     	char	*pathptr;
 	char	tmppath[PATHLEN];
 
-	if (HomeDir == NULL) {
-	    HomeDir = getenv("HOME");
-	    if (HomeDir == NULL)
-		HomeDir = "/";
-	}
+	if (!HomeDir && (!(HomeDir = getenv("HOME"))))
+	    HomeDir = "/";
 	pathptr = path + 1;
 	if ((*pathptr == '/') || (*pathptr == '\0'))
 	    strcpy(tmppath, HomeDir);

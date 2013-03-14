@@ -24,7 +24,7 @@ void add_abbr (char *string)
 	    FILE *f;
 	    int pid;
 	    char px[MAXCMD];
-	    char *pager;
+	    const char *pager;
 	    struct abbrev *nexta;
 
 	    strcpy(px, "| ");
@@ -84,7 +84,7 @@ void add_abbr (char *string)
     if (find_abbr(string, strlen(string), &prev))
 	del_abbr(string);
 
-    a = (struct abbrev *)scxmalloc((unsigned)sizeof(struct abbrev));
+    a = (struct abbrev*) scxmalloc (sizeof(struct abbrev));
     a->abbr = string;
     a->exp = expansion;
 
@@ -103,12 +103,12 @@ void add_abbr (char *string)
     }
 }
 
-void del_abbr (char *abbrev)
+void del_abbr (const char *abbrev)
 {
     struct abbrev *a;
     struct abbrev **prev = NULL;
 
-    if (!(a = find_abbr(abbrev, strlen(abbrev), prev))) 
+    if (!(a = find_abbr (abbrev, strlen(abbrev), prev)))
 	return;
 
     if (a->a_next)
@@ -117,28 +117,24 @@ void del_abbr (char *abbrev)
         a->a_prev->a_next = a->a_next;
     else
 	abbr_base = a->a_next;
-    scxfree((char *)(a->abbr));
-    scxfree((char *)a);
+    scxfree (a->abbr);
+    scxfree (a);
 }
 
-struct abbrev* find_abbr (char* abbrev, int len, struct abbrev** prev)
+struct abbrev* find_abbr (const char* abbrev, int len, struct abbrev** prev)
 {
-    struct abbrev *a;
-    int cmp;
     int exact = TRUE;
-    
     if (len < 0) {
 	exact = FALSE;
 	len = -len;
     }
-
-    for (a = abbr_base; a; a = a->a_next) {
-	if ((cmp = strncmp(abbrev, a->abbr, len)) > 0)
-	    return (NULL);
+    for (struct abbrev* a = abbr_base; a; a = a->a_next) {
+	int cmp = strncmp (abbrev, a->abbr, len);
+	if (cmp > 0)
+	    break;
+	if (!cmp && (!exact || strlen(a->abbr) == (unsigned)len))
+	    return (a);
 	*prev = a;
-	if (cmp == 0)
-	    if (!exact || strlen(a->abbr) == (unsigned)len)
-		return (a);
     }
-    return NULL;
+    return (NULL);
 }
