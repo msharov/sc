@@ -25,10 +25,6 @@ void getnum (int r0, int c0, int rn, int cn, int fd)
 	    else
 		strcat(line, "\n");
 	    write(fd, line, strlen(line));
-	    if (brokenpipe) {
-		linelim = -1;
-		return;
-	    }
 	}
     }
     linelim = -1;
@@ -67,10 +63,6 @@ void fgetnum (int r0, int c0, int rn, int cn, int fd)
 	    else
 		strcat(line, "\n");
 	    write(fd, line, strlen(line));
-	    if (brokenpipe) {
-		linelim = -1;
-		return;
-	    }
 	}
     }
     linelim = -1;
@@ -91,10 +83,6 @@ void getstring (int r0, int c0, int rn, int cn, int fd)
 	    else
 		strcat(line, "\n");
 	    write(fd, line, strlen(line));
-	    if (brokenpipe) {
-		linelim = -1;
-		return;
-	    }
 	}
     }
     linelim = -1;
@@ -122,10 +110,6 @@ void getexp (int r0, int c0, int rn, int cn, int fd)
 	    else
 		strcat(line, "\n");
 	    write(fd, line, strlen(line));
-	    if (brokenpipe) {
-		linelim = -1;
-		return;
-	    }
 	}
     }
     linelim = -1;
@@ -153,10 +137,6 @@ void getfmt (int r0, int c0, int rn, int cn, int fd)
 	    else
 		strcat(line, "\n");
 	    write(fd, line, strlen(line));
-	    if (brokenpipe) {
-		linelim = -1;
-		return;
-	    }
 	}
     }
     linelim = -1;

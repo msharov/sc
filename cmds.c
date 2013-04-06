@@ -2407,7 +2407,6 @@ FILE* openfile (char *fname, int *rpid, int *rfd)
 void closefile (FILE *f, int pid, int rfd)
 {
     int temp;
-
     fclose(f);
     if (pid) {
 	while (pid != wait(&temp)) {}
@@ -2427,10 +2426,6 @@ void closefile (FILE *f, int pid, int rfd)
 		    bkgdset(COLOR_PAIR(1) | ' ');
 	    }
 	}
-    }
-    if (brokenpipe) {
-	error("Broken pipe");
-	brokenpipe = FALSE;
     }
 }
 
@@ -2806,7 +2801,7 @@ int readfile (const char* fname, int eraseflg)
     loading++;
     savefd = macrofd;
     macrofd = rfd;
-    while (!brokenpipe && fgets(line, sizeof(line), f)) {
+    while (fgets(line, sizeof(line), f)) {
 	if (line[0] == '|' && pid != 0)
 	    line[0] = ' ';
 	linelim = 0;

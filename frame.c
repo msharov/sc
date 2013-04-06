@@ -169,17 +169,13 @@ void list_frames (FILE *f)
 	fprintf(f, "  No frames");
 	return;
     }
-
-    fprintf(f, "  %-30s %s\n","Outer Range","Inner Range");
-    if (!brokenpipe)
-	fprintf(f, "  %-30s %s\n","-----------","-----------");
-
+    fprintf(f, "  %-30s Inner Range\n"
+	       "  %-30s -----------\n","Outer Range","-----------");
     struct frange* r = frame_base;
     for (struct frange* nextr = r; nextr; r = nextr, nextr = r->r_next) // */ ;
     for (; r; r = r->r_prev) {
 	fprintf(f, "  %-30s", r_name(r->or_left->row, r->or_left->col, r->or_right->row, r->or_right->col));
 	fprintf(f, " %s\n", r_name(r->ir_left->row, r->ir_left->col, r->ir_right->row, r->ir_right->col));
-	if (brokenpipe) return;
     }
 }
 

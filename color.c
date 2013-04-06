@@ -143,7 +143,6 @@ void write_colors (FILE *f, int indent)
 	    decompile(cpairs[i].expr, 0);
 	    line[linelim] = '\0';
 	    fprintf(f, "%*s%s\n", indent, "", line);
-	    if (brokenpipe) return;
 	    ++c;
 	}
     }
@@ -158,21 +157,18 @@ void list_colors (FILE *f)
 
     write_colors(f, 2);
     linelim = -1;
-    if (brokenpipe) return;
 
     if (!are_colors()) {
 	fprintf(f, "  No color ranges");
 	return;
     }
 
-    fprintf(f, "  %-30s %s\n","Range", "Color");
-    if (!brokenpipe) fprintf(f, "  %-30s %s\n","-----", "-----");
-
-    for (r = nextr = color_base; nextr; r = nextr, nextr = r->r_next) // */ ;
+    fprintf(f, "  %-30s Color\n"
+	       "  %-30s -----\n","Range","-----");
+    for (r = nextr = color_base; nextr; r = nextr, nextr = r->r_next) {}
     while (r) {
 	fprintf(f, "  %-32s %d\n", r_name(r->r_left->row, r->r_left->col,
 		r->r_right->row, r->r_right->col), r->r_color);
-	if (brokenpipe) return;
 	r = r->r_prev;
     }
 }

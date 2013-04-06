@@ -278,7 +278,6 @@ extern int cellassign;
 extern int macrofd;
 extern int cslop;
 extern int usecurses;
-extern int brokenpipe;		// Set to true if SIGPIPE is received
 extern char dpoint;	// country-dependent decimal point from locale
 extern char thsep;	// country-dependent thousands separator from locale
 

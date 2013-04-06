@@ -12,9 +12,6 @@ static bool are_abbrevs (void)
 void add_abbr (char *string)
 {
     struct abbrev *a;
-    char *p;
-    struct abbrev *prev = NULL;
-    char *expansion;
     
     if (!string || *string == '\0') {
 	if (!are_abbrevs()) {
@@ -36,15 +33,12 @@ void add_abbr (char *string)
 		error("Can't open pipe to %s", pager);
 		return;
 	    }
-	    fprintf(f, "\n%-15s %s\n","Abbreviation","Expanded");
-	    if (!brokenpipe) fprintf(f, "%-15s %s\n", "------------",
-		    "--------");
-
+	    fprintf(f, "\nAbbreviation    Expanded"
+		       "\n------------    --------");
 	    for (a = nexta = abbr_base; nexta; a = nexta, nexta = a->a_next)
 		;
 	    while (a) {
 		fprintf(f, "%-15s %s\n", a->abbr, a->exp);
-		if (brokenpipe) return;
 		a = a->a_prev;
 	    }
 	    closefile(f, pid, 0);
@@ -52,25 +46,29 @@ void add_abbr (char *string)
 	}
     }
 
+    char *expansion;
     if ((expansion = strchr(string, ' ')))
 	*expansion++ = '\0';
 
     if (isalpha(*string) || isdigit(*string) || *string == '_') {
-	for (p = string; *p; p++)
+	for (const char* p = string; *p; p++) {
 	    if (!(isalpha(*p) || isdigit(*p) || *p == '_')) {
 		error("Invalid abbreviation: %s", string);
 		scxfree(string);
 		return;
 	    }
+	}
     } else {
-	for (p = string; *p; p++)
-	    if ((isalpha(*p) || isdigit(*p) || *p == '_') && *(p+1)) {
+	for (const char* p = string; *p; p++) {
+	    if ((isalpha(*p) || isdigit(*p) || *p == '_') && p[1]) {
 		error("Invalid abbreviation: %s", string);
 		scxfree(string);
 		return;
 	    }
+	}
     }
     
+    struct abbrev *prev = NULL;
     if (!expansion) {
 	if ((a = find_abbr(string, strlen(string), &prev))) {
 	    error("abbrev \"%s %s\"", a->abbr, a->exp);

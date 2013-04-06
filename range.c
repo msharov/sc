@@ -239,8 +239,8 @@ void list_ranges (FILE *f)
 	return;
     }
 
-    fprintf(f, "  %-30s %s\n","Name","Definition");
-    if (!brokenpipe) fprintf(f, "  %-30s %s\n","----","----------");
+    fprintf(f, "  %-30s Definition\n"
+	       "  %-30s ----------\n","Name","----");
 
     for (r = nextr = rng_base; nextr; r = nextr, nextr = r->r_next) // */ ;
     while (r) {
@@ -250,7 +250,6 @@ void list_ranges (FILE *f)
 			    coltoa(r->r_left.vp->col), 
 			    r->r_left.vf & FIX_ROW ? "$":"",
 			    r->r_left.vp->row);
-	if (brokenpipe) return;
 	if (r->r_is_range)
 	    fprintf(f, ":%s%s%s%d\n",
 			    r->r_right.vf & FIX_COL ? "$":"",
@@ -259,7 +258,6 @@ void list_ranges (FILE *f)
 			    r->r_right.vp->row);
 	else
 	    fprintf(f, "\n");
-	if (brokenpipe) return;
 	r = r->r_prev;
     }
 }

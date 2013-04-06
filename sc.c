@@ -43,7 +43,6 @@ char *texext;
 int scrc = 0;
 int showsc, showsr;	// Starting cell for highlighted range
 int usecurses = TRUE;	// Use curses unless piping/redirection or using -q
-int brokenpipe = FALSE;	// Set to true if SIGPIPE is received
 
 extern void	doshell();
 extern void	gohome();
@@ -1151,13 +1150,11 @@ int main (int argc, char** argv)
 				break;
 			    }
 			    fprintf(f, "Named Ranges:\n=============\n\n");
-			    if (!brokenpipe) list_ranges(f);
-			    if (!brokenpipe)
-				fprintf(f, "\n\nFrames:\n=======\n\n");
-			    if (!brokenpipe) list_frames(f);
-			    if (!brokenpipe)
-				fprintf(f, "\n\nColors:\n=======\n\n");
-			    if (!brokenpipe) list_colors(f);
+			    list_ranges(f);
+			    fprintf(f, "\n\nFrames:\n=======\n\n");
+			    list_frames(f);
+			    fprintf(f, "\n\nColors:\n=======\n\n");
+			    list_colors(f);
 			    closefile(f, pid, 0);
 			}
 			break;
@@ -1909,11 +1906,6 @@ void setauto (int i)
     autocalc = i;
 }
 
-static void nopipe (int i UNUSED)
-{
-    brokenpipe = TRUE;
-}
-
 static void winchg (int i UNUSED)
 {
     stopdisp();
@@ -1966,7 +1958,6 @@ static void signals (void)
     signal(SIGALRM, dump_me);
     signal(SIGBUS, dump_me);
     signal(SIGFPE, dump_me);
-    signal(SIGPIPE, nopipe);
     signal(SIGWINCH, winchg);
 }
 
