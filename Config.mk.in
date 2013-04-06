@@ -15,7 +15,7 @@ YACC		:= bison -y
 LN		:= ln
 CC		:= @CC@
 CFLAGS		:= -Wall -Wextra -Wshadow -Wwrite-strings \
-		   -Os -ffloat-store -std=c11 \
+		   -Os -ffloat-store -std=c99 \
 		   -ffunction-sections -fdata-sections
 LDFLAGS		:= -Wl,-gc-sections
 SCLIBS		:= @libm@ @libncurses@
