@@ -9,6 +9,7 @@ PSCSRC	:= psc.c xmalloc.c vmtbl.c
 SCOBJ	:= $(addprefix .o/,$(SCSRC:.c=.o))
 PSCOBJ	:= $(addprefix .o/,$(PSCSRC:.c=.o))
 ALLOBJ	:= $(sort ${SCOBJ} ${PSCOBJ})
+ALLDEPS	:= ${ALLOBJ:.o=.d}
 
 DOCS	:= doc/sc.1 doc/psc.1 doc/tutorial.sc
 CONFS	:= config.status config.h Config.mk
@@ -74,16 +75,20 @@ ${ISCTUT}:	doc/tutorial.sc
 
 install:	${ISC} ${IPSC} ${ISCMAN} ${IPSCMAN} ${ISCTUT}
 uninstall:
-	@echo "Uninstalling ..."
-	@rm -f ${ISC} ${IPSC} ${ISCMAN} ${IPSCMAN} ${ISCTUT}
-	@rmdir -p ${DATADIR}/${SC} ${MANDIR} ${BINDIR} &> /dev/null || true
+	@if [ -d ${DATADIR}/${SC} -o -f ${ISC} -o -f ${IPSC} ]; then\
+	    echo "Uninstalling ...";\
+	    rm -f ${ISC} ${IPSC} ${ISCMAN} ${IPSCMAN} ${ISCTUT};\
+	    rmdir -p ${DATADIR}/${SC} ${MANDIR} ${BINDIR} &> /dev/null || true;\
+	fi
 endif
 
 ######## Maintenance #################################################
 
 clean:
-	@rm -rf .o
-	@rm -f ${SC} ${PSC} ${GRAMS}
+	@if [ -d .o ]; then\
+	    rm -f ${SC} ${PSC} ${GRAMS} ${ALLOBJ} ${ALLDEPS};\
+	    rmdir .o;\
+	fi
 
 distclean:	clean
 	@rm -f config.h Config.mk config.status
@@ -96,4 +101,4 @@ config.status:		configure Config.mk.in config.h.in
 	else echo "Running configure ..."; ./configure; fi
 ${ALLOBJ} ${DOCS} ${GRAMS}:	Makefile ${CONFS}
 
--include ${ALLOBJ:.o=.d}
+-include ${ALLDEPS}
