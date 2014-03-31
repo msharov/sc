@@ -17,3 +17,9 @@
 #define HISTORY_FILE	"/home/%s/.config/sc_history"
 
 #define UNUSED		__attribute__((unused))
+
+// Define to 1 if you have curses.h
+#undef HAVE_CURSES_H
+#if !HAVE_CURSES_H
+    #error "You must have the curses library to compile @PKG_NAME@: https://www.gnu.org/software/ncurses/ncurses.html"
+#endif
