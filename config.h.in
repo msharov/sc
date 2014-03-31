@@ -21,5 +21,13 @@
 // Define to 1 if you have curses.h
 #undef HAVE_CURSES_H
 #if !HAVE_CURSES_H
-    #error "You must have the curses library to compile @PKG_NAME@: https://www.gnu.org/software/ncurses/ncurses.html"
+    #error "You must have the ncurses library to compile @PKG_NAME@: https://www.gnu.org/software/ncurses/ncurses.html"
 #endif
+
+#define DONT_HAVE_LIBRARY	0
+#define lncurses		(-1)
+#define HAVE_LIBNCURSES		DONT_HAVE_LIBRARY @libncurses@
+#if HAVE_LIBNCURSES == DONT_HAVE_LIBRARY
+    #error "Could not find the ncurses library, required to build this package. If it is not provided by your distribution, you can get it at https://www.gnu.org/software/ncurses/ncurses.html. If you already installed it, make sure libncurses.so can be found in /lib, /usr/lib, or $LD_LIBRARY_PATH"
+#endif
+#undef lncurses
