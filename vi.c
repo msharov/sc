@@ -1455,7 +1455,7 @@ void write_hist (void)
 {
     int i;
     FILE *fp, *tmpfp = NULL;
-    char histfile[PATHLEN];
+    char histfile [PATH_MAX];
 
     if (histsessionnew < HISTLEN) {
 	// write the new history for this session to a tmp file
@@ -1499,7 +1499,7 @@ static void readhistfile (FILE *fp)
 void read_hist (void)
 {
     FILE *fp;
-    char histfile[PATHLEN];
+    char histfile [PATH_MAX];
 
     snprintf (histfile, sizeof(histfile), HISTORY_FILE, getlogin());
     if (findhome(histfile) && (fp = fopen(histfile, "r")) != NULL)

@@ -54,8 +54,8 @@ extern void	gotobottom();
 static void signals (void);
 static void diesave (void);
 
-char    curfile[PATHLEN];
-char    revmsg[80];
+char    curfile [PATH_MAX];
+char    revmsg [80];
 
 // numeric separators, country-dependent if locale support enabled:
 char	dpoint = '.';	// decimal point

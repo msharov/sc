@@ -15,6 +15,8 @@
 #define LIBDIR		"@libdir@"
 #define DIESAVEPATH	"/tmp/" SC_NAME ".sav"
 #define HISTORY_FILE	"/home/%s/.config/sc_history"
+#define PLUGIN_DIR	LIBDIR "/plugins/"
+#define USER_PLUGIN_DIR	"%s/.sc/plugins/"
 
 #define UNUSED		__attribute__((unused))
 

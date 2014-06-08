@@ -2420,8 +2420,8 @@ void closefile (FILE *f, int pid, int rfd)
 	} else {
 	    close(rfd);
 	    if (usecurses) {
-		fixterm();
-		kbd_again();
+		reset_prog_mode();
+		initkbd();
 		if (color && has_colors())
 		    bkgdset(COLOR_PAIR(1) | ' ');
 	    }
@@ -2480,9 +2480,9 @@ void copyent (struct ent *n, struct ent *p, int dr, int dc, int r1, int c1, int 
 void addplugin (char *ext, char *plugin, char type)
 {
     struct impexfilt *fp;
-    char mesg[PATHLEN];
+    char mesg [PATH_MAX];
 
-    if (!plugin_exists(plugin, strlen(plugin), mesg)) {
+    if (!plugin_exists(plugin, mesg)) {
 	error("Cannot find plugin %s", plugin);
 	return;
     }
@@ -2582,7 +2582,7 @@ void write_fd (FILE *f, int r0, int c0, int rn, int cn)
 void write_cells (FILE *f, int r0, int c0, int rn, int cn, int dr, int dc)
 {
     struct ent **pp;
-    int r, c, rs, cs, mf;
+    int r, c, rs = currow, cs = curcol, mf;
     char *dpointptr;
 
     mf = modflg;
@@ -2590,8 +2590,6 @@ void write_cells (FILE *f, int r0, int c0, int rn, int cn, int dr, int dc)
 	yank_area(r0, c0, rn, cn);
 	rn += dr - r0;
 	cn += dc - c0;
-	rs = currow;
-	cs = curcol;
 	currow = dr;
 	curcol = dc;
 	pullcells('x');
@@ -2630,8 +2628,8 @@ void write_cells (FILE *f, int r0, int c0, int rn, int cn, int dr, int dc)
 int writefile (const char* fname, int r0, int c0, int rn, int cn)
 {
     FILE *f;
-    char save[PATHLEN];
-    char tfname[PATHLEN];
+    char save [PATH_MAX];
+    char tfname [PATH_MAX];
     long namelen;
     char *tpp;
     char *p;
@@ -2641,12 +2639,12 @@ int writefile (const char* fname, int r0, int c0, int rn, int cn)
     // find the extension and mapped plugin if exists
     if ((p = strrchr(fname, '.'))) {
 	if ((plugin = findplugin(p+1, 'w')) != NULL) {
-	    if (!plugin_exists(plugin, strlen(plugin), save + 1)) {
+	    if (!plugin_exists(plugin, save + 1)) {
 		error("plugin not found");
 		return (-1);
 	    }
 	    *save = '|';
-	    if ((strlen(save) + strlen(fname) + 20) > PATHLEN) {
+	    if ((strlen(save) + strlen(fname) + 20) > PATH_MAX) {
 		error("Path too long");
 		return (-1);
 	    }
@@ -2728,7 +2726,7 @@ int writefile (const char* fname, int r0, int c0, int rn, int cn)
 int readfile (const char* fname, int eraseflg)
 {
     FILE *f;
-    char save[PATHLEN];
+    char save [PATH_MAX];
     int tempautolabel;
     char *p;
     char *plugin;
@@ -2749,12 +2747,12 @@ int readfile (const char* fname, int eraseflg)
 
     if ((p = strrchr(fname, '.')) && (fname[0] != '|')) {  // exclude macros
 	if ((plugin = findplugin(p+1, 'r')) != NULL) {
-	    if (!(plugin_exists(plugin, strlen(plugin), save + 1))) {
+	    if (!(plugin_exists(plugin, save + 1))) {
 		error("plugin not found");
 		return (-1);
 	    }
 	    *save = '|';
-	    if ((strlen(save) + strlen(fname) + 2) > PATHLEN) {
+	    if ((strlen(save) + strlen(fname) + 2) > PATH_MAX) {
 		error("Path too long");
 		return (-1);
 	    }
@@ -2909,7 +2907,7 @@ void erasedb (void)
     }
 
     // Load ./.scrc if present and $HOME/.scrc contained `set scrc'.
-    if (scrc && strcmp(home, getcwd(curfile, PATHLEN)) && (c = open(".scrc", O_RDONLY)) > -1) {
+    if (scrc && strcmp(home, getcwd(curfile, PATH_MAX)) && (c = open(".scrc", O_RDONLY)) > -1) {
 	close(c);
 	readfile(".scrc", 0);
     }
@@ -3209,7 +3207,7 @@ char* findhome (char *path)
     static const char* HomeDir = NULL;
     if (*path == '~') {
     	char	*pathptr;
-	char	tmppath[PATHLEN];
+	char	tmppath [PATH_MAX];
 
 	if (!HomeDir && (!(HomeDir = getenv("HOME"))))
 	    HomeDir = "/";

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <curses.h>
 #include <sys/types.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
@@ -45,7 +46,6 @@ enum {
     COLFORMATS	= 10,		// Number of custom column formats
     DELBUFSIZE	= 40,		// Number of named buffers + 4
     FBUFLEN	= 1024,		// buffer size for a single field
-    PATHLEN	= 1024,		// maximum path length
     MAXCMD	= 160,		// for ! command and commands that use the pager
     KEY_ESC	= 033,
     KEY_DEL	= 0177,
@@ -225,8 +225,8 @@ struct abbrev {
 };
 
 struct impexfilt {
-    char ext[PATHLEN];
-    char plugin[PATHLEN];
+    char ext [PATH_MAX];
+    char plugin [PATH_MAX];
     char type;
     struct impexfilt* next;
 };
@@ -295,7 +295,7 @@ int any_locked_cells (int r1, int c1, int r2, int c2);
 int are_colors (void);
 int are_frames (void);
 int are_ranges (void);
-int atocol (char* string, int len);
+unsigned atocol (const char* string, unsigned len);
 bool engformat (int fmt, int width, int lprecision, double val, char* buf, int buflen);
 int etype (struct enode* e);
 int find_range (char* name, int len, struct ent* lmatch, struct ent* rmatch, struct range** rng);
@@ -306,7 +306,7 @@ void list_frames (FILE* f);
 int locked_cell (int r, int c);
 int modcheck (const char* endstr);
 int nmgetch (void);
-int plugin_exists (char* name, int len, char* path);
+bool plugin_exists (const char* name, char* path);
 int readfile (const char* fname, int eraseflg);
 int writefile (const char* fname, int r0, int c0, int rn, int cn);
 int yn_ask (const char* msg);
@@ -402,7 +402,6 @@ void ins_string (const char* s);
 void insert_mode (void);
 void insertcol (int arg, int delta);
 void insertrow (int arg, int delta);
-void kbd_again (void);
 void label (struct ent* v, const char* s, int flushdir);
 void let (struct ent* v, struct enode* e);
 void list_colors (FILE* f);

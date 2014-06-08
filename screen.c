@@ -1043,8 +1043,8 @@ void stopdisp (void)
 void goraw (void)
 {
     if (usecurses) {
-	fixterm();
-	kbd_again();
+	reset_prog_mode();
+	initkbd();
 	if (color && has_colors())
 	    bkgdset(COLOR_PAIR(1) | ' ');
 	FullUpdate++;
@@ -1062,7 +1062,7 @@ void deraw (int ClearLastLine)
 	    clrtoeol();
 	    refresh();
 	}
-	resetterm();
+	reset_shell_mode();
 	resetkbd();
     }
 }
