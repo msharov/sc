@@ -350,7 +350,7 @@ int main (int argc, char** argv)
 					write_line(k);
 					break;
 				    }
-		    		    // else drop through
+				    // fallthrough
 				case ctl('m'):
 				    strcpy(line, "put ");
 				    linelim = 4;
@@ -457,6 +457,7 @@ int main (int argc, char** argv)
 		    break;
 		case ctl('r'):
 		    showneed = 1;
+		    // fallthrough
 		case ctl('l'):
 		    FullUpdate++;
 		    clearok(stdscr,1);

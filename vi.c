@@ -106,7 +106,8 @@ void write_line (int c)
 	case (ctl('m')):	if (search_ind != ' ')
 				    search_hist();
 				else
-				    cr_line();				break;
+				    cr_line();
+				break;
 	case 'v':
 	case (ctl('v')):	toggle_navigate_mode();			break;
 	case KEY_ESC:	stop_edit();					break;
@@ -1435,7 +1436,7 @@ static void search_again (bool reverse)
 		back_hist();
 	    else
 		histp = ((lasthist + 1) % endhist);
-		strcpy(line, history[histp].histline);
+	    strcpy (line, history[histp].histline);
 	}
 	found_it = 0;
 	if (regexec(last_search, line, 0, NULL, 0) == 0)

@@ -77,7 +77,7 @@ int main (int argc, char** argv)
 	    case 'f': drop_format = TRUE; break;
 	    case 'S': strnums = TRUE; break;
 	    case 'P': plainnums = TRUE; break;
-	    case 'v': fprintf(stderr,"%s: " SC_VERSTRING "\n", argv[0]);
+	    case 'v': fprintf(stderr,"%s: " SC_VERSTRING "\n", argv[0]); // fallthrough
 	    default:
 		fprintf(stderr,"Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", argv[0]);
 		exit(1);

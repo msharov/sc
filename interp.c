@@ -723,33 +723,34 @@ double eval (struct enode* e)
 	    minc = e->e.o.left->e.r.left.vp->col;
 	    if (minr>maxr) r = maxr, maxr = minr, minr = r;
 	    if (minc>maxc) c = maxc, maxc = minc, minc = c;
-		switch (e->op) {
-		    case LOOKUP:
-			return dolookup(e->e.o.right, minr, minc, maxr, maxc,
-				1, minc==maxc);
-		    case HLOOKUP:
-			return dolookup(e->e.o.right->e.o.left, minr,minc,maxr,maxc,
-			    (int) eval(e->e.o.right->e.o.right), 0);
-		    case VLOOKUP:
-			return dolookup(e->e.o.right->e.o.left, minr,minc,maxr,maxc,
-			    (int) eval(e->e.o.right->e.o.right), 1);
-		    case INDEX:
-			return doindex(minr, minc, maxr, maxc, e->e.o.right);
-	            case SUM:
-			return dosum(minr, minc, maxr, maxc, e->e.o.right);
-	            case PROD:
-			return doprod(minr, minc, maxr, maxc, e->e.o.right);
-	            case AVG:
-			return doavg(minr, minc, maxr, maxc, e->e.o.right);
-	            case COUNT:
-			return docount(minr, minc, maxr, maxc, e->e.o.right);
-	            case STDDEV:
-			return dostddev(minr, minc, maxr, maxc, e->e.o.right);
-	            case MAX:
-			return domax(minr, minc, maxr, maxc, e->e.o.right);
-	            case MIN:
-			return domin(minr, minc, maxr, maxc, e->e.o.right);
-		}
+	    switch (e->op) {
+		case LOOKUP:
+		    return dolookup(e->e.o.right, minr, minc, maxr, maxc,
+			    1, minc==maxc);
+		case HLOOKUP:
+		    return dolookup(e->e.o.right->e.o.left, minr,minc,maxr,maxc,
+			(int) eval(e->e.o.right->e.o.right), 0);
+		case VLOOKUP:
+		    return dolookup(e->e.o.right->e.o.left, minr,minc,maxr,maxc,
+			(int) eval(e->e.o.right->e.o.right), 1);
+		case INDEX:
+		    return doindex(minr, minc, maxr, maxc, e->e.o.right);
+		case SUM:
+		    return dosum(minr, minc, maxr, maxc, e->e.o.right);
+		case PROD:
+		    return doprod(minr, minc, maxr, maxc, e->e.o.right);
+		case AVG:
+		    return doavg(minr, minc, maxr, maxc, e->e.o.right);
+		case COUNT:
+		    return docount(minr, minc, maxr, maxc, e->e.o.right);
+		case STDDEV:
+		    return dostddev(minr, minc, maxr, maxc, e->e.o.right);
+		case MAX:
+		    return domax(minr, minc, maxr, maxc, e->e.o.right);
+		case MIN:
+		    return domin(minr, minc, maxr, maxc, e->e.o.right);
+	    }
+	    break;
 	}
  	case REDUCE | 'R':
  	case REDUCE | 'C':
@@ -766,6 +767,7 @@ double eval (struct enode* e)
  	            case REDUCE | 'R': return (maxr - minr + 1);
  	            case REDUCE | 'C': return (maxc - minc + 1);
 		}
+		break;
 	    }
 	case ABS:	 return (fn1_eval( fabs, eval(e->e.o.left)));
 	case ACOS:	 return (fn1_eval( acos, eval(e->e.o.left)));
@@ -849,9 +851,9 @@ double eval (struct enode* e)
 	case MAGENTA:	return (COLOR_MAGENTA);
 	case CYAN:	return (COLOR_CYAN);
 	case WHITE:	return (COLOR_WHITE);
-	default:	error ("Illegal numeric expression");
-			exprerr = 1;
     }
+    error ("Illegal numeric expression");
+    exprerr = 1;
     cellerror = CELLERROR;
     return (0.0);
 }
@@ -1590,7 +1592,6 @@ static void g_free (void)
 void go_last (void)
 {
     int num = 0;
-
     switch (gs.g_type) {
 	case G_NONE:
 	    error("Nothing to repeat"); break;
@@ -1599,19 +1600,16 @@ void go_last (void)
 		gs.g_lastrow, gs.g_lastcol, gs.errsearch);
 	    break;
 	case G_CELL:
-	    moveto(gs.g_row, gs.g_col, gs.g_lastrow, gs.g_lastcol,
-		gs.strow, gs.stcol);
+	    moveto(gs.g_row, gs.g_col, gs.g_lastrow, gs.g_lastcol, gs.strow, gs.stcol);
 	    break;
 	case G_XSTR: 
-	    num++;
+	    num++;	// fallthrough
 	case G_NSTR: 
-	    num++;
+	    num++;	// fallthrough
 	case G_STR: 
 	    gs.g_type = G_NONE;	// Don't free the string
-	    str_search(gs.g_s, gs.g_row, gs.g_col, gs.g_lastrow, gs.g_lastcol,
-		    num); 
+	    str_search (gs.g_s, gs.g_row, gs.g_col, gs.g_lastrow, gs.g_lastcol, num);
 	    break;
-
 	default: error("go_last: internal error");
     }
 }
@@ -2288,11 +2286,11 @@ void decompile (struct enode* e, int priority)
 	}
 	if (mypriority<priority) line[linelim++] = '(';
 	switch (e->op) {
-	case 'f':	for (s="@fixed "; (line[linelim++] = *s++); );
+	case 'f':	for (s="@fixed "; (line[linelim++] = *s++); ) {}
 			linelim--;
 			decompile(e->e.o.left, 30);
 			break;
-	case 'F':	for (s="(@fixed)"; (line[linelim++] = *s++); );
+	case 'F':	for (s="(@fixed)"; (line[linelim++] = *s++); ) {}
 			linelim--;
 			decompile(e->e.o.left, 30);
 			break;
@@ -2348,7 +2346,7 @@ void decompile (struct enode* e, int priority)
 	case MONTH:	one_arg("@month(", e); break;
 	case DAY:	one_arg("@day(", e); break;
 	case YEAR:	one_arg("@year(", e); break;
-	case NOW:	for (s = "@now"; (line[linelim++] = *s++); );
+	case NOW:	for (s = "@now"; (line[linelim++] = *s++); ) {}
 			linelim--;
 			break;
 	case DATE:	if (e->e.o.right)
@@ -2379,51 +2377,51 @@ void decompile (struct enode* e, int priority)
 	case HLOOKUP:	two_arg_index("@hlookup", e); break;
 	case VLOOKUP:	two_arg_index("@vlookup", e); break;
 	case IF:	three_arg("@if(", e); break;
-	case MYROW:	for (s = "@myrow"; (line[linelim++] = *s++); );
+	case MYROW:	for (s = "@myrow"; (line[linelim++] = *s++); ) {}
 			linelim--;
 			break;
-	case MYCOL:	for (s = "@mycol"; (line[linelim++] = *s++); );
+	case MYCOL:	for (s = "@mycol"; (line[linelim++] = *s++); ) {}
 			linelim--;
 			break;
-	case LASTROW:	for (s = "@lastrow"; (line[linelim++] = *s++); );
+	case LASTROW:	for (s = "@lastrow"; (line[linelim++] = *s++); ) {}
 			linelim--;
 			break;
-	case LASTCOL:	for (s = "@lastcol"; (line[linelim++] = *s++); );
+	case LASTCOL:	for (s = "@lastcol"; (line[linelim++] = *s++); ) {}
 			linelim--;
 			break;
 	case COLTOA:	one_arg( "@coltoa(", e); break;
 	case FILENAME:	one_arg( "@filename(", e); break;
-	case NUMITER:	for (s = "@numiter"; (line[linelim++] = *s++); );
+	case NUMITER:	for (s = "@numiter"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
-	case ERR_:	for (s = "@err"; (line[linelim++] = *s++); );
+	case ERR_:	for (s = "@err"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
-	case PI_:	for (s = "@pi"; (line[linelim++] = *s++); );
+	case PI_:	for (s = "@pi"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
-	case BLACK:	for (s = "@black"; (line[linelim++] = *s++); );
+	case BLACK:	for (s = "@black"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
-	case RED:	for (s = "@red"; (line[linelim++] = *s++); );
+	case RED:	for (s = "@red"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
-	case GREEN:	for (s = "@green"; (line[linelim++] = *s++); );
+	case GREEN:	for (s = "@green"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
-	case YELLOW:	for (s = "@yellow"; (line[linelim++] = *s++); );
+	case YELLOW:	for (s = "@yellow"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
-	case BLUE:	for (s = "@blue"; (line[linelim++] = *s++); );
+	case BLUE:	for (s = "@blue"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
-	case MAGENTA:	for (s = "@magenta"; (line[linelim++] = *s++); );
+	case MAGENTA:	for (s = "@magenta"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
-	case CYAN:	for (s = "@cyan"; (line[linelim++] = *s++); );
+	case CYAN:	for (s = "@cyan"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
-	case WHITE:	for (s = "@white"; (line[linelim++] = *s++); );
+	case WHITE:	for (s = "@white"; (line[linelim++] = *s++); ) {}
                         linelim--;
                         break;
 	default:	decompile(e->e.o.left, mypriority);

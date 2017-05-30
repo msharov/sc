@@ -29,10 +29,9 @@ void checkbounds (int *rowp, int *colp)
     }
 }
 
-#define GROWALLOC(newptr, oldptr, nelem, type, msg) \
+#define GROWALLOC(newptr, oldptr, nelem, type) \
     oldptr = newptr = (type*) scxrealloc ((char*)oldptr, nelem*sizeof(type));
 
-static const char nolonger[] = "The table can't be any longer";
 static const char nowider[] = "The table can't be any wider";
 
 //
@@ -91,21 +90,21 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
 	struct	ent *** lnullit;
 	int	lcnt;
 
-	GROWALLOC(row_hidden2, row_hidden, newrows, char, nolonger);
+	GROWALLOC(row_hidden2, row_hidden, newrows, char);
 	memset(row_hidden+maxrows, 0, (newrows-maxrows)*sizeof(char));
 	// alloc tbl row pointers, per net.lang.c, calloc does not
 	// necessarily fill in NULL pointers
-	GROWALLOC(tbl2, tbl, newrows, struct ent **, nolonger);
+	GROWALLOC(tbl2, tbl, newrows, struct ent **);
 	for (lnullit = tbl+maxrows, lcnt = 0; lcnt < newrows-maxrows;
 		lcnt++, lnullit++)
 	    *lnullit = (struct ent **)NULL;
     }
 
     if ((rowcol == GROWCOL) || (rowcol == GROWBOTH) || (rowcol == GROWNEW)) {
-	GROWALLOC(fwidth2, fwidth, newcols, int, nowider);
-	GROWALLOC(precision2, precision, newcols, int, nowider);
-	GROWALLOC(realfmt2, realfmt, newcols, int, nowider);
-	GROWALLOC(col_hidden2, col_hidden, newcols, char, nowider);
+	GROWALLOC(fwidth2, fwidth, newcols, int);
+	GROWALLOC(precision2, precision, newcols, int);
+	GROWALLOC(realfmt2, realfmt, newcols, int);
+	GROWALLOC(col_hidden2, col_hidden, newcols, char);
 	memset(col_hidden+maxcols, 0, (newcols-maxcols)*sizeof(char));
 	for (i = maxcols; i < newcols; i++) {
 	    fwidth[i] = DEFWIDTH;
@@ -171,9 +170,9 @@ int psc_growtbl (int rowcol, int topcol)
     }
     if ((rowcol == GROWCOL) || (rowcol == GROWBOTH) || (rowcol == GROWNEW)) {
 	int *fwidth2, *precision2, *realfmt2;
-	GROWALLOC(fwidth2, fwidth, newcols, int, nowider);
-	GROWALLOC(precision2, precision, newcols, int, nowider);
-	GROWALLOC(realfmt2, realfmt, newcols, int, nowider);
+	GROWALLOC(fwidth2, fwidth, newcols, int);
+	GROWALLOC(precision2, precision, newcols, int);
+	GROWALLOC(realfmt2, realfmt, newcols, int);
 	memset(fwidth+maxcols, 0, (newcols-maxcols)*sizeof(int));
 	memset(precision+maxcols, 0, (newcols-maxcols)*sizeof(int));
 	memset(realfmt+maxcols, 0, (newcols-maxcols)*sizeof(int));
