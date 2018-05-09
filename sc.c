@@ -1967,8 +1967,8 @@ int modcheck (const char* endstr)
 {
     int yn_ans;
     if (modflg && curfile[0]) {
-	char lin[100];
-	snprintf (lin, sizeof(lin), "File \"%s\" is modified, save%s? ", curfile, endstr);
+	char lin [128];
+	snprintf (lin, sizeof(lin), "File \"%.64s\" is modified, save%s? ", curfile, endstr);
 	if ((yn_ans = yn_ask(lin)) < 0)
 	    return (1);
 	else if (yn_ans == 1 && writefile(curfile, 0, 0, maxrow, maxcol) < 0)

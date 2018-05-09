@@ -1782,8 +1782,8 @@ static void dogoto (void)
     // to go today?" - CRM :)
     query("goto where?", NULL);
     if (linelim >= 0) {
-	memmove(line + 5, line, strlen(line) + 1);
-	strncpy(line, "goto ", 5);
+	memmove (line + 5, line, strlen(line) + 1);
+	memcpy (line, "goto ", 5);
 	linelim = 0;
 	yyparse();
     }
