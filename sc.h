@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <curses.h>
+#include <stdbool.h>
 #include <sys/types.h>
 #include <limits.h>
 #include <stdlib.h>
@@ -282,12 +283,12 @@ extern char dpoint;	// country-dependent decimal point from locale
 extern char thsep;	// country-dependent thousands separator from locale
 
 void add_abbr (char* string);
-FILE* openfile (char* fname, int* rpid, int* rfd);
+FILE* openfile (char* fname, pid_t* rpid, int* rfd);
 char* coltoa (int col);
 char* findhome (char* path);
 char* r_name (int r1, int c1, int r2, int c2);
-char* scxmalloc (unsigned n);
-char* scxrealloc (char* ptr, unsigned n);
+void* scxmalloc (unsigned n);
+void* scxrealloc (void* ptr, unsigned n);
 char* seval (struct enode* se);
 char* v_name (int row, int col);
 double eval (struct enode* e);

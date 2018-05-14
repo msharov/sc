@@ -2,21 +2,21 @@
 
 #include "sc.h"
 
-char* scxmalloc (unsigned n)
+void* scxmalloc (unsigned n)
 {
-    char* p = (char*) malloc (n);
+    void* p = malloc (n);
     assert (p && "out of memory");
     if (!p) abort();
-    return (p);
+    return p;
 }
 
 // we make sure realloc will do a malloc if needed
-char* scxrealloc (char *ptr, unsigned n)
+void* scxrealloc (void* op, unsigned n)
 {
-    char* p = (char*) realloc (ptr, n);
+    void* p = realloc (op, n);
     assert (p && "out of memory");
     if (!p) abort();
-    return (p);
+    return p;
 }
 
 void scxfree (void *p)

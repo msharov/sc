@@ -2,41 +2,38 @@
 
 #include "sc.h"
 
-static struct abbrev* abbr_base;
+static struct abbrev* _abbr_base;
 
 static bool are_abbrevs (void)
 {
-    return (abbr_base != 0);
+    return _abbr_base != NULL;
 }
 
 void add_abbr (char *string)
 {
-    struct abbrev *a;
-    
     if (!string || *string == '\0') {
 	if (!are_abbrevs()) {
-	    error("No abbreviations defined");
+	    error ("No abbreviations defined");
 	    return;
 	} else {
-	    FILE *f;
-	    int pid;
-	    char px[MAXCMD];
-	    const char *pager;
-	    struct abbrev *nexta;
-
-	    strcpy(px, "| ");
-	    if (!(pager = getenv("PAGER")))
+	    const char* pager = getenv("PAGER");
+	    if (!pager)
 		pager = DFLT_PAGER;
-	    strcat(px, pager);
-	    f = openfile(px, &pid, NULL);
+
+	    char px[MAXCMD];
+	    snprintf (px, sizeof(px), "|%s", pager);
+
+	    pid_t pid;
+	    FILE* f = openfile (px, &pid, NULL);
 	    if (!f) {
-		error("Can't open pipe to %s", pager);
+		error ("Can't open pipe to %s", pager);
 		return;
 	    }
+
 	    fprintf(f, "\nAbbreviation    Expanded"
 		       "\n------------    --------");
-	    for (a = nexta = abbr_base; nexta; a = nexta, nexta = a->a_next)
-		;
+	    struct abbrev* a = _abbr_base;
+	    for (struct abbrev* nexta = _abbr_base; nexta; a = nexta, nexta = a->a_next) {}
 	    while (a) {
 		fprintf(f, "%-15s %s\n", a->abbr, a->exp);
 		a = a->a_prev;
@@ -46,23 +43,23 @@ void add_abbr (char *string)
 	}
     }
 
-    char *expansion;
-    if ((expansion = strchr(string, ' ')))
+    char* expansion = strchr (string, ' ');
+    if (expansion)
 	*expansion++ = '\0';
 
     if (isalpha(*string) || isdigit(*string) || *string == '_') {
-	for (const char* p = string; *p; p++) {
-	    if (!(isalpha(*p) || isdigit(*p) || *p == '_')) {
-		error("Invalid abbreviation: %s", string);
-		scxfree(string);
+	for (const char* p = string; *p; ++p) {
+	    if (!isalpha(*p) && !isdigit(*p) && *p != '_') {
+		error ("Invalid abbreviation: %s", string);
+		scxfree (string);
 		return;
 	    }
 	}
     } else {
-	for (const char* p = string; *p; p++) {
+	for (const char* p = string; *p; ++p) {
 	    if ((isalpha(*p) || isdigit(*p) || *p == '_') && p[1]) {
-		error("Invalid abbreviation: %s", string);
-		scxfree(string);
+		error ("Invalid abbreviation: %s", string);
+		scxfree (string);
 		return;
 	    }
 	}
@@ -70,7 +67,8 @@ void add_abbr (char *string)
     
     struct abbrev *prev = NULL;
     if (!expansion) {
-	if ((a = find_abbr(string, strlen(string), &prev))) {
+	struct abbrev* a = find_abbr(string, strlen(string), &prev);
+	if (a) {
 	    error("abbrev \"%s %s\"", a->abbr, a->exp);
 	    return;
 	} else {
@@ -82,7 +80,7 @@ void add_abbr (char *string)
     if (find_abbr(string, strlen(string), &prev))
 	del_abbr(string);
 
-    a = (struct abbrev*) scxmalloc (sizeof(struct abbrev));
+    struct abbrev* a = scxmalloc (sizeof(struct abbrev));
     a->abbr = string;
     a->exp = expansion;
 
@@ -93,20 +91,19 @@ void add_abbr (char *string)
 	if (a->a_next)
 	    a->a_next->a_prev = a;
     } else {
-	a->a_next = abbr_base;
+	a->a_next = _abbr_base;
 	a->a_prev = NULL;
-	if (abbr_base)
-	    abbr_base->a_prev = a;
-	abbr_base = a;
+	if (_abbr_base)
+	    _abbr_base->a_prev = a;
+	_abbr_base = a;
     }
 }
 
 void del_abbr (const char *abbrev)
 {
-    struct abbrev *a;
-    struct abbrev **prev = NULL;
-
-    if (!(a = find_abbr (abbrev, strlen(abbrev), prev)))
+    struct abbrev** prev = NULL;
+    struct abbrev* a = find_abbr (abbrev, strlen(abbrev), prev);
+    if (!a)
 	return;
 
     if (a->a_next)
@@ -114,19 +111,19 @@ void del_abbr (const char *abbrev)
     if (a->a_prev)
         a->a_prev->a_next = a->a_next;
     else
-	abbr_base = a->a_next;
+	_abbr_base = a->a_next;
     scxfree (a->abbr);
     scxfree (a);
 }
 
 struct abbrev* find_abbr (const char* abbrev, int len, struct abbrev** prev)
 {
-    int exact = TRUE;
+    bool exact = true;
     if (len < 0) {
-	exact = FALSE;
+	exact = false;
 	len = -len;
     }
-    for (struct abbrev* a = abbr_base; a; a = a->a_next) {
+    for (struct abbrev* a = _abbr_base; a; a = a->a_next) {
 	int cmp = strncmp (abbrev, a->abbr, len);
 	if (cmp > 0)
 	    break;
@@ -134,5 +131,5 @@ struct abbrev* find_abbr (const char* abbrev, int len, struct abbrev** prev)
 	    return (a);
 	*prev = a;
     }
-    return (NULL);
+    return NULL;
 }

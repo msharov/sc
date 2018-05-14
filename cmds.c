@@ -2343,7 +2343,7 @@ void showcol (int c1, int c2)
 }
 
 // Open the input or output file, setting up a pipe if needed
-FILE* openfile (char *fname, int *rpid, int *rfd)
+FILE* openfile (char* fname, pid_t* rpid, int* rfd)
 {
     int pipefd[4];
     int pid;
