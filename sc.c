@@ -42,7 +42,7 @@ char *slatexext;
 char *texext;
 int scrc = 0;
 int showsc, showsr;	// Starting cell for highlighted range
-int usecurses = TRUE;	// Use curses unless piping/redirection or using -q
+int usecurses = true;	// Use curses unless piping/redirection or using -q
 
 extern void	doshell();
 extern void	gohome();
@@ -187,7 +187,7 @@ int main (int argc, char** argv)
     int     nedistate;
     int	    running;
     char    *revi;
-    int	    anychanged = FALSE;
+    int	    anychanged = false;
     int     tempx, tempy; 	// Temp versions of curx, cury
 
     // Keep command line options around until the file is read so the
@@ -233,7 +233,7 @@ int main (int argc, char** argv)
     }
 
     if (!isatty(STDOUT_FILENO) || popt || qopt)
-	usecurses = FALSE;
+	usecurses = false;
     startdisp();
     signals();
     read_hist();
@@ -288,7 +288,7 @@ int main (int argc, char** argv)
 	exit (0);
     }
 
-    clearok(stdscr, TRUE);
+    clearok(stdscr, true);
     EvalAll();
 
     if (mopt)
@@ -326,13 +326,13 @@ int main (int argc, char** argv)
 			out = dup(STDOUT_FILENO);
 			freopen("/dev/tty", "r", stdin);
 			freopen("/dev/tty", "w", stdout);
-			usecurses = TRUE;
+			usecurses = true;
 			startdisp();
 			if (has_colors()) {
 			    initcolor(0);
 			    bkgd(COLOR_PAIR(1) | ' ');
 			}
-			clearok(stdscr, TRUE);
+			clearok(stdscr, true);
 			FullUpdate++;
 			linelim = 0;
 			*line = '\0';
@@ -426,15 +426,15 @@ int main (int argc, char** argv)
 	if (edistate < 0 && linelim < 0 && autocalc && (changed || FullUpdate)) {
 	    EvalAll();
 	    if (changed)		// if EvalAll changed or was before
-		anychanged = TRUE;
+		anychanged = true;
 	    changed = 0;
 	}
 	else		// any cells change?
 	if (changed)
-	    anychanged = TRUE;
+	    anychanged = true;
 
 	update(anychanged);
-	anychanged = FALSE;
+	anychanged = false;
 	c = nmgetch();
 	getyx(stdscr, tempy, tempx);
 	move(1, 0);
@@ -948,7 +948,7 @@ int main (int argc, char** argv)
 		case '@':
 		    EvalAll();
 		    changed = 0;
-		    anychanged = TRUE;
+		    anychanged = true;
 		    break;
 
 		case '0': case '1': case '2': case '3': case '4':
@@ -1916,7 +1916,7 @@ static void winchg (int i UNUSED)
     // (or window) that grows bigger will leave the added space blank. - CRM
     refresh();
     FullUpdate++;
-    clearok (stdscr, TRUE);
+    clearok (stdscr, true);
     update(1);
     refresh();
     signal (SIGWINCH, winchg);

@@ -41,8 +41,8 @@ int first;
 int effr, effc;
 
 // option flags reset
-int colfirst = FALSE;
-int leftadj = FALSE;
+int colfirst = false;
+int leftadj = false;
 int r0 = 0;
 int c0 = 0;
 int rinc = 1;
@@ -50,10 +50,10 @@ int cinc = 1;
 int len = 20000;
 char delim1 = ' ';
 char delim2 = '\t';
-int strip_delim = TRUE;
-int drop_format = FALSE;
-int strnums	= FALSE;
-int plainnums	= FALSE;
+int strip_delim = true;
+int drop_format = false;
+int strnums	= false;
+int plainnums	= false;
 int maxrows = 0, maxcols = 0;
 
 char token [1000];
@@ -66,17 +66,17 @@ int main (int argc, char** argv)
 
     while ((c = getopt(argc, argv, "rfLks:R:C:n:d:SPv")) != EOF) {
 	switch (c) {
-	    case 'r': colfirst = TRUE; break;
-	    case 'L': leftadj = TRUE; break;
+	    case 'r': colfirst = true; break;
+	    case 'L': leftadj = true; break;
 	    case 's': c0 = getcol(optarg); r0 = getrow(optarg); break;
 	    case 'R': rinc = atoi(optarg); break;
 	    case 'C': cinc = atoi(optarg); break;
 	    case 'n': len = atoi(optarg); break;
 	    case 'd': delim1 = optarg[0]; delim2 = '\0'; break;
-	    case 'k': strip_delim = FALSE; break;
-	    case 'f': drop_format = TRUE; break;
-	    case 'S': strnums = TRUE; break;
-	    case 'P': plainnums = TRUE; break;
+	    case 'k': strip_delim = false; break;
+	    case 'f': drop_format = true; break;
+	    case 'S': strnums = true; break;
+	    case 'P': plainnums = true; break;
 	    case 'v': fprintf(stderr,"%s: " SC_VERSTRING "\n", argv[0]); // fallthrough
 	    default:
 		fprintf(stderr,"Usage: %s [-rkfLSPv] [-s v] [-R i] [-C i] [-n i] [-d c]\n", argv[0]);
@@ -94,7 +94,7 @@ int main (int argc, char** argv)
     curlen = 0;
     curcol = c0; coff = 0;
     currow = r0; roff = 0;
-    first = TRUE;
+    first = true;
 
     while (1) {
 	effr = currow+roff;
@@ -108,7 +108,7 @@ int main (int argc, char** argv)
 	    }
 	    exit(0);
 	case NUMBER:
-	    first = FALSE;
+	    first = false;
 	    printf("let %s%d = %s\n", pcoltoa(effc), effr, token);
 	    if (effc >= maxcols - 1) {
 		if (!psc_growtbl(GROWCOL, effc)) {
@@ -147,7 +147,7 @@ int main (int argc, char** argv)
 	    }
 	    break;
 	case ALPHA:
-	    first = FALSE;
+	    first = false;
 	    if (leftadj)
 		printf("leftstring %s%d = \"%s\"\n", pcoltoa(effc),effr,token); 
 	    else
@@ -174,7 +174,7 @@ int main (int argc, char** argv)
 	    curlen++;
 	    roff = 0;
 	    coff = 0;
-	    first = TRUE;
+	    first = true;
 	    if (colfirst) {
 		if (curlen >= len) {
 		    curcol = c0;
@@ -238,17 +238,17 @@ static int scan (void)
 
     p = token;
     c = *p;
-    founddigit = FALSE;
+    founddigit = false;
     // str_nums always returns numbers as strings
     // plainnums returns 'numbers' with [-+eE] in them as strings
     // lastprtnum makes sure a number ends in one of [0-9eE.]
     if (!strnums && (isdigit(c) || c == '.' || c == '-' || c == '+')) {
-	int lastprtnum = FALSE;
+	bool lastprtnum = false;
 	while (isdigit(c) || c == '.' || (!plainnums && (c == '-' || c == '+' || c == 'e' || c == 'E'))) {
 	    if (isdigit(c)) 
-		lastprtnum = founddigit = TRUE;
+		lastprtnum = founddigit = true;
 	    else if (!(c == '.' || c == 'e' || c == 'E'))
-		lastprtnum = FALSE;
+		lastprtnum = false;
 	    c = *p++;
 	}
 	if (c == '\0' && founddigit && lastprtnum)

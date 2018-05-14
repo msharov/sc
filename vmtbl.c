@@ -37,7 +37,7 @@ static const char nowider[] = "The table can't be any wider";
 //
 // grow the main && auxiliary tables (reset maxrows/maxcols as needed)
 // toprow &&/|| topcol tell us a better guess of how big to become.
-// we return TRUE if we could grow, FALSE if not....
+// we return true if we could grow, false if not....
 int growtbl (int rowcol, int toprow UNUSED, int topcol)
 {
     int		*fwidth2;
@@ -76,7 +76,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
     if (rowcol == GROWCOL || rowcol == GROWBOTH) {
 	if (rowcol == GROWCOL && (maxcols == ABSMAXCOLS || topcol >= ABSMAXCOLS)) {
 	    error(nowider);
-	    return (FALSE);
+	    return (false);
 	}
 	if (topcol > maxcols)
 	    newcols = GROWAMT + topcol;
@@ -117,7 +117,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
 	    if ((tbl[i] = (struct ent **)scxrealloc((char *)tbl[i],
 		(unsigned)(newcols * sizeof(struct ent **)))) == (struct ent **)0) {
 	    error(nowider);
-	    return(FALSE);
+	    return(false);
 	    }
 	for (nullit = ATBL(tbl, i, maxcols), cnt = 0;
 		cnt < newcols-maxcols; cnt++, nullit++)
@@ -132,7 +132,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
 	if ((tbl[i] = (struct ent **)scxmalloc((unsigned)(newcols *
 		sizeof(struct ent **)))) == (struct ent **)0) {
 	    error(nowider);
-	    return(FALSE);
+	    return(false);
 	}
 	for (nullit = tbl[i], cnt = 0; cnt < newcols; cnt++, nullit++)
 	    *nullit = (struct ent *)NULL;
@@ -145,12 +145,12 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
     if (maxrows > 10000) rescol = 6;
 
     maxcols = newcols;
-    return (TRUE);
+    return (true);
 }
 
 // grow the main && auxiliary tables (reset maxrows/maxcols as needed)
 // toprow &&/|| topcol tell us a better guess of how big to become.
-// we return TRUE if we could grow, FALSE if not....
+// we return true if we could grow, false if not....
 int psc_growtbl (int rowcol, int topcol)
 {
     int newcols = maxcols;
@@ -160,7 +160,7 @@ int psc_growtbl (int rowcol, int topcol)
     }
     if (rowcol == GROWCOL || rowcol == GROWBOTH) {
 	if (rowcol == GROWCOL && (maxcols == ABSMAXCOLS || topcol >= ABSMAXCOLS))
-	    return (FALSE);
+	    return (false);
 	if (topcol > maxcols)
 	    newcols = GROWAMT + topcol;
 	else
@@ -178,5 +178,5 @@ int psc_growtbl (int rowcol, int topcol)
 	memset(realfmt+maxcols, 0, (newcols-maxcols)*sizeof(int));
     }
     maxcols = newcols;
-    return (TRUE);
+    return (true);
 }

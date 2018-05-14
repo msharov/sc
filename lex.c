@@ -8,7 +8,7 @@
 
 jmp_buf fpe_buf;
 
-bool decimal = FALSE;
+bool decimal = false;
 
 static void fpe_trap (int signo UNUSED)
 {
@@ -171,7 +171,7 @@ int yylex (void)
 		if (!finite(yylval.fval))
 		    ret = K_ERR;
 		else
-		    decimal = TRUE;
+		    decimal = true;
 	    } else {
 		int iv = v;
 		// A NUMBER must hold at least MAXROW and MAXCOL
@@ -211,7 +211,7 @@ int yylex (void)
     } else ret = *p++;
     linelim = p-line;
     if (!isfunc) isfunc = ((ret == '@') + (ret == S_GOTO) - (ret == S_SET));
-    if (ret == S_GOTO) isgoto = TRUE;
+    if (ret == S_GOTO) isgoto = true;
     tokenst = NULL;
     return ret;
 }
@@ -244,14 +244,14 @@ unsigned atocol (const char* string, unsigned len)
 
 void initkbd (void)
 {
-    keypad(stdscr, TRUE);
-    notimeout(stdscr,TRUE);
+    keypad(stdscr, true);
+    notimeout(stdscr,true);
 }
 
 void resetkbd (void)
 {
-    keypad(stdscr, FALSE);
-    notimeout(stdscr, FALSE);
+    keypad(stdscr, false);
+    notimeout(stdscr, false);
 }
 
 int nmgetch (void)

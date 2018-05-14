@@ -143,34 +143,32 @@ void clean_range (void)
 
 int find_range (char *name, int len, struct ent *lmatch, struct ent *rmatch, struct range **rng)
 {
-    struct range *r;
-    int cmp;
-    int exact = TRUE;
-    
+    bool exact = true;
     if (len < 0) {
-	exact = FALSE;
+	exact = false;
 	len = -len;
     }
 
     if (name) {
-	for (r = rng_base; r; r = r->r_next) {
-	    if ((cmp = strncmp(name, r->r_name, len)) > 0)
-		return (cmp);
+	for (const struct range* r = rng_base; r; r = r->r_next) {
+	    int cmp = strncmp(name, r->r_name, len);
+	    if (cmp > 0)
+		return cmp;
 	    *rng = r;
 	    if (cmp == 0)
 		if (!exact || strlen(r->r_name) == (unsigned) len)
-		    return (cmp);
+		    return cmp;
 	}
-	return (-1);
+	return -1;
     }
 
-    for (r = rng_base; r; r = r->r_next) {
+    for (const struct range* r = rng_base; r; r = r->r_next) {
 	if ((lmatch == r->r_left.vp) && (rmatch == r->r_right.vp)) {
 	    *rng = r;
-	    return (0);
+	    return 0;
 	}
     }
-    return (-1);
+    return -1;
 }
 
 void sync_ranges (void)

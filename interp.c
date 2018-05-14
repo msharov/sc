@@ -1970,7 +1970,7 @@ void let (struct ent* v, struct enode *e)
 	// prescale input unless it has a decimal
 	if (!loading && !decimal && (prescale < 0.9999999))
 	    val *= prescale;
-	decimal = FALSE;
+	decimal = false;
 
 	v->v = val;
 
@@ -2119,7 +2119,7 @@ void hide_row (int arg)
 	}
     }
     FullUpdate++;
-    row_hidden[arg] = TRUE;
+    row_hidden[arg] = true;
 }
 
 void hide_col (int arg)
@@ -2135,7 +2135,7 @@ void hide_col (int arg)
 	}
     }
     FullUpdate++;
-    col_hidden[arg] = TRUE;
+    col_hidden[arg] = true;
 }
 
 void clearent (struct ent* v)

@@ -223,7 +223,7 @@ void insertcol (int arg, int delta)
     	fwidth[c] = DEFWIDTH;
 	precision[c] =  DEFPREC;
 	realfmt[c] = DEFREFMT;
-	col_hidden[c] = FALSE;
+	col_hidden[c] = false;
     }
 
     for (r=0; r <= maxrow; r++) {
@@ -1205,7 +1205,7 @@ void closecol (int arg)
 	fwidth[i] = DEFWIDTH;
 	precision[i] = DEFPREC;
 	realfmt[i] = DEFREFMT;
-	col_hidden[i] = FALSE;
+	col_hidden[i] = false;
     }
 
     // Update all marked cells.
@@ -2307,7 +2307,7 @@ void hidecol (int arg)
     FullUpdate++;
     modflg++;
     while (c1 <= c2)
-	col_hidden[c1++] = TRUE;
+	col_hidden[c1++] = true;
 }
 
 // mark a row as not-hidden
@@ -2339,7 +2339,7 @@ void showcol (int c1, int c2)
     FullUpdate++;
     modflg++;
     while (c1 <= c2)
-	col_hidden[c1++] = FALSE;
+	col_hidden[c1++] = false;
 }
 
 // Open the input or output file, setting up a pipe if needed

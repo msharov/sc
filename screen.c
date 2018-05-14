@@ -12,7 +12,7 @@ static int	lastftoprows = 0;	// Rows in top of frame cursor was in last
 static int	lastfbottomrows = 0;	// Rows in bottom of frame cursor was in last
 static int	lastfleftcols = 0;	// Columns in left side of frame cursor was in last
 static int	lastfrightcols = 0;
-static bool	frTooLarge = 0;		// If set, either too many rows or too many columns
+static bool	frTooLarge = false;	// If set, either too many rows or too many columns
 					// exist in frame to allow room for the scrolling
 					// portion of the framed range
 static int	framecols = 0;		// Columns in current frame
@@ -39,7 +39,7 @@ extern struct go_save gs;
 //
 // standout last time in update()?
 //	At this point we will let curses do work
-static int	standlast	= FALSE;
+static int	standlast	= false;
 
 void update (int anychanged)	// did any cell really change in value?
 {
@@ -92,15 +92,14 @@ void update (int anychanged)	// did any cell really change in value?
 	    framecols += fwidth[r-i];
 	}
 	if (framerows >= lines || framecols >= cols) {
-	    frTooLarge = TRUE;
-	    if (FullUpdate) {
+	    frTooLarge = true;
+	    if (FullUpdate)
 		error("Frame too large for screen size - ignoring");
-	    }
 	    ftoprows = fbottomrows = fleftcols = frightcols = 0;
 	    strow -= lastftoprows;
 	    stcol -= lastfleftcols;
 	} else {
-	    frTooLarge = FALSE;
+	    frTooLarge = false;
 	    if (strow >= fr->or_left->row) {
 		if (fr == lastfr && strow < fr->or_left->row + ftoprows)
 		    strow = fr->or_left->row;
@@ -616,8 +615,8 @@ void update (int anychanged)	// did any cell really change in value?
     if (showrange || anychanged || FullUpdate || standlast) {
 	// may be reset in loop, if not next time we will do a FullUpdate
 	if (standlast) {
-	    FullUpdate = TRUE;
-	    standlast = FALSE;
+	    FullUpdate = true;
+	    standlast = false;
 	}
 
 	for (row = (ftoprows && strow >= fr->or_left->row ?
@@ -983,7 +982,7 @@ void update (int anychanged)	// did any cell really change in value?
 	    move(lastmy, lastmx + fwidth[lastcol]);
     }
 
-    FullUpdate = FALSE;
+    FullUpdate = false;
 }
 
 // redraw what is under the cursor from curses' idea of the screen
@@ -1026,7 +1025,7 @@ void startdisp (void)
     cbreak();
     initkbd();
     scrollok(stdscr, 1);
-    idlok(stdscr,TRUE);
+    idlok(stdscr,true);
     FullUpdate++;
 }
 
