@@ -175,7 +175,7 @@ void list_colors (FILE *f)
 
 int are_colors (void)
 {
-    return (color_base != 0);
+    return color_base != 0;
 }
 
 void fix_colors (int row1, int col1, int row2, int col2, int delta1, int delta2)

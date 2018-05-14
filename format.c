@@ -113,7 +113,7 @@ bool format (const char* cfmt, int lprecision, double val, char *buf, unsigned b
     int zero_pad = 0;
 
     if (cfmt == NULL)
-	return(true);
+	return true;
 
     if (strlen(cfmt) + 1 > fmtlen) {
 	fmtlen = strlen(cfmt) + 40;
@@ -288,7 +288,7 @@ bool format (const char* cfmt, int lprecision, double val, char *buf, unsigned b
 	ret = true;
     }
 
-    return (ret);
+    return ret;
     }
 }
 
@@ -341,7 +341,7 @@ static const char* fmt_int (
     *bufptr = EOS;
     reverse(buf);
 
-    return (buf);
+    return buf;
 }
 
 static const char* fmt_frac (
@@ -371,9 +371,9 @@ static const char* fmt_frac (
     *bufptr = EOS;
 
     if (buf[1] < '0' || buf[1] > '9')
-	return (buf + 1);
+	return buf + 1;
     else
-	return (buf);
+	return buf;
 }
 
 static const char* fmt_exp (
@@ -400,7 +400,7 @@ static const char* fmt_exp (
     sprintf(valbuf, "%d", val);
   
     strcat(buf, fmt_int(valbuf, fmt, false, negative));
-    return (buf);
+    return buf;
 }
 
 static void reverse (char *buf)
@@ -448,9 +448,9 @@ bool engformat (int fmt, int width, int lprecision, double val, char *buf, int b
     int engind = 0;
     double engmant, pow(), engabs, engexp;
 
-    if (buflen < width) return (false);
+    if (buflen < width) return false;
     if (fmt >= 0 && fmt < COLFORMATS && colformat[fmt])
-	return (format(colformat[fmt], lprecision, val, buf, buflen));
+	return format(colformat[fmt], lprecision, val, buf, buflen);
     if (fmt == REFMTFIX)
 	sprintf(buf,"%*.*f", width, lprecision, val);
     if (fmt == REFMTFLT)
@@ -511,5 +511,5 @@ bool engformat (int fmt, int width, int lprecision, double val, char *buf, int b
 	    buf[i] = '\0';
 	}
     }
-    return (true);
+    return true;
 }

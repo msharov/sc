@@ -207,17 +207,17 @@ static int scan (void)
     c = getchar();
 
     if (c == EOF)
-	return (END);
+	return END;
 
     if (c == '\n')
-	return (EOL);
+	return EOL;
 
     if (c == delim1 || c == delim2) {
         if (strip_delim) {
 	    while ((c = getchar()) && (c == delim1 || c == delim2)) {}
 	    ungetc(c, stdin);
 	} 
-	return (SPACE);
+	return SPACE;
     }
 
     if (c == '\"') {
@@ -226,7 +226,7 @@ static int scan (void)
 	if (c != '\"')
 	    ungetc(c, stdin);
 	*p = '\0';
-	return (ALPHA);
+	return ALPHA;
     }
 
     while (c != delim1 && c != delim2 && c!= '\n' && c != EOF) {
@@ -245,18 +245,19 @@ static int scan (void)
     if (!strnums && (isdigit(c) || c == '.' || c == '-' || c == '+')) {
 	bool lastprtnum = false;
 	while (isdigit(c) || c == '.' || (!plainnums && (c == '-' || c == '+' || c == 'e' || c == 'E'))) {
-	    if (isdigit(c)) 
-		lastprtnum = founddigit = true;
-	    else if (!(c == '.' || c == 'e' || c == 'E'))
+	    if (isdigit(c)) {
+		lastprtnum = true;
+		founddigit = true;
+	    } else if (!(c == '.' || c == 'e' || c == 'E'))
 		lastprtnum = false;
 	    c = *p++;
 	}
 	if (c == '\0' && founddigit && lastprtnum)
-	    return (NUMBER);
+	    return NUMBER;
 	else
-	    return (ALPHA);
+	    return ALPHA;
     }
-    return (ALPHA);
+    return ALPHA;
 }
     
 // turns [A-Z][A-Z] into a number
@@ -264,15 +265,15 @@ static int getcol (char *p)
 {
     int col = 0;
     if (!p)
-	return (0);
+	return 0;
     while (*p && !isalpha(*p)) 
 	++p;
     if (!*p)
-	return (0);
+	return 0;
     col = (toupper(*p) - 'A');
     if (isalpha(*++p)) 
 	col = (col + 1)*26 + (toupper(*p) - 'A');
-    return (col);
+    return col;
 }
 
 // given a string turn it into a row number
@@ -280,16 +281,16 @@ static int getrow (char *p)
 {
     int row = 0;
     if (!p)
-	return (0);
+	return 0;
     while (*p && !isdigit(*p))
 	++p; 
     if (!*p)
-	return (0);
+	return 0;
     while (*p && isdigit(*p)) {
 	row = row * 10 + *p - '0';
 	++p;
     }
-    return (row);
+    return row;
 }
 
 // turns a column number into [A-Z][A-Z]
@@ -307,5 +308,5 @@ static char* pcoltoa (int col)
     }
     *p++ = col+'A';
     *p = '\0';
-    return (rname);
+    return rname;
 }

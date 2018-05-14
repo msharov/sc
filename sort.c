@@ -140,5 +140,5 @@ static int compare (const void* row1, const void* row2)
     }
     if (!result)
 	result = (*((int*) row1) - *((int*) row2));
-    return (result);
+    return result;
 }

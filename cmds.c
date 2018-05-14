@@ -928,53 +928,52 @@ void rowshow_op (void)
 // and 't', are allowed.  If ch is 'Z', an extra qualifier 'Z' is allowed.
 int get_rcqual (int ch)
 {
-    int c;
-
     error("%sow/column:  r: row  c: column%s",
-	(ch == KEY_IC)		? "Insert r" :
-	(ch == 'i')		? "Insert r" :
-	(ch == 'o')		? "Open r" :
-	(ch == 'a')		? "Append r" :
-	(ch == 'd')		? "Delete r" :
-	(ch == 'y')		? "Yank r" :
-	(ch == 'p')		? "Pull r" :
-	(ch == 'v')		? "Values r" :
-	(ch == 'Z')		? "Zap r" :
-	(ch == 's')		? "Show r" : "R",
-	(ch == 'p')		? "  p: paste  m: merge  x: xchg  <MORE>" :
-	(ch == 'Z')		? "  Z: save/exit" : "");
+	(ch == KEY_IC)	? "Insert r" :
+	(ch == 'i')	? "Insert r" :
+	(ch == 'o')	? "Open r" :
+	(ch == 'a')	? "Append r" :
+	(ch == 'd')	? "Delete r" :
+	(ch == 'y')	? "Yank r" :
+	(ch == 'p')	? "Pull r" :
+	(ch == 'v')	? "Values r" :
+	(ch == 'Z')	? "Zap r" :
+	(ch == 's')	? "Show r" : "R",
+	(ch == 'p')	? "  p: paste  m: merge  x: xchg  <MORE>" :
+	(ch == 'Z')	? "  Z: save/exit" : "");
     refresh();
 
-    switch (c = nmgetch()) {
-	case 'r':	return ('r');
-	case 'c':	return ('c');
-	case 'p':	return ((ch == 'p') ? 'p' : 0);
-	case 'm':	return ((ch == 'p') ? 'm' : 0);
-	case 'x':	return ((ch == 'p') ? 'x' : 0);
-	case 't':	return ((ch == 'p') ? 't' : 0);
-	case 'f':	return ((ch == 'p') ? 'f' : 0);
-	case 'C':	return ((ch == 'p') ? 'C' : 0);
-	case '.':	return ((ch == 'p') ? '.' : 0);
-	case 'Z':	return ((ch == 'Z') ? 'Z' : 0);
+    int c = nmgetch();
+    switch (c) {
+	case 'r':	return 'r';
+	case 'c':	return 'c';
+	case 'p':	return ch == 'p' ? 'p' : 0;
+	case 'm':	return ch == 'p' ? 'm' : 0;
+	case 'x':	return ch == 'p' ? 'x' : 0;
+	case 't':	return ch == 'p' ? 't' : 0;
+	case 'f':	return ch == 'p' ? 'f' : 0;
+	case 'C':	return ch == 'p' ? 'C' : 0;
+	case '.':	return ch == 'p' ? '.' : 0;
+	case 'Z':	return ch == 'Z' ? 'Z' : 0;
 	case KEY_ESC:
-	case ctl('g'):	return (KEY_ESC);
+	case ctl('g'):	return KEY_ESC;
 	case 'd':	if (ch == 'd') {
 			    ungetch('x');
-			    return (KEY_ESC);
+			    return KEY_ESC;
 			} else
-			    return (0);
+			    return 0;
 	case 'y':	if (ch == 'y') {
 			    yankr(lookat(currow, curcol),
 				    lookat(currow, curcol));
-			    return (KEY_ESC);
+			    return KEY_ESC;
 			} else
-			    return (0);
+			    return 0;
 	case 'v':	if (ch == 'v') {
 			    valueize_area(currow, curcol, currow, curcol);
 			    modflg++;
-			    return (KEY_ESC);
+			    return KEY_ESC;
 			} else
-			    return (0);
+			    return 0;
 	case KEY_UP:
 	case KEY_DOWN:
 	case KEY_PPAGE:
@@ -993,14 +992,14 @@ int get_rcqual (int ch)
 			else if (ch == 'Z')
 			    sprintf(line,"hide [range] ");
 			else
-			    return (0);
+			    return 0;
 			edit_mode();
 			write_line('A');
 			startshow();
 			showrange = SHOWROWS;
 			showsr = currow;
 			ungetch(c);
-			return (KEY_ESC);
+			return KEY_ESC;
 
 	case KEY_BACKSPACE:
 	case KEY_LEFT:
@@ -1016,16 +1015,16 @@ int get_rcqual (int ch)
 			else if (ch == 'Z')
 			    sprintf(line,"hide [range] ");
 			else
-			    return (0);
+			    return 0;
 			edit_mode();
 			write_line('A');
 			startshow();
 			showrange = SHOWCOLS;
 			showsc = curcol;
 			ungetch(c);
-			return (KEY_ESC);
+			return KEY_ESC;
 
-	default:	return (0);
+	default:	return 0;
     }
     // NOTREACHED
 }
@@ -2359,7 +2358,7 @@ FILE* openfile (char* fname, pid_t* rpid, int* rfd)
 	    *rfd = 1;			// Set to stdout just in case
 
 	efname = findhome(fname);
-	return (fopen(efname, rfd == NULL ? "w" : "r"));
+	return fopen(efname, rfd == NULL ? "w" : "r");
     }
 
     fname++;				// Skip |
@@ -2367,7 +2366,7 @@ FILE* openfile (char* fname, pid_t* rpid, int* rfd)
     if (pipe(pipefd) < 0 || (rfd != NULL && pipe(pipefd+2) < 0)) {
 	error("Can't make pipe to child");
 	*rpid = 0;
-	return (0);
+	return 0;
     }
 
     deraw(rfd==NULL);
@@ -2393,7 +2392,7 @@ FILE* openfile (char* fname, pid_t* rpid, int* rfd)
 	    if (rfd != NULL)
 		close(pipefd[3]);
 	    *rpid = 0;
-	    return (0);
+	    return 0;
 	}
     }
     close(pipefd[0]);
@@ -2401,7 +2400,7 @@ FILE* openfile (char* fname, pid_t* rpid, int* rfd)
 	close(pipefd[3]);
 	*rfd = pipefd[1];
     }
-    return (f);
+    return f;
 }
 
 // close a file opened by openfile(), if process wait for return
@@ -2509,15 +2508,15 @@ static char* findplugin (char *ext, char type)
 
     fp = filt;
     if (fp == NULL)
-	return (NULL);
+	return NULL;
     if ((!strcmp(fp->ext, ext)) && (fp->type == type))
-	return (fp->plugin);
+	return fp->plugin;
     while (fp->next != NULL) {
 	fp = fp->next;
 	if ((!strcmp(fp->ext, ext)) && (fp->type == type))
-	    return (fp->plugin);
+	    return fp->plugin;
     }
-    return (NULL);
+    return NULL;
 }
 
 void write_fd (FILE *f, int r0, int c0, int rn, int cn)
@@ -2642,18 +2641,18 @@ int writefile (const char* fname, int r0, int c0, int rn, int cn)
 	if ((plugin = findplugin(p+1, 'w')) != NULL) {
 	    if (!plugin_exists(plugin, save + 1)) {
 		error("plugin not found");
-		return (-1);
+		return -1;
 	    }
 	    *save = '|';
 	    if ((strlen(save) + strlen(fname) + 20) > PATH_MAX) {
 		error("Path too long");
-		return (-1);
+		return -1;
 	    }
 	    sprintf(save + strlen(save), " %s%d:", coltoa(c0), r0);
 	    sprintf(save + strlen(save), "%s%d \"%s\"", coltoa(cn), rn, fname);
 	    // pass it to readfile as an advanced macro
 	    readfile(save, 0);
-	    return (0);
+	    return 0;
 	}
     }
 
@@ -2662,7 +2661,7 @@ int writefile (const char* fname, int r0, int c0, int rn, int cn)
 	    fname = curfile;
 	else {
 	    write_fd(stdout, r0, c0, rn, cn);
-	    return (0);
+	    return 0;
 	}
     }
 
@@ -2701,7 +2700,7 @@ int writefile (const char* fname, int r0, int c0, int rn, int cn)
 
     if ((f = openfile(tfname, &pid, NULL)) == NULL) {
 	error("Can't create file \"%s\"", save);
-	return (-1);
+	return -1;
     }
 
     if (usecurses) {
@@ -2721,7 +2720,7 @@ int writefile (const char* fname, int r0, int c0, int rn, int cn)
 	else
 	    fprintf(stderr, "\nFile \"%s\" written", curfile);
     }
-    return (0);
+    return 0;
 }
 
 int readfile (const char* fname, int eraseflg)
@@ -2750,12 +2749,12 @@ int readfile (const char* fname, int eraseflg)
 	if ((plugin = findplugin(p+1, 'r')) != NULL) {
 	    if (!(plugin_exists(plugin, save + 1))) {
 		error("plugin not found");
-		return (-1);
+		return -1;
 	    }
 	    *save = '|';
 	    if ((strlen(save) + strlen(fname) + 2) > PATH_MAX) {
 		error("Path too long");
-		return (-1);
+		return -1;
 	    }
 	    sprintf(save + strlen(save), " \"%s\"", fname);
 	    eraseflg = 0;
@@ -3161,27 +3160,27 @@ int etype (struct enode *e)
 	case UPPER: case LOWER: case CAPITAL:
 	case O_SCONST: case '#': case DATE: case FMT: case STINDEX:
 	case EXT: case SVAL: case SUBSTR:
-	    return (STR);
+	    return STR;
 
 	case '?':
 	case IF:
-	    return (etype(e->e.o.right->e.o.left));
+	    return etype(e->e.o.right->e.o.left);
 
 	case 'f':
-	    return (etype(e->e.o.right));
+	    return etype(e->e.o.right);
 
 	case O_VAR: {
 	    struct ent *p;
 	    p = e->e.v.vp;
 	    if (p->expr)
-		return (p->flags & is_strexpr ? STR : NUM);
+		return p->flags & is_strexpr ? STR : NUM;
 	    else if (p->label)
-		return (STR);
+		return STR;
 	    else
-		return (NUM);
+		return NUM;
 	    }
 	default:
-	    return (NUM);
+	    return NUM;
     }
 }
 
@@ -3195,11 +3194,11 @@ int yn_ask (const char *msg)
     char ch;
     while ((ch = nmgetch()) != 'y' && ch != 'Y' && ch != 'n' && ch != 'N')
 	if (ch == ctl('g') || ch == KEY_ESC)
-	    return (-1);
+	    return -1;
     if (ch == 'y' || ch == 'Y')
-	return (1);
+	return 1;
     else
-	return (0);
+	return 0;
 }
 
 // expand a ~ in a path to your home directory
@@ -3226,12 +3225,12 @@ char* findhome (char *path)
 	    *namep = '\0';
 	    if ((pwent = getpwnam(name)) == NULL) {
 	    	sprintf(path, "Can't find user %s", name);
-		return (NULL);
+		return NULL;
 	    }
 	    strcpy(tmppath, pwent->pw_dir);
 	}
 	strcat(tmppath, pathptr);
 	strcpy(path, tmppath);
     }
-    return (path);
+    return path;
 }

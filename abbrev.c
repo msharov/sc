@@ -128,7 +128,7 @@ struct abbrev* find_abbr (const char* abbrev, int len, struct abbrev** prev)
 	if (cmp > 0)
 	    break;
 	if (!cmp && (!exact || strlen(a->abbr) == (unsigned)len))
-	    return (a);
+	    return a;
 	*prev = a;
     }
     return NULL;

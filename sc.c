@@ -137,7 +137,7 @@ struct ent* lookat (int row, int col)
 	(*pp)->cellerror = CELLOK;
 	(*pp)->next = NULL;
     }
-    return (*pp);
+    return *pp;
 }
 
 // This structure is used to keep ent structs around before they
@@ -1970,16 +1970,16 @@ int modcheck (const char* endstr)
 	char lin [128];
 	snprintf (lin, sizeof(lin), "File \"%.64s\" is modified, save%s? ", curfile, endstr);
 	if ((yn_ans = yn_ask(lin)) < 0)
-	    return (1);
+	    return 1;
 	else if (yn_ans == 1 && writefile(curfile, 0, 0, maxrow, maxcol) < 0)
-	    return (1);
+	    return 1;
     } else if (modflg) {
 	if ((yn_ans = yn_ask("Do you want a chance to save the data? ")) < 0)
-	    return (1);
+	    return 1;
 	else
-	    return (yn_ans);
+	    return yn_ans;
     }
-    return (0);
+    return 0;
 }
 
 // Returns 1 if cell is locked, 0 otherwise
@@ -1988,9 +1988,9 @@ int locked_cell (int r, int c)
     struct ent *p = *ATBL(tbl, r, c);
     if (p && (p->flags & is_locked)) {
 	error("Cell %s%d is locked", coltoa(c), r) ;
-	return(1);
+	return 1;
     }
-    return(0);
+    return 0;
 }
 
 // Check if area contains locked cells
@@ -2003,8 +2003,8 @@ int any_locked_cells (int r1, int c1, int r2, int c2)
 	for (c=c1; c<=c2; c++) {
 	    p = *ATBL(tbl, r, c);
 	    if (p && (p->flags&is_locked))
-		return(1);
+		return 1;
 	}
     }
-    return(0);
+    return 0;
 }

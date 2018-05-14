@@ -76,7 +76,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
     if (rowcol == GROWCOL || rowcol == GROWBOTH) {
 	if (rowcol == GROWCOL && (maxcols == ABSMAXCOLS || topcol >= ABSMAXCOLS)) {
 	    error(nowider);
-	    return (false);
+	    return false;
 	}
 	if (topcol > maxcols)
 	    newcols = GROWAMT + topcol;
@@ -117,7 +117,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
 	    if ((tbl[i] = (struct ent **)scxrealloc((char *)tbl[i],
 		(unsigned)(newcols * sizeof(struct ent **)))) == (struct ent **)0) {
 	    error(nowider);
-	    return(false);
+	    return false;
 	    }
 	for (nullit = ATBL(tbl, i, maxcols), cnt = 0;
 		cnt < newcols-maxcols; cnt++, nullit++)
@@ -132,7 +132,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
 	if ((tbl[i] = (struct ent **)scxmalloc((unsigned)(newcols *
 		sizeof(struct ent **)))) == (struct ent **)0) {
 	    error(nowider);
-	    return(false);
+	    return false;
 	}
 	for (nullit = tbl[i], cnt = 0; cnt < newcols; cnt++, nullit++)
 	    *nullit = (struct ent *)NULL;
@@ -145,7 +145,7 @@ int growtbl (int rowcol, int toprow UNUSED, int topcol)
     if (maxrows > 10000) rescol = 6;
 
     maxcols = newcols;
-    return (true);
+    return true;
 }
 
 // grow the main && auxiliary tables (reset maxrows/maxcols as needed)
@@ -160,7 +160,7 @@ int psc_growtbl (int rowcol, int topcol)
     }
     if (rowcol == GROWCOL || rowcol == GROWBOTH) {
 	if (rowcol == GROWCOL && (maxcols == ABSMAXCOLS || topcol >= ABSMAXCOLS))
-	    return (false);
+	    return false;
 	if (topcol > maxcols)
 	    newcols = GROWAMT + topcol;
 	else
@@ -178,5 +178,5 @@ int psc_growtbl (int rowcol, int topcol)
 	memset(realfmt+maxcols, 0, (newcols-maxcols)*sizeof(int));
     }
     maxcols = newcols;
-    return (true);
+    return true;
 }

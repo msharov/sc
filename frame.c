@@ -181,7 +181,7 @@ void list_frames (FILE *f)
 
 int are_frames (void)
 {
-    return (frame_base != 0);
+    return frame_base != 0;
 }
 
 void fix_frames (int row1, int col1, int row2, int col2, int delta1, int delta2)

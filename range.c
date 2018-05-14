@@ -150,7 +150,7 @@ int find_range (char *name, int len, struct ent *lmatch, struct ent *rmatch, str
     }
 
     if (name) {
-	for (const struct range* r = rng_base; r; r = r->r_next) {
+	for (struct range* r = rng_base; r; r = r->r_next) {
 	    int cmp = strncmp(name, r->r_name, len);
 	    if (cmp > 0)
 		return cmp;
@@ -162,7 +162,7 @@ int find_range (char *name, int len, struct ent *lmatch, struct ent *rmatch, str
 	return -1;
     }
 
-    for (const struct range* r = rng_base; r; r = r->r_next) {
+    for (struct range* r = rng_base; r; r = r->r_next) {
 	if ((lmatch == r->r_left.vp) && (rmatch == r->r_right.vp)) {
 	    *rng = r;
 	    return 0;
@@ -268,10 +268,10 @@ char* v_name (int row, int col)
 
     v = lookat(row, col);
     if (!find_range((char *)0, 0, v, v, &r)) {
-	return (r->r_name);
+	return r->r_name;
     } else {
         sprintf(buf, "%s%d", coltoa(col), row);
-	return (buf);
+	return buf;
     }
 }
 
@@ -284,17 +284,17 @@ char* r_name (int r1, int c1, int r2, int c2)
     v1 = lookat(r1, c1);
     v2 = lookat(r2, c2);
     if (!find_range((char *)0, 0, v1, v2, &r)) {
-	return (r->r_name);
+	return r->r_name;
     } else {
         sprintf(buf, "%s", v_name(r1, c1));
 	sprintf(buf+strlen(buf), ":%s", v_name(r2, c2));
-	return (buf);
+	return buf;
     }
 }
 
 int are_ranges (void)
 {
-    return (rng_base != 0);
+    return rng_base != 0;
 }
 
 void fix_ranges (int row1, int col1, int row2, int col2, int delta1, int delta2)

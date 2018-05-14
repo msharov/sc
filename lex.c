@@ -157,12 +157,12 @@ int yylex (void)
 		    while (isdigit(*++p)) // */;
 		    if (isalpha(*p) || *p == '_') {
 			linelim = p - line;
-			return (yylex());
+			return yylex();
 		    } else
 			ret = FNUMBER;
 		} else if (isalpha(*p) || *p == '_') {
 		    linelim = p - line;
-		    return (yylex());
+		    return yylex();
 		}
 	    }
 	    if ((!dateflag && *p=='.') || ret == FNUMBER) {
@@ -224,10 +224,10 @@ bool plugin_exists (const char* name, char* path)
     if (homedir) {
 	snprintf (path, PATH_MAX, USER_PLUGIN_DIR "%s", homedir, name);
 	if (access (path, R_OK) == 0)
-	    return (true);
+	    return true;
     }
     snprintf (path, PATH_MAX, PLUGIN_DIR "%s", name);
-    return (!access (path, R_OK));
+    return !access (path, R_OK);
 }
 
 // Given a token string starting with a symbolic column name and its valid
@@ -239,7 +239,7 @@ unsigned atocol (const char* string, unsigned len)
     unsigned col = (toupper(string[0])) - 'A';
     if (len == 2)		// has second char
 	col = ((col + 1) * (1+'Z'-'A')) + ((toupper(string[1])) - 'A');
-    return (col);
+    return col;
 }
 
 void initkbd (void)
@@ -259,5 +259,5 @@ int nmgetch (void)
     int c = getch();
     if (c == KEY_SELECT)
 	c = 'm';
-    return (c);
+    return c;
 }

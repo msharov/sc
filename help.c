@@ -401,7 +401,7 @@ static int pscreen (const char* l)
     move (0,0);
     addstr ("Which Screen? [a-p, q]");
     refresh();
-    return (nmgetch());
+    return nmgetch();
 }
 
 void help (void)
