@@ -84,6 +84,7 @@
 //----------------------------------------------------------------------
 
 #include "sc.h"
+#include <math.h>
 #include <time.h>
 
 static const char* fmt_int (const char *val, const char *fmt, bool comma, bool negative);
@@ -446,7 +447,7 @@ bool engformat (int fmt, int width, int lprecision, double val, char *buf, int b
 	"+03", "+06", "+09", "+12", "+15", "+18"
     };
     int engind = 0;
-    double engmant, pow(), engabs, engexp;
+    double engmant, engabs, engexp;
 
     if (buflen < width) return false;
     if (fmt >= 0 && fmt < COLFORMATS && colformat[fmt])
