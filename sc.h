@@ -312,7 +312,7 @@ int readfile (const char* fname, int eraseflg);
 int writefile (const char* fname, int r0, int c0, int rn, int cn);
 int yn_ask (const char* msg);
 struct abbrev* find_abbr (const char* abbrev, int len, struct abbrev** prev);
-struct colorpair cpairs [CPAIRS];
+extern struct colorpair cpairs [CPAIRS];
 struct enode* new (int op, struct enode* a1, struct enode* a2);
 struct enode* new_const (int op, double a1);
 struct enode* new_range (int op, struct range_s a1);
