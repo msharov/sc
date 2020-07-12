@@ -9,7 +9,7 @@ to keep it compiling. For a more actively developed version, try
 
 Building requires ncurses.
 ```sh
-> configure --prefix
+> configure --prefix=/usr
 > make install
 > sc
 ```
