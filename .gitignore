@@ -1,10 +1,4 @@
-*.o
+.o
 config.h
 Config.mk
 config.status
-sc
-psc
-gram.h
-gram.c
-experres.h
-statres.h

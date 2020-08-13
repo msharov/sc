@@ -461,7 +461,6 @@ void yankcol (int arg);
 void yankrow (int arg);
 void yyerror (const char* err);
 int yylex (void);
-int yyparse (void);
 
 extern int modflg;
 extern char* mdir;

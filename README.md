@@ -7,9 +7,10 @@ don't have much use for sc, I do not plan to do much other than
 to keep it compiling. For a more actively developed version, try
 [SC-IM](https://github.com/andmarti1424/sc-im).
 
-Building requires ncurses.
+Building requires [ncurses](https://invisible-island.net/ncurses/),
+[bison](https://www.gnu.org/software/bison/), and a C11-supporting
+compiler such as gcc 4.6.
+
 ```sh
-> configure --prefix=/usr
-> make install
-> sc
+configure --prefix=/usr && make install && sc
 ```

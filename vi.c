@@ -1,6 +1,7 @@
 // SC is free software distributed under the MIT license
 
 #include "sc.h"
+#include ".o/gram.h"
 #include <signal.h>
 #include <regex.h>
 #include <sys/wait.h>
@@ -1389,7 +1390,7 @@ static void search_hist (void)
     if ((errcode = regcomp(last_search, line, REG_EXTENDED))) {
 	char *tmp = scxmalloc((size_t)160);
 	regerror(errcode, last_search, tmp, sizeof(tmp));
-	error(tmp);
+	error ("%s", tmp);
 	scxfree(tmp);
 	return;
     }
@@ -1403,7 +1404,7 @@ static void search_again (bool reverse)
 {
     int prev_match;
     int found_it;
-    if ((last_search == NULL))
+    if (!last_search)
 	return;
     prev_match = histp > 0 ? histp : 0;
     error(" ");
@@ -1810,7 +1811,7 @@ void query (const char* s, const char* data)
     	*line = '\0';
 	linelim = 0;
     }
-    if (s != NULL) error(s);
+    if (s) error ("%s", s);
 
     while (linelim >= 0) {
 	update(0);

@@ -51,7 +51,6 @@ static void	three_arg (const char* s, struct enode* e);
 static void	two_arg (const char* s, struct enode* e);
 static void	two_arg_index (const char* s, struct enode* e);
 
-double	rint(double d);
 int	cellerror = CELLOK;	// is there an error in this cell
 
 #define dtr(x) ((x)*(M_PI/180.0))
@@ -1735,7 +1734,7 @@ void str_search (char* s, int firstrow, int firstcol, int lastrow, int lastcol, 
 	scxfree(s);
 	tmp = scxmalloc((size_t)160);
 	regerror(errcode, &preg, tmp, sizeof(tmp));
-	error(tmp);
+	error ("%s", tmp);
 	scxfree(tmp);
 	return;
     }

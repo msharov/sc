@@ -1,6 +1,7 @@
 // SC is free software distributed under the MIT license
 
 #include "sc.h"
+#include ".o/gram.h"
 #include <sys/wait.h>
 #include <time.h>
 #include <utime.h>
@@ -25,13 +26,6 @@ extern struct ent *freeents;
 // a linked list of free [struct enodes]'s, uses .e.o.left as the pointer
 extern struct enode *freeenodes;
 
-extern char *scext;
-extern char *ascext;
-extern char *tbl0ext;
-extern char *tblext;
-extern char *latexext;
-extern char *slatexext;
-extern char *texext;
 extern int  Vopt;
 extern struct go_save gs;
 int macrofd;
@@ -291,7 +285,7 @@ void deleterow (int arg)
     if (rs - arg < 0) {
 	rs = rs > 0 ? rs : 0;
 	sprintf(buf, "Can't delete %d row%s %d row%s left", arg, (arg != 1 ? "s," : ","), rs, (rs != 1 ? "s" : ""));
-	error(buf);
+	error ("%s", buf);
 	return;
     }
     if (fr) {
@@ -451,7 +445,7 @@ void yankrow (int arg)
     if (rs - arg < 0) {
 	rs = rs > 0 ? rs : 0;
 	sprintf(buf, "Can't yank %d row%s %d row%s left", arg, (arg != 1 ? "s," : ","), rs, (rs != 1 ? "s" : ""));
-	error(buf);
+	error ("%s", buf);
 	return;
     }
     sync_refs();
@@ -505,7 +499,7 @@ void yankcol (int arg)
     if (cs - arg < 0) {
     	cs = cs > 0 ? cs : 0;
 	sprintf(buf, "Can't yank %d column%s %d column%s left", arg, (arg != 1 ? "s," : ","), cs, (cs != 1 ? "s" : ""));
-	error(buf);
+	error ("%s", buf);
 	return;
     }
     sync_refs();
@@ -1128,7 +1122,7 @@ void closecol (int arg)
     if (cs - arg < 0) {
     	cs = cs > 0 ? cs : 0;
 	sprintf(buf, "Can't delete %d column%s %d column%s left", arg, (arg != 1 ? "s," : ","), cs, (cs != 1 ? "s" : ""));
-	error(buf);
+	error ("%s", buf);
 	return;
     }
     if (any_locked_cells(0, curcol, maxrow, curcol + arg - 1)) {

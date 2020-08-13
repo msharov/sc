@@ -29,7 +29,6 @@ int	rescol = 4;		// Columns reserved for row numbers
 int	seenerr = 0;
 
 extern	char    revmsg[];
-extern	int *fwidth;
 extern	int showneed;		// Causes cells needing values to be highlighted
 extern	int showexpr;		// Causes cell exprs to be displayed, highlighted
 extern	int shownote;		// Causes cells with attached notes to be highlighted

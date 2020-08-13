@@ -4,7 +4,7 @@
 #include <math.h>
 #include <signal.h>
 #include <setjmp.h>
-#include "gram.h"
+#include ".o/gram.h"
 
 jmp_buf fpe_buf;
 
@@ -24,12 +24,12 @@ struct key {
 };
 
 static const struct key experres[] = {
-#include "experres.h"
+#include ".o/experres.h"
     { 0, 0 }
 };
 
 static const struct key statres[] = {
-#include "statres.h"
+#include ".o/statres.h"
     { 0, 0 }
 };
 

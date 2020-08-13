@@ -1,6 +1,7 @@
 // SC is free software distributed under the MIT license
 
 #include "sc.h"
+#include ".o/gram.h"
 #include <sys/wait.h>
 #include <signal.h>
 
@@ -43,13 +44,6 @@ char *texext;
 int scrc = 0;
 int showsc, showsr;	// Starting cell for highlighted range
 int usecurses = true;	// Use curses unless piping/redirection or using -q
-
-extern void	doshell();
-extern void	gohome();
-extern void	leftlimit();
-extern void	rightlimit();
-extern void	gototop();
-extern void	gotobottom();
 
 static void signals (void);
 static void diesave (void);
@@ -406,7 +400,7 @@ int main (int argc, char** argv)
 		    break;
 	    }
 	}
-	if (redraw) printf(redraw);
+	if (redraw) printf ("%s", redraw);
 	exit (0);
     }
 
